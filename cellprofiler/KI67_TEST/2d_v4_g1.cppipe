@@ -1,0 +1,529 @@
+CellProfiler Pipeline: http://www.cellprofiler.org
+Version:5
+DateRevision:426
+GitHash:
+ModuleCount:33
+HasImagePlaneDetails:False
+
+Images:[module_num:1|svn_version:'Unknown'|variable_revision_number:2|show_window:False|notes:['To begin creating your project, use the Images module to compile a list of files and/or folders that you want to analyze. You can also specify a set of rules to include only the desired files in your selected folders.']|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    :
+    Filter images?:Custom
+    Select the rule criteria:and (extension does istif) (directory doesnot containregexp "[\\\\/]\\.")
+
+Metadata:[module_num:2|svn_version:'Unknown'|variable_revision_number:6|show_window:False|notes:['The Metadata module optionally allows you to extract information describing your images (i.e, metadata) which will be stored along with your measurements. This information can be contained in the file name and/or location, or in an external file.', '', '^(?P<Plate>.*)_(?P<Well>[A-P][0-9]{2})_s(?P<Site>[0-9])_w(?P<ChannelNumber>[0-9])']|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Extract metadata?:Yes
+    Metadata data type:Text
+    Metadata types:{}
+    Extraction method count:2
+    Metadata extraction method:Extract from file/folder names
+    Metadata source:File name
+    Regular expression to extract from file name:^(?P<field>\d+)_(?P<mask_type>.*_mask)_d\d+_ch\d+_cp_masks.tif
+    Regular expression to extract from folder name:(?P<Date>[0-9]{4}_[0-9]{2}_[0-9]{2})$
+    Extract metadata from:All images
+    Select the filtering criteria:and (file does contain "")
+    Metadata file location:Elsewhere...|
+    Match file and image metadata:[]
+    Use case insensitive matching?:No
+    Metadata file name:None
+    Does cached metadata exist?:No
+    Metadata extraction method:Extract from file/folder names
+    Metadata source:File name
+    Regular expression to extract from file name:^(?P<field>\d+)_(?P<plate>.*)_(?P<well>\w\d\d)_ch(?P<channel>\d+)
+    Regular expression to extract from folder name:(?P<Date>[0-9]{4}_[0-9]{2}_[0-9]{2})$
+    Extract metadata from:Images matching a rule
+    Select the filtering criteria:and (file doesnot contain "mask")
+    Metadata file location:Elsewhere...|
+    Match file and image metadata:[]
+    Use case insensitive matching?:No
+    Metadata file name:None
+    Does cached metadata exist?:No
+
+NamesAndTypes:[module_num:3|svn_version:'Unknown'|variable_revision_number:8|show_window:False|notes:['The NamesAndTypes module allows you to assign a meaningful name to each image by which other modules will refer to it.']|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Assign a name to:Images matching rules
+    Select the image type:Grayscale image
+    Name to assign these images:DNA
+    Match metadata:[{'cd25_ki67': 'field', 'actin': 'field', 'mito': 'field', 'nucl': 'field', 'cell_img': 'field', 'nucl_img': 'field'}]
+    Image set matching method:Metadata
+    Set intensity range from:Image metadata
+    Assignments count:6
+    Single images count:0
+    Maximum intensity:255.0
+    Process as 3D?:No
+    Relative pixel spacing in X:1.0
+    Relative pixel spacing in Y:1.0
+    Relative pixel spacing in Z:8
+    Select the rule criteria:and (metadata does channel "0")
+    Name to assign these images:cd25_ki67
+    Name to assign these objects:Cell
+    Select the image type:Grayscale image
+    Set intensity range from:Image metadata
+    Maximum intensity:255.0
+    Select the rule criteria:and (metadata does channel "3")
+    Name to assign these images:mito
+    Name to assign these objects:Nucleus
+    Select the image type:Grayscale image
+    Set intensity range from:Image metadata
+    Maximum intensity:255.0
+    Select the rule criteria:and (metadata does channel "4")
+    Name to assign these images:nucl
+    Name to assign these objects:Cytoplasm
+    Select the image type:Grayscale image
+    Set intensity range from:Image metadata
+    Maximum intensity:255.0
+    Select the rule criteria:and (metadata does channel "2")
+    Name to assign these images:actin
+    Name to assign these objects:Speckle
+    Select the image type:Grayscale image
+    Set intensity range from:Image metadata
+    Maximum intensity:255.0
+    Select the rule criteria:and (metadata does mask_type "nucl_mask")
+    Name to assign these images:nucl_img
+    Name to assign these objects:Object4
+    Select the image type:Grayscale image
+    Set intensity range from:Image metadata
+    Maximum intensity:255.0
+    Select the rule criteria:and (metadata does mask_type "cell_mask")
+    Name to assign these images:cell_img
+    Name to assign these objects:Object5
+    Select the image type:Grayscale image
+    Set intensity range from:Image metadata
+    Maximum intensity:255.0
+
+Groups:[module_num:4|svn_version:'Unknown'|variable_revision_number:2|show_window:False|notes:['The Groups module optionally allows you to split your list of images into image subsets (groups) which will be processed independently of each other. Examples of groupings include screening batches, microtiter plates, time-lapse movies, etc.']|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Do you want to group your images?:No
+    grouping metadata count:1
+    Metadata category:None
+
+ConvertImageToObjects:[module_num:5|svn_version:'Unknown'|variable_revision_number:1|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Select the input image:cell_img
+    Name the output object:cell_raw
+    Convert to boolean image:No
+    Preserve original labels:Yes
+    Background label:0
+    Connectivity:0
+
+ConvertImageToObjects:[module_num:6|svn_version:'Unknown'|variable_revision_number:1|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Select the input image:nucl_img
+    Name the output object:nucl_raw_unmerged
+    Convert to boolean image:No
+    Preserve original labels:Yes
+    Background label:0
+    Connectivity:0
+
+RelateObjects:[module_num:7|svn_version:'Unknown'|variable_revision_number:5|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Parent objects:cell_raw
+    Child objects:nucl_raw_unmerged
+    Calculate child-parent distances?:None
+    Calculate per-parent means for all child measurements?:No
+    Calculate distances to other parents?:No
+    Do you want to save the children with parents as a new object set?:No
+    Name the output object:RelateObjects
+    Parent name:None
+
+SplitOrMergeObjects:[module_num:8|svn_version:'Unknown'|variable_revision_number:6|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Select the input objects:nucl_raw_unmerged
+    Name the new objects:nucl
+    Operation:Merge
+    Maximum distance within which to merge objects:0
+    Merge using a grayscale image?:No
+    Select the grayscale image to guide merging:None
+    Minimum intensity fraction:0.9
+    Method to find object intensity:Closest point
+    Merging method:Per-parent
+    Select the parent object:cell_raw
+    Output object type:Disconnected
+
+ErodeObjects:[module_num:9|svn_version:'Unknown'|variable_revision_number:1|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Select the input object:cell_raw
+    Name the output object:cell_shrunk
+    Structuring element:disk,5
+    Prevent object removal:Yes
+    Relabel resulting objects:No
+
+ConvertObjectsToImage:[module_num:10|svn_version:'Unknown'|variable_revision_number:1|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Select the input objects:cell_shrunk
+    Name the output image:cell_shrunk_img
+    Select the color format:Binary (black & white)
+    Select the colormap:Default
+
+Threshold:[module_num:11|svn_version:'Unknown'|variable_revision_number:12|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Select the input image:nucl_img
+    Name the output image:nucl_img_bin
+    Threshold strategy:Global
+    Thresholding method:Manual
+    Threshold smoothing scale:0.0
+    Threshold correction factor:1.0
+    Lower and upper bounds on threshold:0.0,1.0
+    Manual threshold:0.0000015259021897
+    Select the measurement to threshold with:None
+    Two-class or three-class thresholding?:Two classes
+    Log transform before thresholding?:No
+    Assign pixels in the middle intensity class to the foreground or the background?:Foreground
+    Size of adaptive window:50
+    Lower outlier fraction:0.05
+    Upper outlier fraction:0.05
+    Averaging method:Mean
+    Variance method:Standard deviation
+    # of deviations:2.0
+    Thresholding method:Minimum Cross-Entropy
+
+ImageMath:[module_num:12|svn_version:'Unknown'|variable_revision_number:5|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Operation:Invert
+    Raise the power of the result by:1.0
+    Multiply the result by:1.0
+    Add to result:0.0
+    Set values less than 0 equal to 0?:Yes
+    Set values greater than 1 equal to 1?:Yes
+    Replace invalid values with 0?:Yes
+    Ignore the image masks?:No
+    Name the output image:cell_shrunk_img_inv
+    Image or measurement?:Image
+    Select the first image:cell_shrunk_img
+    Multiply the first image by:1.0
+    Measurement:
+    Image or measurement?:Image
+    Select the second image:None
+    Multiply the second image by:1.0
+    Measurement:
+
+ImageMath:[module_num:13|svn_version:'Unknown'|variable_revision_number:5|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Operation:Subtract
+    Raise the power of the result by:1.0
+    Multiply the result by:1.0
+    Add to result:0.0
+    Set values less than 0 equal to 0?:Yes
+    Set values greater than 1 equal to 1?:Yes
+    Replace invalid values with 0?:Yes
+    Ignore the image masks?:No
+    Name the output image:memb_mask
+    Image or measurement?:Image
+    Select the first image:cell_shrunk_img_inv
+    Multiply the first image by:1.0
+    Measurement:
+    Image or measurement?:Image
+    Select the second image:nucl_img_bin
+    Multiply the second image by:1.0
+    Measurement:
+
+ImageMath:[module_num:14|svn_version:'Unknown'|variable_revision_number:5|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Operation:Multiply
+    Raise the power of the result by:1.0
+    Multiply the result by:1.0
+    Add to result:0.0
+    Set values less than 0 equal to 0?:Yes
+    Set values greater than 1 equal to 1?:Yes
+    Replace invalid values with 0?:Yes
+    Ignore the image masks?:No
+    Name the output image:memb_img
+    Image or measurement?:Image
+    Select the first image:cell_img
+    Multiply the first image by:1.0
+    Measurement:
+    Image or measurement?:Image
+    Select the second image:memb_mask
+    Multiply the second image by:1.0
+    Measurement:
+
+Threshold:[module_num:15|svn_version:'Unknown'|variable_revision_number:12|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Select the input image:memb_img
+    Name the output image:memb_img_bin
+    Threshold strategy:Global
+    Thresholding method:Manual
+    Threshold smoothing scale:0.0
+    Threshold correction factor:1.0
+    Lower and upper bounds on threshold:0.0,1.0
+    Manual threshold:0.0000015259021897
+    Select the measurement to threshold with:None
+    Two-class or three-class thresholding?:Two classes
+    Log transform before thresholding?:No
+    Assign pixels in the middle intensity class to the foreground or the background?:Foreground
+    Size of adaptive window:50
+    Lower outlier fraction:0.05
+    Upper outlier fraction:0.05
+    Averaging method:Mean
+    Variance method:Standard deviation
+    # of deviations:2.0
+    Thresholding method:Minimum Cross-Entropy
+
+ImageMath:[module_num:16|svn_version:'Unknown'|variable_revision_number:5|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Operation:Invert
+    Raise the power of the result by:1.0
+    Multiply the result by:1.0
+    Add to result:0.0
+    Set values less than 0 equal to 0?:Yes
+    Set values greater than 1 equal to 1?:Yes
+    Replace invalid values with 0?:Yes
+    Ignore the image masks?:No
+    Name the output image:nucl_img_bin_inv
+    Image or measurement?:Image
+    Select the first image:nucl_img_bin
+    Multiply the first image by:1.0
+    Measurement:
+    Image or measurement?:Image
+    Select the second image:None
+    Multiply the second image by:1.0
+    Measurement:
+
+ImageMath:[module_num:17|svn_version:'Unknown'|variable_revision_number:5|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Operation:Multiply
+    Raise the power of the result by:1.0
+    Multiply the result by:1.0
+    Add to result:0.0
+    Set values less than 0 equal to 0?:Yes
+    Set values greater than 1 equal to 1?:Yes
+    Replace invalid values with 0?:Yes
+    Ignore the image masks?:No
+    Name the output image:cyto_img
+    Image or measurement?:Image
+    Select the first image:cell_img
+    Multiply the first image by:1.0
+    Measurement:
+    Image or measurement?:Image
+    Select the second image:nucl_img_bin_inv
+    Multiply the second image by:1.0
+    Measurement:
+
+Threshold:[module_num:18|svn_version:'Unknown'|variable_revision_number:12|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Select the input image:cyto_img
+    Name the output image:cyto_img_bin
+    Threshold strategy:Global
+    Thresholding method:Manual
+    Threshold smoothing scale:0.0
+    Threshold correction factor:1.0
+    Lower and upper bounds on threshold:0.0,1.0
+    Manual threshold:0.0000015259021897
+    Select the measurement to threshold with:None
+    Two-class or three-class thresholding?:Two classes
+    Log transform before thresholding?:No
+    Assign pixels in the middle intensity class to the foreground or the background?:Foreground
+    Size of adaptive window:50
+    Lower outlier fraction:0.05
+    Upper outlier fraction:0.05
+    Averaging method:Mean
+    Variance method:Standard deviation
+    # of deviations:2.0
+    Thresholding method:Minimum Cross-Entropy
+
+Threshold:[module_num:19|svn_version:'Unknown'|variable_revision_number:12|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:True]
+    Select the input image:mito
+    Name the output image:mito_thresh
+    Threshold strategy:Adaptive
+    Thresholding method:Minimum Cross-Entropy
+    Threshold smoothing scale:0.0
+    Threshold correction factor:1.0
+    Lower and upper bounds on threshold:0.0,1.0
+    Manual threshold:0.0
+    Select the measurement to threshold with:None
+    Two-class or three-class thresholding?:Three classes
+    Log transform before thresholding?:No
+    Assign pixels in the middle intensity class to the foreground or the background?:Background
+    Size of adaptive window:20
+    Lower outlier fraction:0.05
+    Upper outlier fraction:0.05
+    Averaging method:Mean
+    Variance method:Standard deviation
+    # of deviations:2.0
+    Thresholding method:Otsu
+
+ConvertImageToObjects:[module_num:20|svn_version:'Unknown'|variable_revision_number:1|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Select the input image:mito_thresh
+    Name the output object:mito
+    Convert to boolean image:No
+    Preserve original labels:No
+    Background label:0
+    Connectivity:0
+
+ConvertImageToObjects:[module_num:21|svn_version:'Unknown'|variable_revision_number:1|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Select the input image:memb_img
+    Name the output object:memb
+    Convert to boolean image:No
+    Preserve original labels:Yes
+    Background label:0
+    Connectivity:0
+
+ConvertImageToObjects:[module_num:22|svn_version:'Unknown'|variable_revision_number:1|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Select the input image:cyto_img
+    Name the output object:cyto
+    Convert to boolean image:No
+    Preserve original labels:Yes
+    Background label:0
+    Connectivity:0
+
+FilterObjects:[module_num:23|svn_version:'Unknown'|variable_revision_number:10|show_window:False|notes:['Exclude nuclei 5% arround the image borders']|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Select the objects to filter:cell_raw
+    Name the output objects:cell
+    Select the filtering mode:Measurements
+    Select the filtering method:Limits
+    Select the objects that contain the filtered objects:None
+    Select the location of the rules or classifier file:Elsewhere...|
+    Rules or classifier file name:rules.txt
+    Class number:1
+    Measurement count:2
+    Additional object count:0
+    Assign overlapping child to:Both parents
+    Keep removed objects as a separate set?:No
+    Name the objects removed by the filter:RemovedObjects
+    Select the measurement to filter by:Location_Center_X
+    Filter using a minimum measurement value?:Yes
+    Minimum value:108
+    Filter using a maximum measurement value?:Yes
+    Maximum value:2052
+    Select the measurement to filter by:Location_Center_Y
+    Filter using a minimum measurement value?:Yes
+    Minimum value:108
+    Filter using a maximum measurement value?:Yes
+    Maximum value:2052
+    Allow fuzzy feature matching?:No
+
+RelateObjects:[module_num:24|svn_version:'Unknown'|variable_revision_number:5|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Parent objects:cell
+    Child objects:cyto
+    Calculate child-parent distances?:None
+    Calculate per-parent means for all child measurements?:No
+    Calculate distances to other parents?:No
+    Do you want to save the children with parents as a new object set?:No
+    Name the output object:RelateObjects
+    Parent name:None
+
+RelateObjects:[module_num:25|svn_version:'Unknown'|variable_revision_number:5|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Parent objects:cell
+    Child objects:nucl
+    Calculate child-parent distances?:None
+    Calculate per-parent means for all child measurements?:No
+    Calculate distances to other parents?:No
+    Do you want to save the children with parents as a new object set?:No
+    Name the output object:RelateObjects
+    Parent name:None
+
+RelateObjects:[module_num:26|svn_version:'Unknown'|variable_revision_number:5|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Parent objects:cell
+    Child objects:memb
+    Calculate child-parent distances?:None
+    Calculate per-parent means for all child measurements?:No
+    Calculate distances to other parents?:No
+    Do you want to save the children with parents as a new object set?:No
+    Name the output object:RelateObjects
+    Parent name:None
+
+RelateObjects:[module_num:27|svn_version:'Unknown'|variable_revision_number:5|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Parent objects:cell
+    Child objects:mito
+    Calculate child-parent distances?:None
+    Calculate per-parent means for all child measurements?:No
+    Calculate distances to other parents?:No
+    Do you want to save the children with parents as a new object set?:No
+    Name the output object:RelateObjects
+    Parent name:None
+
+ImageMath:[module_num:28|svn_version:'Unknown'|variable_revision_number:5|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Operation:Multiply
+    Raise the power of the result by:1.0
+    Multiply the result by:1.0
+    Add to result:0.0
+    Set values less than 0 equal to 0?:Yes
+    Set values greater than 1 equal to 1?:Yes
+    Replace invalid values with 0?:Yes
+    Ignore the image masks?:No
+    Name the output image:cd25
+    Image or measurement?:Image
+    Select the first image:cd25_ki67
+    Multiply the first image by:1.0
+    Measurement:
+    Image or measurement?:Image
+    Select the second image:cyto_img_bin
+    Multiply the second image by:1.0
+    Measurement:
+
+ImageMath:[module_num:29|svn_version:'Unknown'|variable_revision_number:5|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Operation:Multiply
+    Raise the power of the result by:1.0
+    Multiply the result by:1.0
+    Add to result:0.0
+    Set values less than 0 equal to 0?:Yes
+    Set values greater than 1 equal to 1?:Yes
+    Replace invalid values with 0?:Yes
+    Ignore the image masks?:No
+    Name the output image:ki67
+    Image or measurement?:Image
+    Select the first image:cd25_ki67
+    Multiply the first image by:1.0
+    Measurement:
+    Image or measurement?:Image
+    Select the second image:nucl_img_bin
+    Multiply the second image by:1.0
+    Measurement:
+
+MeasureObjectSizeShape:[module_num:30|svn_version:'Unknown'|variable_revision_number:3|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Select object sets to measure:cell, nucl
+    Calculate the Zernike features?:No
+    Calculate the advanced features?:No
+
+MeasureGranularity:[module_num:31|svn_version:'Unknown'|variable_revision_number:4|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Select images to measure:ki67, nucl
+    Measure within objects?:Yes
+    Select objects to measure:nucl
+    Subsampling factor for granularity measurements:0.25
+    Subsampling factor for background reduction:0.25
+    Radius of structuring element:1
+    Range of the granular spectrum:16
+
+MeasureGranularity:[module_num:32|svn_version:'Unknown'|variable_revision_number:4|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Select images to measure:mito
+    Measure within objects?:Yes
+    Select objects to measure:cell
+    Subsampling factor for granularity measurements:0.25
+    Subsampling factor for background reduction:0.25
+    Radius of structuring element:1
+    Range of the granular spectrum:16
+
+ExportToSpreadsheet:[module_num:33|svn_version:'Unknown'|variable_revision_number:13|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Select the column delimiter:Tab
+    Add image metadata columns to your object data file?:No
+    Add image file and folder names to your object data file?:No
+    Select the measurements to export:Yes
+    Calculate the per-image mean values for object measurements?:No
+    Calculate the per-image median values for object measurements?:No
+    Calculate the per-image standard deviation values for object measurements?:No
+    Output file location:Default Output Folder|Desktop
+    Create a GenePattern GCT file?:No
+    Select source of sample row name:Metadata
+    Select the image to use as the identifier:None
+    Select the metadata to use as the identifier:None
+    Export all measurement types?:No
+    Press button to select measurements:cell|AreaShape_MedianRadius,cell|AreaShape_MajorAxisLength,cell|AreaShape_EquivalentDiameter,cell|AreaShape_Center_X,cell|AreaShape_Center_Y,cell|AreaShape_MeanRadius,cell|AreaShape_BoundingBoxArea,cell|AreaShape_MinFeretDiameter,cell|AreaShape_BoundingBoxMinimum_Y,cell|AreaShape_BoundingBoxMinimum_X,cell|AreaShape_Eccentricity,cell|AreaShape_Orientation,cell|AreaShape_Solidity,cell|AreaShape_ConvexArea,cell|AreaShape_MaxFeretDiameter,cell|AreaShape_Area,cell|AreaShape_MinorAxisLength,cell|AreaShape_EulerNumber,cell|AreaShape_Extent,cell|AreaShape_FormFactor,cell|AreaShape_Perimeter,cell|AreaShape_Compactness,cell|AreaShape_MaximumRadius,cell|AreaShape_BoundingBoxMaximum_Y,cell|AreaShape_BoundingBoxMaximum_X,cell|Granularity_11_mito,cell|Granularity_1_mito,cell|Granularity_13_mito,cell|Granularity_16_mito,cell|Granularity_15_mito,cell|Granularity_3_mito,cell|Granularity_4_mito,cell|Granularity_5_mito,cell|Granularity_10_mito,cell|Granularity_8_mito,cell|Granularity_6_mito,cell|Granularity_9_mito,cell|Granularity_12_mito,cell|Granularity_14_mito,cell|Granularity_7_mito,cell|Granularity_2_mito,cell|Children_memb_Count,cell|Children_cyto_Count,cell|Children_mito_Count,cell|Children_nucl_Count,cell|Location_Center_Y,cell|Location_Center_Z,cell|Location_Center_X,cell|Number_Object_Number,cell|Parent_cell_raw,Image|Series_actin,Image|Series_mito,Image|Series_nucl,Image|Series_nucl_img,Image|Series_cd25_ki67,Image|Series_cell_img,Image|PathName_mito,Image|PathName_cd25_ki67,Image|PathName_cell_img,Image|PathName_actin,Image|PathName_nucl,Image|PathName_nucl_img,Image|MD5Digest_actin,Image|MD5Digest_mito,Image|MD5Digest_nucl,Image|MD5Digest_nucl_img,Image|MD5Digest_cd25_ki67,Image|MD5Digest_cell_img,Image|ExecutionTime_09ErodeObjects,Image|ExecutionTime_25RelateObjects,Image|ExecutionTime_11Threshold,Image|ExecutionTime_32MeasureGranularity,Image|ExecutionTime_06ConvertImageToObjects,Image|ExecutionTime_13ImageMath,Image|ExecutionTime_31MeasureGranularity,Image|ExecutionTime_10ConvertObjectsToImage,Image|ExecutionTime_02Metadata,Image|ExecutionTime_19Threshold,Image|ExecutionTime_16ImageMath,Image|ExecutionTime_18Threshold,Image|ExecutionTime_14ImageMath,Image|ExecutionTime_24RelateObjects,Image|ExecutionTime_15Threshold,Image|ExecutionTime_07RelateObjects,Image|ExecutionTime_28ImageMath,Image|ExecutionTime_30MeasureObjectSizeShape,Image|ExecutionTime_23FilterObjects,Image|ExecutionTime_12ImageMath,Image|ExecutionTime_01Images,Image|ExecutionTime_29ImageMath,Image|ExecutionTime_21ConvertImageToObjects,Image|ExecutionTime_17ImageMath,Image|ExecutionTime_22ConvertImageToObjects,Image|ExecutionTime_20ConvertImageToObjects,Image|ExecutionTime_04Groups,Image|ExecutionTime_26RelateObjects,Image|ExecutionTime_05ConvertImageToObjects,Image|ExecutionTime_08SplitOrMergeObjects,Image|ExecutionTime_03NamesAndTypes,Image|ExecutionTime_27RelateObjects,Image|Granularity_11_ki67,Image|Granularity_11_nucl,Image|Granularity_11_mito,Image|Granularity_16_ki67,Image|Granularity_16_mito,Image|Granularity_16_nucl,Image|Granularity_14_mito,Image|Granularity_14_nucl,Image|Granularity_14_ki67,Image|Granularity_4_ki67,Image|Granularity_4_nucl,Image|Granularity_4_mito,Image|Granularity_8_nucl,Image|Granularity_8_ki67,Image|Granularity_8_mito,Image|Granularity_7_mito,Image|Granularity_7_ki67,Image|Granularity_7_nucl,Image|Granularity_15_ki67,Image|Granularity_15_nucl,Image|Granularity_15_mito,Image|Granularity_2_nucl,Image|Granularity_2_mito,Image|Granularity_2_ki67,Image|Granularity_5_nucl,Image|Granularity_5_ki67,Image|Granularity_5_mito,Image|Granularity_9_nucl,Image|Granularity_9_ki67,Image|Granularity_9_mito,Image|Granularity_10_ki67,Image|Granularity_10_mito,Image|Granularity_10_nucl,Image|Granularity_1_nucl,Image|Granularity_1_mito,Image|Granularity_1_ki67,Image|Granularity_6_nucl,Image|Granularity_6_mito,Image|Granularity_6_ki67,Image|Granularity_3_mito,Image|Granularity_3_ki67,Image|Granularity_3_nucl,Image|Granularity_12_ki67,Image|Granularity_12_mito,Image|Granularity_12_nucl,Image|Granularity_13_mito,Image|Granularity_13_nucl,Image|Granularity_13_ki67,Image|Count_memb,Image|Count_cyto,Image|Count_mito,Image|Count_cell,Image|Count_cell_shrunk,Image|Count_cell_raw,Image|Count_nucl,Image|Count_nucl_raw_unmerged,Image|Scaling_cell_img,Image|Scaling_cd25_ki67,Image|Scaling_actin,Image|Scaling_nucl,Image|Scaling_nucl_img,Image|Scaling_mito,Image|URL_nucl,Image|URL_nucl_img,Image|URL_cell_img,Image|URL_actin,Image|URL_cd25_ki67,Image|URL_mito,Image|Frame_nucl,Image|Frame_nucl_img,Image|Frame_actin,Image|Frame_cd25_ki67,Image|Frame_mito,Image|Frame_cell_img,Image|Threshold_OrigThreshold_nucl_img_bin,Image|Threshold_OrigThreshold_memb_img_bin,Image|Threshold_OrigThreshold_cyto_img_bin,Image|Threshold_OrigThreshold_mito_thresh,Image|Threshold_SumOfEntropies_nucl_img_bin,Image|Threshold_SumOfEntropies_memb_img_bin,Image|Threshold_SumOfEntropies_mito_thresh,Image|Threshold_SumOfEntropies_cyto_img_bin,Image|Threshold_FinalThreshold_memb_img_bin,Image|Threshold_FinalThreshold_cyto_img_bin,Image|Threshold_FinalThreshold_mito_thresh,Image|Threshold_FinalThreshold_nucl_img_bin,Image|Threshold_WeightedVariance_mito_thresh,Image|Threshold_WeightedVariance_nucl_img_bin,Image|Threshold_WeightedVariance_memb_img_bin,Image|Threshold_WeightedVariance_cyto_img_bin,Image|Threshold_GuideThreshold_mito_thresh,Image|ModuleError_09ErodeObjects,Image|ModuleError_05ConvertImageToObjects,Image|ModuleError_25RelateObjects,Image|ModuleError_30MeasureObjectSizeShape,Image|ModuleError_01Images,Image|ModuleError_10ConvertObjectsToImage,Image|ModuleError_29ImageMath,Image|ModuleError_13ImageMath,Image|ModuleError_06ConvertImageToObjects,Image|ModuleError_14ImageMath,Image|ModuleError_32MeasureGranularity,Image|ModuleError_23FilterObjects,Image|ModuleError_11Threshold,Image|ModuleError_08SplitOrMergeObjects,Image|ModuleError_27RelateObjects,Image|ModuleError_15Threshold,Image|ModuleError_16ImageMath,Image|ModuleError_07RelateObjects,Image|ModuleError_19Threshold,Image|ModuleError_17ImageMath,Image|ModuleError_03NamesAndTypes,Image|ModuleError_02Metadata,Image|ModuleError_18Threshold,Image|ModuleError_28ImageMath,Image|ModuleError_22ConvertImageToObjects,Image|ModuleError_26RelateObjects,Image|ModuleError_12ImageMath,Image|ModuleError_20ConvertImageToObjects,Image|ModuleError_31MeasureGranularity,Image|ModuleError_24RelateObjects,Image|ModuleError_21ConvertImageToObjects,Image|ModuleError_04Groups,Image|Height_cd25_ki67,Image|Height_nucl,Image|Height_nucl_img,Image|Height_cell_img,Image|Height_mito,Image|Height_actin,Image|Width_nucl,Image|Width_nucl_img,Image|Width_mito,Image|Width_cd25_ki67,Image|Width_cell_img,Image|Width_actin,Image|FileName_nucl,Image|FileName_nucl_img,Image|FileName_mito,Image|FileName_cell_img,Image|FileName_actin,Image|FileName_cd25_ki67,Image|Metadata_FileLocation,Image|Metadata_Frame,Image|Metadata_channel,Image|Metadata_field,Image|Metadata_mask_type,Image|Metadata_well,Image|Metadata_Series,Image|Metadata_plate,Image|Group_Index,Image|Group_Number,Image|Group_Length,nucl|Granularity_8_nucl,nucl|Granularity_8_ki67,nucl|Granularity_15_ki67,nucl|Granularity_15_nucl,nucl|Granularity_2_ki67,nucl|Granularity_2_nucl,nucl|Granularity_3_ki67,nucl|Granularity_3_nucl,nucl|Granularity_5_ki67,nucl|Granularity_5_nucl,nucl|Granularity_4_ki67,nucl|Granularity_4_nucl,nucl|Granularity_14_ki67,nucl|Granularity_14_nucl,nucl|Granularity_11_ki67,nucl|Granularity_11_nucl,nucl|Granularity_13_ki67,nucl|Granularity_13_nucl,nucl|Granularity_10_nucl,nucl|Granularity_10_ki67,nucl|Granularity_12_ki67,nucl|Granularity_12_nucl,nucl|Granularity_7_nucl,nucl|Granularity_7_ki67,nucl|Granularity_1_nucl,nucl|Granularity_1_ki67,nucl|Granularity_9_nucl,nucl|Granularity_9_ki67,nucl|Granularity_16_ki67,nucl|Granularity_16_nucl,nucl|Granularity_6_nucl,nucl|Granularity_6_ki67,nucl|AreaShape_MaxFeretDiameter,nucl|AreaShape_Perimeter,nucl|AreaShape_Compactness,nucl|AreaShape_BoundingBoxMinimum_Y,nucl|AreaShape_BoundingBoxMinimum_X,nucl|AreaShape_Area,nucl|AreaShape_EquivalentDiameter,nucl|AreaShape_Center_X,nucl|AreaShape_Center_Y,nucl|AreaShape_MinorAxisLength,nucl|AreaShape_MinFeretDiameter,nucl|AreaShape_FormFactor,nucl|AreaShape_EulerNumber,nucl|AreaShape_Extent,nucl|AreaShape_BoundingBoxMaximum_Y,nucl|AreaShape_BoundingBoxMaximum_X,nucl|AreaShape_MeanRadius,nucl|AreaShape_Eccentricity,nucl|AreaShape_Orientation,nucl|AreaShape_MedianRadius,nucl|AreaShape_BoundingBoxArea,nucl|AreaShape_MajorAxisLength,nucl|AreaShape_ConvexArea,nucl|AreaShape_MaximumRadius,nucl|AreaShape_Solidity,nucl|Location_Center_X,nucl|Location_Center_Y,nucl|Parent_nucl_raw_unmerged,nucl|Parent_cell,nucl|Number_Object_Number,cyto|Location_Center_X,cyto|Location_Center_Y,cyto|Location_Center_Z,cyto|Number_Object_Number,cyto|Parent_cell,Experiment|CellProfiler_Version,Experiment|Pipeline_Pipeline,Experiment|Modification_Timestamp,Experiment|Run_Timestamp,memb|Parent_cell,memb|Location_Center_X,memb|Location_Center_Z,memb|Location_Center_Y,memb|Number_Object_Number,mito|Location_Center_Z,mito|Location_Center_Y,mito|Location_Center_X,mito|Number_Object_Number,mito|Parent_cell
+    Representation of Nan/Inf:NaN
+    Add a prefix to file names?:Yes
+    Filename prefix:tglow_2d_v4_
+    Overwrite existing files without warning?:No
+    Data to export:Image
+    Combine these object measurements with those of the previous object?:No
+    File name:\g<plate>_\g<well>_images.tsv
+    Use the object name for the file name?:Yes
+    Data to export:Experiment
+    Combine these object measurements with those of the previous object?:No
+    File name:\g<plate>_\g<well>_experiment.tsv
+    Use the object name for the file name?:Yes
+    Data to export:cell
+    Combine these object measurements with those of the previous object?:No
+    File name:\g<plate>_\g<well>_cells.tsv
+    Use the object name for the file name?:Yes
+    Data to export:cyto
+    Combine these object measurements with those of the previous object?:No
+    File name:DATA.csv
+    Use the object name for the file name?:Yes
+    Data to export:memb
+    Combine these object measurements with those of the previous object?:No
+    File name:DATA.csv
+    Use the object name for the file name?:Yes
+    Data to export:nucl
+    Combine these object measurements with those of the previous object?:No
+    File name:DATA.csv
+    Use the object name for the file name?:Yes
+    Data to export:Object relationships
+    Combine these object measurements with those of the previous object?:No
+    File name:\g<plate>_\g<well>_objectRelationships.tsv
+    Use the object name for the file name?:Yes
+    Data to export:mito
+    Combine these object measurements with those of the previous object?:No
+    File name:DATA.csv
+    Use the object name for the file name?:Yes

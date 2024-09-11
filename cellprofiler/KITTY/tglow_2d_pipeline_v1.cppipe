@@ -1,0 +1,562 @@
+CellProfiler Pipeline: http://www.cellprofiler.org
+Version:5
+DateRevision:426
+GitHash:
+ModuleCount:33
+HasImagePlaneDetails:False
+
+Images:[module_num:1|svn_version:'Unknown'|variable_revision_number:2|show_window:False|notes:['To begin creating your project, use the Images module to compile a list of files and/or folders that you want to analyze. You can also specify a set of rules to include only the desired files in your selected folders.']|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    :
+    Filter images?:Images only
+    Select the rule criteria:and (extension does isimage) (directory doesnot containregexp "[\\\\/]\\.")
+
+Metadata:[module_num:2|svn_version:'Unknown'|variable_revision_number:6|show_window:False|notes:['The Metadata module optionally allows you to extract information describing your images (i.e, metadata) which will be stored along with your measurements. This information can be contained in the file name and/or location, or in an external file.']|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Extract metadata?:Yes
+    Metadata data type:Text
+    Metadata types:{}
+    Extraction method count:3
+    Metadata extraction method:Extract from image file headers
+    Metadata source:File name
+    Regular expression to extract from file name:^(?P<Plate>.*)_(?P<Well>[A-P][0-9]{2})_s(?P<Site>[0-9])_w(?P<ChannelNumber>[0-9])
+    Regular expression to extract from folder name:(?P<Date>[0-9]{4}_[0-9]{2}_[0-9]{2})$
+    Extract metadata from:All images
+    Select the filtering criteria:and (file does contain "")
+    Metadata file location:Elsewhere...|
+    Match file and image metadata:[]
+    Use case insensitive matching?:No
+    Metadata file name:None
+    Does cached metadata exist?:Yes
+    Metadata extraction method:Extract from file/folder names
+    Metadata source:File name
+    Regular expression to extract from file name:jm52_KITTY_20230929_(?P<group>.+_[A-Z]\d+_f\d+)_max_projection.tiff
+    Regular expression to extract from folder name:(?P<Date>[0-9]{4}_[0-9]{2}_[0-9]{2})$
+    Extract metadata from:All images
+    Select the filtering criteria:and (file does contain "")
+    Metadata file location:Elsewhere...|
+    Match file and image metadata:[]
+    Use case insensitive matching?:No
+    Metadata file name:None
+    Does cached metadata exist?:No
+    Metadata extraction method:Extract from file/folder names
+    Metadata source:File name
+    Regular expression to extract from file name:jm52_KITTY_20230929_(?P<timepoint>[a-zA-Z0-9_]+)_(?P<well>[A-Z]\d+)_(?P<field>f\d+)_max_projection.tiff
+    Regular expression to extract from folder name:(?P<Date>[0-9]{4}_[0-9]{2}_[0-9]{2})$
+    Extract metadata from:All images
+    Select the filtering criteria:and (file does contain "")
+    Metadata file location:Elsewhere...|
+    Match file and image metadata:[]
+    Use case insensitive matching?:No
+    Metadata file name:None
+    Does cached metadata exist?:No
+
+NamesAndTypes:[module_num:3|svn_version:'Unknown'|variable_revision_number:8|show_window:False|notes:['The NamesAndTypes module allows you to assign a meaningful name to each image by which other modules will refer to it.']|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Assign a name to:Images matching rules
+    Select the image type:Grayscale image
+    Name to assign these images:DNA
+    Match metadata:[]
+    Image set matching method:Order
+    Set intensity range from:Image metadata
+    Assignments count:5
+    Single images count:0
+    Maximum intensity:255.0
+    Process as 3D?:No
+    Relative pixel spacing in X:1.0
+    Relative pixel spacing in Y:1.0
+    Relative pixel spacing in Z:1.0
+    Select the rule criteria:and (metadata does C "0")
+    Name to assign these images:CD25_Ki67
+    Name to assign these objects:Cell
+    Select the image type:Grayscale image
+    Set intensity range from:Image metadata
+    Maximum intensity:255.0
+    Select the rule criteria:and (metadata does C "1")
+    Name to assign these images:brightfield
+    Name to assign these objects:Cell
+    Select the image type:Grayscale image
+    Set intensity range from:Image metadata
+    Maximum intensity:255.0
+    Select the rule criteria:and (metadata does C "2")
+    Name to assign these images:DNA
+    Name to assign these objects:Cell
+    Select the image type:Grayscale image
+    Set intensity range from:Image metadata
+    Maximum intensity:255.0
+    Select the rule criteria:and (metadata does C "3")
+    Name to assign these images:mitochondria
+    Name to assign these objects:Cell
+    Select the image type:Grayscale image
+    Set intensity range from:Image metadata
+    Maximum intensity:255.0
+    Select the rule criteria:and (metadata does C "4")
+    Name to assign these images:actin
+    Name to assign these objects:Cell
+    Select the image type:Grayscale image
+    Set intensity range from:Image metadata
+    Maximum intensity:255.0
+
+Groups:[module_num:4|svn_version:'Unknown'|variable_revision_number:2|show_window:False|notes:['The Groups module optionally allows you to split your list of images into image subsets (groups) which will be processed independently of each other. Examples of groupings include screening batches, microtiter plates, time-lapse movies, etc.']|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Do you want to group your images?:No
+    grouping metadata count:1
+    Metadata category:None
+
+MeasureImageQuality:[module_num:5|svn_version:'Unknown'|variable_revision_number:6|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Calculate metrics for which images?:All loaded images
+    Image count:1
+    Scale count:3
+    Threshold count:1
+    Select the images to measure:Actin, CD25_Ki67, DNA, Mitochondria
+    Include the image rescaling value?:Yes
+    Calculate blur metrics?:No
+    Spatial scale for blur measurements:10
+    Spatial scale for blur measurements:20
+    Spatial scale for blur measurements:40
+    Calculate saturation metrics?:No
+    Calculate intensity metrics?:Yes
+    Calculate thresholds?:No
+    Use all thresholding methods?:No
+    Select a thresholding method:Otsu
+    Typical fraction of the image covered by objects:0.1
+    Two-class or three-class thresholding?:Two classes
+    Minimize the weighted variance or the entropy?:Weighted variance
+    Assign pixels in the middle intensity class to the foreground or the background?:Foreground
+
+FlagImage:[module_num:6|svn_version:'Unknown'|variable_revision_number:5|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Hidden:1
+    Hidden:1
+    Name the flag's category:Metadata
+    Name the flag:image_qc
+    How should measurements be linked?:Flag if any fail
+    Skip image set if flagged?:Yes
+    Flag is based on:Whole-image measurement
+    Select the object to be used for flagging:None
+    Which measurement?:ImageQuality_MaxIntensity_DNA
+    Flag images based on low values?:Yes
+    Minimum value:0.1
+    Flag images based on high values?:No
+    Maximum value:1.0
+    Rules file location:Default Input Folder sub-folder|Documents/projects/imagingpipelines/tglow/cellprofiler/KITTY
+    Rules file name:qcclassifier_goodbad.model
+    Class number:good
+    Allow fuzzy feature matching?:No
+    Ignore flag skips on last cycle?:No
+
+ImageMath:[module_num:7|svn_version:'Unknown'|variable_revision_number:5|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Operation:Add
+    Raise the power of the result by:1.0
+    Multiply the result by:1.0
+    Add to result:0.0
+    Set values less than 0 equal to 0?:Yes
+    Set values greater than 1 equal to 1?:Yes
+    Replace invalid values with 0?:Yes
+    Ignore the image masks?:Yes
+    Name the output image:Cell_outline
+    Image or measurement?:Image
+    Select the first image:DNA
+    Multiply the first image by:1
+    Measurement:
+    Image or measurement?:Image
+    Select the second image:CD25_Ki67
+    Multiply the second image by:5
+    Measurement:
+    Image or measurement?:Image
+    Select the third image:actin
+    Multiply the third image by:5
+    Measurement:
+    Image or measurement?:Image
+    Select the fourth image:brightfield
+    Multiply the fourth image by:1.0
+    Measurement:
+    Image or measurement?:Image
+    Select the fifth image:mitochondria
+    Multiply the fifth image by:1.0
+    Measurement:
+
+IdentifyPrimaryObjects:[module_num:8|svn_version:'Unknown'|variable_revision_number:15|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Select the input image:DNA
+    Name the primary objects to be identified:Nuclei_raw
+    Typical diameter of objects, in pixel units (Min,Max):10,90
+    Discard objects outside the diameter range?:Yes
+    Discard objects touching the border of the image?:Yes
+    Method to distinguish clumped objects:Shape
+    Method to draw dividing lines between clumped objects:Shape
+    Size of smoothing filter:20
+    Suppress local maxima that are closer than this minimum allowed distance:20
+    Speed up by using lower-resolution image to find local maxima?:No
+    Fill holes in identified objects?:After both thresholding and declumping
+    Automatically calculate size of smoothing filter for declumping?:No
+    Automatically calculate minimum allowed distance between local maxima?:No
+    Handling of objects if excessive number of objects identified:Continue
+    Maximum number of objects:500
+    Use advanced settings?:Yes
+    Threshold setting version:12
+    Threshold strategy:Global
+    Thresholding method:Otsu
+    Threshold smoothing scale:0
+    Threshold correction factor:1.0
+    Lower and upper bounds on threshold:0.0,1.0
+    Manual threshold:0.0
+    Select the measurement to threshold with:None
+    Two-class or three-class thresholding?:Two classes
+    Log transform before thresholding?:No
+    Assign pixels in the middle intensity class to the foreground or the background?:Foreground
+    Size of adaptive window:50
+    Lower outlier fraction:0.05
+    Upper outlier fraction:0.05
+    Averaging method:Mean
+    Variance method:Standard deviation
+    # of deviations:2.0
+    Thresholding method:Minimum Cross-Entropy
+
+IdentifySecondaryObjects:[module_num:9|svn_version:'Unknown'|variable_revision_number:10|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Select the input objects:Nuclei_raw
+    Name the objects to be identified:cell_raw
+    Select the method to identify the secondary objects:Propagation
+    Select the input image:Cell_outline
+    Number of pixels by which to expand the primary objects:10
+    Regularization factor:0.05
+    Discard secondary objects touching the border of the image?:No
+    Discard the associated primary objects?:No
+    Name the new primary objects:FilteredNuclei
+    Fill holes in identified objects?:Yes
+    Threshold setting version:12
+    Threshold strategy:Adaptive
+    Thresholding method:Minimum Cross-Entropy
+    Threshold smoothing scale:0.0
+    Threshold correction factor:1
+    Lower and upper bounds on threshold:0.0,1.0
+    Manual threshold:0.0
+    Select the measurement to threshold with:None
+    Two-class or three-class thresholding?:Three classes
+    Log transform before thresholding?:No
+    Assign pixels in the middle intensity class to the foreground or the background?:Foreground
+    Size of adaptive window:50
+    Lower outlier fraction:0.05
+    Upper outlier fraction:0.05
+    Averaging method:Mean
+    Variance method:Standard deviation
+    # of deviations:2.0
+    Thresholding method:Otsu
+
+FilterObjects:[module_num:10|svn_version:'Unknown'|variable_revision_number:10|show_window:False|notes:['Remove nuclei with centers overlapping the image border within 5%']|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Select the objects to filter:Nuclei_raw
+    Name the output objects:Nuclei
+    Select the filtering mode:Measurements
+    Select the filtering method:Limits
+    Select the objects that contain the filtered objects:None
+    Select the location of the rules or classifier file:Elsewhere...|
+    Rules or classifier file name:rules.txt
+    Class number:1
+    Measurement count:2
+    Additional object count:0
+    Assign overlapping child to:Both parents
+    Keep removed objects as a separate set?:No
+    Name the objects removed by the filter:RemovedObjects
+    Select the measurement to filter by:Location_Center_X
+    Filter using a minimum measurement value?:Yes
+    Minimum value:108
+    Filter using a maximum measurement value?:Yes
+    Maximum value:2052
+    Select the measurement to filter by:Location_Center_Y
+    Filter using a minimum measurement value?:Yes
+    Minimum value:108
+    Filter using a maximum measurement value?:Yes
+    Maximum value:2052
+    Allow fuzzy feature matching?:No
+
+FilterObjects:[module_num:11|svn_version:'Unknown'|variable_revision_number:10|show_window:False|notes:['Remove cells with centers overlapping the image border within 5%']|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Select the objects to filter:cell_raw
+    Name the output objects:cell
+    Select the filtering mode:Measurements
+    Select the filtering method:Limits
+    Select the objects that contain the filtered objects:None
+    Select the location of the rules or classifier file:Elsewhere...|
+    Rules or classifier file name:rules.txt
+    Class number:1
+    Measurement count:2
+    Additional object count:0
+    Assign overlapping child to:Both parents
+    Keep removed objects as a separate set?:No
+    Name the objects removed by the filter:RemovedObjects
+    Select the measurement to filter by:Location_Center_X
+    Filter using a minimum measurement value?:Yes
+    Minimum value:108
+    Filter using a maximum measurement value?:Yes
+    Maximum value:2052
+    Select the measurement to filter by:Location_Center_Y
+    Filter using a minimum measurement value?:Yes
+    Minimum value:108
+    Filter using a maximum measurement value?:Yes
+    Maximum value:2052
+    Allow fuzzy feature matching?:No
+
+IdentifyTertiaryObjects:[module_num:12|svn_version:'Unknown'|variable_revision_number:3|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Select the larger identified objects:cell
+    Select the smaller identified objects:Nuclei
+    Name the tertiary objects to be identified:Cytoplasm
+    Shrink smaller object prior to subtraction?:Yes
+
+HistogramMatching:[module_num:13|svn_version:'Unknown'|variable_revision_number:1|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Select the input image:CD25_Ki67
+    Name the output image:CD25_Ki67_eq
+    Is your image 3D?:No
+    Use a frame within image as reference?:No
+    Image to use as reference :mitochondria
+    Frame number:5
+
+HistogramMatching:[module_num:14|svn_version:'Unknown'|variable_revision_number:1|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Select the input image:DNA
+    Name the output image:DNA_eq
+    Is your image 3D?:No
+    Use a frame within image as reference?:No
+    Image to use as reference :mitochondria
+    Frame number:5
+
+HistogramMatching:[module_num:15|svn_version:'Unknown'|variable_revision_number:1|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Select the input image:actin
+    Name the output image:actin_eq
+    Is your image 3D?:No
+    Use a frame within image as reference?:No
+    Image to use as reference :mitochondria
+    Frame number:5
+
+HistogramMatching:[module_num:16|svn_version:'Unknown'|variable_revision_number:1|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Select the input image:brightfield
+    Name the output image:brightfield_eq
+    Is your image 3D?:No
+    Use a frame within image as reference?:No
+    Image to use as reference :mitochondria
+    Frame number:5
+
+GrayToColor:[module_num:17|svn_version:'Unknown'|variable_revision_number:4|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Select a color scheme:Composite
+    Rescale intensity:Yes
+    Select the image to be colored red:Leave this black
+    Select the image to be colored green:Leave this black
+    Select the image to be colored blue:Leave this black
+    Name the output image:composite_img
+    Relative weight for the red image:1.0
+    Relative weight for the green image:1.0
+    Relative weight for the blue image:1.0
+    Select the image to be colored cyan:Leave this black
+    Select the image to be colored magenta:Leave this black
+    Select the image to be colored yellow:Leave this black
+    Select the image that determines brightness:Leave this black
+    Relative weight for the cyan image:1.0
+    Relative weight for the magenta image:1.0
+    Relative weight for the yellow image:1.0
+    Relative weight for the brightness image:1.0
+    Hidden:4
+    Image name:actin_eq
+    Color:#ff0000
+    Weight:1.0
+    Image name:CD25_Ki67
+    Color:#00E0F7
+    Weight:1.0
+    Image name:DNA_eq
+    Color:#0000ff
+    Weight:1.0
+    Image name:mitochondria
+    Color:#FF1FFF
+    Weight:1.0
+
+OverlayOutlines:[module_num:18|svn_version:'Unknown'|variable_revision_number:4|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Display outlines on a blank image?:No
+    Select image on which to display outlines:composite_img
+    Name the output image:composite_img_overlay
+    Outline display mode:Color
+    Select method to determine brightness of outlines:Max of image
+    How to outline:Inner
+    Select outline color:Red
+    Select objects to display:Nuclei
+    Select outline color:#F6E700
+    Select objects to display:Cytoplasm
+
+SaveImages:[module_num:19|svn_version:'Unknown'|variable_revision_number:16|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Select the type of image to save:Image
+    Select the image to save:composite_img
+    Select method for constructing file names:Single name
+    Select image name for file prefix:DNA
+    Enter single file name:tglow_2d_v1_composite_\g<group>
+    Number of digits:4
+    Append a suffix to the image file name?:Yes
+    Text to append to the image name:_composite
+    Saved file format:png
+    Output file location:Default Output Folder sub-folder|segmentation_images
+    Image bit depth:8-bit integer
+    Overwrite existing files without warning?:Yes
+    When to save:First cycle
+    Record the file and path information to the saved image?:No
+    Create subfolders in the output folder?:No
+    Base image folder:Elsewhere...|
+    How to save the series:T (Time)
+    Save with lossless compression?:Yes
+
+SaveImages:[module_num:20|svn_version:'Unknown'|variable_revision_number:16|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Select the type of image to save:Image
+    Select the image to save:composite_img_overlay
+    Select method for constructing file names:Single name
+    Select image name for file prefix:DNA
+    Enter single file name:tglow_2d_v1_composite_segmented_\g<group>
+    Number of digits:4
+    Append a suffix to the image file name?:Yes
+    Text to append to the image name:_composite_segmented
+    Saved file format:png
+    Output file location:Default Output Folder sub-folder|segmentation_images
+    Image bit depth:8-bit integer
+    Overwrite existing files without warning?:Yes
+    When to save:First cycle
+    Record the file and path information to the saved image?:No
+    Create subfolders in the output folder?:No
+    Base image folder:Elsewhere...|
+    How to save the series:T (Time)
+    Save with lossless compression?:Yes
+
+MeasureImageIntensity:[module_num:21|svn_version:'Unknown'|variable_revision_number:4|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Select images to measure:CD25_Ki67, DNA, actin, brightfield, mitochondria
+    Measure the intensity only from areas enclosed by objects?:Yes
+    Select input object sets:Cytoplasm, Nuclei, cell
+    Calculate custom percentiles:Yes
+    Specify percentiles to measure:10,90
+
+MeasureObjectIntensity:[module_num:22|svn_version:'Unknown'|variable_revision_number:4|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Select images to measure:CD25_Ki67, actin, mitochondria
+    Select objects to measure:Cytoplasm, Nuclei, cell
+
+MeasureObjectIntensity:[module_num:23|svn_version:'Unknown'|variable_revision_number:4|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Select images to measure:DNA
+    Select objects to measure:Nuclei
+
+MeasureObjectSizeShape:[module_num:24|svn_version:'Unknown'|variable_revision_number:3|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Select object sets to measure:Nuclei, cell
+    Calculate the Zernike features?:Yes
+    Calculate the advanced features?:No
+
+MeasureColocalization:[module_num:25|svn_version:'Unknown'|variable_revision_number:5|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Select images to measure:CD25_Ki67, DNA
+    Set threshold as percentage of maximum intensity for the images:5.0
+    Select where to measure correlation:Within objects
+    Select objects to measure:Nuclei
+    Run all metrics?:No
+    Calculate correlation and slope metrics?:No
+    Calculate the Manders coefficients?:Yes
+    Calculate the Rank Weighted Colocalization coefficients?:No
+    Calculate the Overlap coefficients?:Yes
+    Calculate the Manders coefficients using Costes auto threshold?:No
+    Method for Costes thresholding:Faster
+
+MeasureColocalization:[module_num:26|svn_version:'Unknown'|variable_revision_number:5|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Select images to measure:CD25_Ki67, mitochondria
+    Set threshold as percentage of maximum intensity for the images:5.0
+    Select where to measure correlation:Both
+    Select objects to measure:Cytoplasm, Nuclei
+    Run all metrics?:No
+    Calculate correlation and slope metrics?:No
+    Calculate the Manders coefficients?:Yes
+    Calculate the Rank Weighted Colocalization coefficients?:No
+    Calculate the Overlap coefficients?:Yes
+    Calculate the Manders coefficients using Costes auto threshold?:No
+    Method for Costes thresholding:Faster
+
+MeasureColocalization:[module_num:27|svn_version:'Unknown'|variable_revision_number:5|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Select images to measure:CD25_Ki67, actin
+    Set threshold as percentage of maximum intensity for the images:5.0
+    Select where to measure correlation:Both
+    Select objects to measure:Cytoplasm, Nuclei
+    Run all metrics?:No
+    Calculate correlation and slope metrics?:No
+    Calculate the Manders coefficients?:Yes
+    Calculate the Rank Weighted Colocalization coefficients?:No
+    Calculate the Overlap coefficients?:Yes
+    Calculate the Manders coefficients using Costes auto threshold?:No
+    Method for Costes thresholding:Faster
+
+MeasureTexture:[module_num:28|svn_version:'Unknown'|variable_revision_number:7|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Select images to measure:DNA
+    Select objects to measure:Nuclei
+    Enter how many gray levels to measure the texture at:256
+    Hidden:1
+    Measure whole images or objects?:Objects
+    Texture scale to measure:2
+
+MeasureTexture:[module_num:29|svn_version:'Unknown'|variable_revision_number:7|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Select images to measure:actin, mitochondria
+    Select objects to measure:cell
+    Enter how many gray levels to measure the texture at:256
+    Hidden:1
+    Measure whole images or objects?:Objects
+    Texture scale to measure:2
+
+MeasureGranularity:[module_num:30|svn_version:'Unknown'|variable_revision_number:4|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Select images to measure:mitochondria
+    Measure within objects?:Yes
+    Select objects to measure:Cytoplasm, cell
+    Subsampling factor for granularity measurements:0.25
+    Subsampling factor for background reduction:0.25
+    Radius of structuring element:1
+    Range of the granular spectrum:16
+
+MeasureGranularity:[module_num:31|svn_version:'Unknown'|variable_revision_number:4|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Select images to measure:DNA
+    Measure within objects?:Yes
+    Select objects to measure:Nuclei
+    Subsampling factor for granularity measurements:0.25
+    Subsampling factor for background reduction:0.25
+    Radius of structuring element:1
+    Range of the granular spectrum:16
+
+MeasureObjectNeighbors:[module_num:32|svn_version:'Unknown'|variable_revision_number:3|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Select objects to measure:cell
+    Select neighboring objects to measure:cell
+    Method to determine neighbors:Adjacent
+    Neighbor distance:5
+    Consider objects discarded for touching image border?:Yes
+    Retain the image of objects colored by numbers of neighbors?:No
+    Name the output image:ObjectNeighborCount
+    Select colormap:Blues
+    Retain the image of objects colored by percent of touching pixels?:No
+    Name the output image:PercentTouching
+    Select colormap:Oranges
+
+ExportToSpreadsheet:[module_num:33|svn_version:'Unknown'|variable_revision_number:13|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Select the column delimiter:Tab
+    Add image metadata columns to your object data file?:No
+    Add image file and folder names to your object data file?:No
+    Select the measurements to export:Yes
+    Calculate the per-image mean values for object measurements?:No
+    Calculate the per-image median values for object measurements?:No
+    Calculate the per-image standard deviation values for object measurements?:No
+    Output file location:Default Output Folder|Desktop/Julie/20230728_TCA/results_test_farm
+    Create a GenePattern GCT file?:No
+    Select source of sample row name:Metadata
+    Select the image to use as the identifier:None
+    Select the metadata to use as the identifier:None
+    Export all measurement types?:No
+    Press button to select measurements:Image|Granularity_8_mitochondria,Image|Granularity_8_DNA,Image|Granularity_4_mitochondria,Image|Granularity_4_DNA,Image|Granularity_5_DNA,Image|Granularity_5_mitochondria,Image|Granularity_16_mitochondria,Image|Granularity_16_DNA,Image|Granularity_6_mitochondria,Image|Granularity_6_DNA,Image|Granularity_2_mitochondria,Image|Granularity_2_DNA,Image|Granularity_12_DNA,Image|Granularity_12_mitochondria,Image|Granularity_10_DNA,Image|Granularity_10_mitochondria,Image|Granularity_13_mitochondria,Image|Granularity_13_DNA,Image|Granularity_3_DNA,Image|Granularity_3_mitochondria,Image|Granularity_1_DNA,Image|Granularity_1_mitochondria,Image|Granularity_14_DNA,Image|Granularity_14_mitochondria,Image|Granularity_15_DNA,Image|Granularity_15_mitochondria,Image|Granularity_7_DNA,Image|Granularity_7_mitochondria,Image|Granularity_9_DNA,Image|Granularity_9_mitochondria,Image|Granularity_11_DNA,Image|Granularity_11_mitochondria,Image|Metadata_Well,Image|Metadata_T,Image|Metadata_C,Image|Metadata_Series,Image|Metadata_Site,Image|Metadata_Plate,Image|Metadata_SizeZ,Image|Metadata_ChannelName,Image|Metadata_SizeT,Image|Metadata_group,Image|Metadata_FileLocation,Image|Metadata_timepoint,Image|Metadata_Z,Image|Metadata_field,Image|Metadata_SizeX,Image|Metadata_SizeY,Image|Metadata_SizeC,Image|Metadata_Frame,Image|Metadata_image_qc,Image|Metadata_ColorFormat,Image|Metadata_well,Image|MD5Digest_CD25_Ki67,Image|MD5Digest_brightfield,Image|MD5Digest_actin,Image|MD5Digest_DNA,Image|MD5Digest_mitochondria,Image|ImageQuality_MADIntensity_DNA,Image|ImageQuality_MADIntensity_mitochondria,Image|ImageQuality_MADIntensity_actin,Image|ImageQuality_MADIntensity_brightfield,Image|ImageQuality_MADIntensity_CD25_Ki67,Image|ImageQuality_StdIntensity_brightfield,Image|ImageQuality_StdIntensity_CD25_Ki67,Image|ImageQuality_StdIntensity_mitochondria,Image|ImageQuality_StdIntensity_actin,Image|ImageQuality_StdIntensity_DNA,Image|ImageQuality_TotalArea_actin,Image|ImageQuality_TotalArea_brightfield,Image|ImageQuality_TotalArea_CD25_Ki67,Image|ImageQuality_TotalArea_DNA,Image|ImageQuality_TotalArea_mitochondria,Image|ImageQuality_MedianIntensity_brightfield,Image|ImageQuality_MedianIntensity_mitochondria,Image|ImageQuality_MedianIntensity_CD25_Ki67,Image|ImageQuality_MedianIntensity_DNA,Image|ImageQuality_MedianIntensity_actin,Image|ImageQuality_TotalIntensity_CD25_Ki67,Image|ImageQuality_TotalIntensity_actin,Image|ImageQuality_TotalIntensity_mitochondria,Image|ImageQuality_TotalIntensity_DNA,Image|ImageQuality_TotalIntensity_brightfield,Image|ImageQuality_MaxIntensity_brightfield,Image|ImageQuality_MaxIntensity_mitochondria,Image|ImageQuality_MaxIntensity_actin,Image|ImageQuality_MaxIntensity_CD25_Ki67,Image|ImageQuality_MaxIntensity_DNA,Image|ImageQuality_Scaling_CD25_Ki67,Image|ImageQuality_Scaling_DNA,Image|ImageQuality_Scaling_actin,Image|ImageQuality_Scaling_mitochondria,Image|ImageQuality_Scaling_brightfield,Image|ImageQuality_MinIntensity_actin,Image|ImageQuality_MinIntensity_DNA,Image|ImageQuality_MinIntensity_mitochondria,Image|ImageQuality_MinIntensity_CD25_Ki67,Image|ImageQuality_MinIntensity_brightfield,Image|ImageQuality_MeanIntensity_mitochondria,Image|ImageQuality_MeanIntensity_CD25_Ki67,Image|ImageQuality_MeanIntensity_DNA,Image|ImageQuality_MeanIntensity_actin,Image|ImageQuality_MeanIntensity_brightfield,Image|ModuleError_11FilterObjects,Image|ModuleError_32MeasureObjectNeighbors,Image|ModuleError_09IdentifySecondaryObjects,Image|ModuleError_28MeasureTexture,Image|ModuleError_05MeasureImageQuality,Image|ModuleError_12IdentifyTertiaryObjects,Image|ModuleError_25MeasureColocalization,Image|ModuleError_04Groups,Image|ModuleError_17GrayToColor,Image|ModuleError_23MeasureObjectIntensity,Image|ModuleError_02Metadata,Image|ModuleError_20SaveImages,Image|ModuleError_21MeasureImageIntensity,Image|ModuleError_14HistogramMatching,Image|ModuleError_03NamesAndTypes,Image|ModuleError_06FlagImage,Image|ModuleError_24MeasureObjectSizeShape,Image|ModuleError_18OverlayOutlines,Image|ModuleError_22MeasureObjectIntensity,Image|ModuleError_31MeasureGranularity,Image|ModuleError_19SaveImages,Image|ModuleError_10FilterObjects,Image|ModuleError_16HistogramMatching,Image|ModuleError_27MeasureColocalization,Image|ModuleError_13HistogramMatching,Image|ModuleError_29MeasureTexture,Image|ModuleError_01Images,Image|ModuleError_26MeasureColocalization,Image|ModuleError_30MeasureGranularity,Image|ModuleError_15HistogramMatching,Image|ModuleError_08IdentifyPrimaryObjects,Image|ModuleError_07ImageMath,Image|Intensity_MeanIntensity_DNA_Nuclei,Image|Intensity_MeanIntensity_actin_Nuclei,Image|Intensity_MeanIntensity_actin_cell,Image|Intensity_MeanIntensity_actin_Cytoplasm,Image|Intensity_MeanIntensity_mitochondria_cell,Image|Intensity_MeanIntensity_mitochondria_Cytoplasm,Image|Intensity_MeanIntensity_mitochondria_Nuclei,Image|Intensity_MeanIntensity_CD25_Ki67_Cytoplasm,Image|Intensity_MeanIntensity_CD25_Ki67_cell,Image|Intensity_MeanIntensity_CD25_Ki67_Nuclei,Image|Intensity_MeanIntensity_brightfield_cell,Image|Intensity_MeanIntensity_brightfield_Nuclei,Image|Intensity_MeanIntensity_brightfield_Cytoplasm,Image|Intensity_LowerQuartileIntensity_DNA_Nuclei,Image|Intensity_Percentile_10_mitochondria_cell,Image|Intensity_Percentile_10_mitochondria_Nuclei,Image|Intensity_Percentile_10_mitochondria_Cytoplasm,Image|Intensity_Percentile_10_CD25_Ki67_Nuclei,Image|Intensity_Percentile_10_CD25_Ki67_cell,Image|Intensity_Percentile_10_CD25_Ki67_Cytoplasm,Image|Intensity_Percentile_10_brightfield_Nuclei,Image|Intensity_Percentile_10_brightfield_cell,Image|Intensity_Percentile_10_brightfield_Cytoplasm,Image|Intensity_Percentile_10_actin_Cytoplasm,Image|Intensity_Percentile_10_actin_cell,Image|Intensity_Percentile_10_actin_Nuclei,Image|Intensity_Percentile_10_DNA_cell,Image|Intensity_Percentile_10_DNA_Nuclei,Image|Intensity_Percentile_10_DNA_Cytoplasm,Image|Intensity_Percentile_90_actin_Cytoplasm,Image|Intensity_Percentile_90_actin_Nuclei,Image|Intensity_Percentile_90_actin_cell,Image|Intensity_Percentile_90_mitochondria_Cytoplasm,Image|Intensity_Percentile_90_mitochondria_Nuclei,Image|Intensity_Percentile_90_mitochondria_cell,Image|Intensity_Percentile_90_brightfield_Cytoplasm,Image|Intensity_Percentile_90_brightfield_Nuclei,Image|Intensity_Percentile_90_brightfield_cell,Image|Intensity_Percentile_90_CD25_Ki67_Cytoplasm,Image|Intensity_Percentile_90_CD25_Ki67_cell,Image|Intensity_Percentile_90_CD25_Ki67_Nuclei,Image|Intensity_Percentile_90_DNA_Cytoplasm,Image|Intensity_Percentile_90_DNA_Nuclei,Image|Intensity_Percentile_90_DNA_cell,Image|Intensity_UpperQuartileIntensity_CD25_Ki67_Cytoplasm,Image|Intensity_UpperQuartileIntensity_CD25_Ki67_Nuclei,Image|Intensity_UpperQuartileIntensity_CD25_Ki67_cell,Image|Intensity_UpperQuartileIntensity_DNA_Nuclei,Image|Intensity_UpperQuartileIntensity_actin_cell,Image|Intensity_UpperQuartileIntensity_actin_Cytoplasm,Image|Intensity_UpperQuartileIntensity_actin_Nuclei,Image|Intensity_UpperQuartileIntensity_mitochondria_Nuclei,Image|Intensity_UpperQuartileIntensity_mitochondria_cell,Image|Intensity_UpperQuartileIntensity_mitochondria_Cytoplasm,Image|Intensity_UpperQuartileIntensity_brightfield_Cytoplasm,Image|Intensity_UpperQuartileIntensity_brightfield_cell,Image|Intensity_UpperQuartileIntensity_brightfield_Nuclei,Image|Intensity_TotalArea_mitochondria_cell,Image|Intensity_TotalArea_mitochondria_Nuclei,Image|Intensity_TotalArea_mitochondria_Cytoplasm,Image|Intensity_TotalArea_brightfield_cell,Image|Intensity_TotalArea_brightfield_Cytoplasm,Image|Intensity_TotalArea_brightfield_Nuclei,Image|Intensity_TotalArea_actin_cell,Image|Intensity_TotalArea_actin_Nuclei,Image|Intensity_TotalArea_actin_Cytoplasm,Image|Intensity_TotalArea_DNA_Cytoplasm,Image|Intensity_TotalArea_DNA_Nuclei,Image|Intensity_TotalArea_DNA_cell,Image|Intensity_TotalArea_CD25_Ki67_Nuclei,Image|Intensity_TotalArea_CD25_Ki67_cell,Image|Intensity_TotalArea_CD25_Ki67_Cytoplasm,Image|Intensity_TotalIntensity_DNA_Nuclei,Image|Intensity_TotalIntensity_CD25_Ki67_Cytoplasm,Image|Intensity_TotalIntensity_CD25_Ki67_cell,Image|Intensity_TotalIntensity_CD25_Ki67_Nuclei,Image|Intensity_TotalIntensity_mitochondria_cell,Image|Intensity_TotalIntensity_mitochondria_Nuclei,Image|Intensity_TotalIntensity_mitochondria_Cytoplasm,Image|Intensity_TotalIntensity_actin_Nuclei,Image|Intensity_TotalIntensity_actin_Cytoplasm,Image|Intensity_TotalIntensity_actin_cell,Image|Intensity_TotalIntensity_brightfield_cell,Image|Intensity_TotalIntensity_brightfield_Cytoplasm,Image|Intensity_TotalIntensity_brightfield_Nuclei,Image|Intensity_MaxIntensity_brightfield_cell,Image|Intensity_MaxIntensity_brightfield_Nuclei,Image|Intensity_MaxIntensity_brightfield_Cytoplasm,Image|Intensity_MaxIntensity_mitochondria_cell,Image|Intensity_MaxIntensity_mitochondria_Nuclei,Image|Intensity_MaxIntensity_mitochondria_Cytoplasm,Image|Intensity_MaxIntensity_DNA_Nuclei,Image|Intensity_MaxIntensity_actin_Nuclei,Image|Intensity_MaxIntensity_actin_Cytoplasm,Image|Intensity_MaxIntensity_actin_cell,Image|Intensity_MaxIntensity_CD25_Ki67_Nuclei,Image|Intensity_MaxIntensity_CD25_Ki67_cell,Image|Intensity_MaxIntensity_CD25_Ki67_Cytoplasm,Image|Intensity_PercentMaximal_DNA_Nuclei,Image|Intensity_PercentMaximal_brightfield_Nuclei,Image|Intensity_PercentMaximal_brightfield_Cytoplasm,Image|Intensity_PercentMaximal_brightfield_cell,Image|Intensity_PercentMaximal_CD25_Ki67_Cytoplasm,Image|Intensity_PercentMaximal_CD25_Ki67_cell,Image|Intensity_PercentMaximal_CD25_Ki67_Nuclei,Image|Intensity_PercentMaximal_mitochondria_Nuclei,Image|Intensity_PercentMaximal_mitochondria_cell,Image|Intensity_PercentMaximal_mitochondria_Cytoplasm,Image|Intensity_PercentMaximal_actin_Cytoplasm,Image|Intensity_PercentMaximal_actin_Nuclei,Image|Intensity_PercentMaximal_actin_cell,Image|Intensity_StdIntensity_actin_Cytoplasm,Image|Intensity_StdIntensity_actin_Nuclei,Image|Intensity_StdIntensity_actin_cell,Image|Intensity_StdIntensity_brightfield_cell,Image|Intensity_StdIntensity_brightfield_Nuclei,Image|Intensity_StdIntensity_brightfield_Cytoplasm,Image|Intensity_StdIntensity_DNA_Nuclei,Image|Intensity_StdIntensity_CD25_Ki67_cell,Image|Intensity_StdIntensity_CD25_Ki67_Cytoplasm,Image|Intensity_StdIntensity_CD25_Ki67_Nuclei,Image|Intensity_StdIntensity_mitochondria_Nuclei,Image|Intensity_StdIntensity_mitochondria_cell,Image|Intensity_StdIntensity_mitochondria_Cytoplasm,Image|Intensity_MinIntensity_DNA_Cytoplasm,Image|Intensity_MinIntensity_DNA_Nuclei,Image|Intensity_MinIntensity_DNA_cell,Image|Intensity_MinIntensity_CD25_Ki67_Cytoplasm,Image|Intensity_MinIntensity_CD25_Ki67_cell,Image|Intensity_MinIntensity_CD25_Ki67_Nuclei,Image|Intensity_MinIntensity_mitochondria_cell,Image|Intensity_MinIntensity_mitochondria_Nuclei,Image|Intensity_MinIntensity_mitochondria_Cytoplasm,Image|Intensity_MinIntensity_actin_Cytoplasm,Image|Intensity_MinIntensity_actin_cell,Image|Intensity_MinIntensity_actin_Nuclei,Image|Intensity_MinIntensity_brightfield_cell,Image|Intensity_MinIntensity_brightfield_Nuclei,Image|Intensity_MinIntensity_brightfield_Cytoplasm,Image|Intensity_MADIntensity_brightfield_Cytoplasm,Image|Intensity_MADIntensity_brightfield_Nuclei,Image|Intensity_MADIntensity_brightfield_cell,Image|Intensity_MADIntensity_CD25_Ki67_cell,Image|Intensity_MADIntensity_CD25_Ki67_Nuclei,Image|Intensity_MADIntensity_CD25_Ki67_Cytoplasm,Image|Intensity_MADIntensity_DNA_Nuclei,Image|Intensity_MADIntensity_DNA_Cytoplasm,Image|Intensity_MADIntensity_DNA_cell,Image|Intensity_MADIntensity_actin_Nuclei,Image|Intensity_MADIntensity_actin_cell,Image|Intensity_MADIntensity_actin_Cytoplasm,Image|Intensity_MADIntensity_mitochondria_Cytoplasm,Image|Intensity_MADIntensity_mitochondria_cell,Image|Intensity_MADIntensity_mitochondria_Nuclei,Image|Intensity_MedianIntensity_DNA_Nuclei,Image|Intensity_MedianIntensity_mitochondria_Nuclei,Image|Intensity_MedianIntensity_mitochondria_Cytoplasm,Image|Intensity_MedianIntensity_mitochondria_cell,Image|Intensity_MedianIntensity_actin_Cytoplasm,Image|Intensity_MedianIntensity_actin_cell,Image|Intensity_MedianIntensity_actin_Nuclei,Image|Intensity_MedianIntensity_CD25_Ki67_Nuclei,Image|Intensity_MedianIntensity_CD25_Ki67_cell,Image|Intensity_MedianIntensity_CD25_Ki67_Cytoplasm,Image|Intensity_MedianIntensity_brightfield_cell,Image|Intensity_MedianIntensity_brightfield_Nuclei,Image|Intensity_MedianIntensity_brightfield_Cytoplasm,Image|Count_cell,Image|Count_cell_raw,Image|Count_Cytoplasm,Image|Count_Nuclei,Image|Count_Nuclei_raw,Image|ExecutionTime_03NamesAndTypes,Image|ExecutionTime_32MeasureObjectNeighbors,Image|ExecutionTime_01Images,Image|ExecutionTime_17GrayToColor,Image|ExecutionTime_06FlagImage,Image|ExecutionTime_18OverlayOutlines,Image|ExecutionTime_28MeasureTexture,Image|ExecutionTime_12IdentifyTertiaryObjects,Image|ExecutionTime_23MeasureObjectIntensity,Image|ExecutionTime_05MeasureImageQuality,Image|ExecutionTime_27MeasureColocalization,Image|ExecutionTime_26MeasureColocalization,Image|ExecutionTime_16HistogramMatching,Image|ExecutionTime_24MeasureObjectSizeShape,Image|ExecutionTime_07ImageMath,Image|ExecutionTime_11FilterObjects,Image|ExecutionTime_22MeasureObjectIntensity,Image|ExecutionTime_14HistogramMatching,Image|ExecutionTime_31MeasureGranularity,Image|ExecutionTime_25MeasureColocalization,Image|ExecutionTime_04Groups,Image|ExecutionTime_08IdentifyPrimaryObjects,Image|ExecutionTime_30MeasureGranularity,Image|ExecutionTime_02Metadata,Image|ExecutionTime_19SaveImages,Image|ExecutionTime_13HistogramMatching,Image|ExecutionTime_15HistogramMatching,Image|ExecutionTime_09IdentifySecondaryObjects,Image|ExecutionTime_21MeasureImageIntensity,Image|ExecutionTime_10FilterObjects,Image|ExecutionTime_20SaveImages,Image|ExecutionTime_29MeasureTexture,Image|Threshold_GuideThreshold_cell_raw,Image|Threshold_OrigThreshold_cell_raw,Image|Threshold_OrigThreshold_Nuclei_raw,Image|Threshold_FinalThreshold_Nuclei_raw,Image|Threshold_FinalThreshold_cell_raw,Image|Threshold_SumOfEntropies_Nuclei_raw,Image|Threshold_SumOfEntropies_cell_raw,Image|Threshold_WeightedVariance_Nuclei_raw,Image|Threshold_WeightedVariance_cell_raw,Image|Height_mitochondria,Image|Height_actin,Image|Height_CD25_Ki67,Image|Height_brightfield,Image|Height_DNA,Image|Correlation_K_CD25_Ki67_mitochondria,Image|Correlation_K_CD25_Ki67_actin,Image|Correlation_K_actin_CD25_Ki67,Image|Correlation_K_mitochondria_CD25_Ki67,Image|Correlation_Manders_actin_CD25_Ki67,Image|Correlation_Manders_mitochondria_CD25_Ki67,Image|Correlation_Manders_CD25_Ki67_actin,Image|Correlation_Manders_CD25_Ki67_mitochondria,Image|Correlation_Overlap_CD25_Ki67_actin,Image|Correlation_Overlap_CD25_Ki67_mitochondria,Image|Frame_brightfield,Image|Frame_DNA,Image|Frame_actin,Image|Frame_mitochondria,Image|Frame_CD25_Ki67,Image|PathName_actin,Image|PathName_CD25_Ki67,Image|PathName_DNA,Image|PathName_mitochondria,Image|PathName_brightfield,Image|Scaling_brightfield,Image|Scaling_CD25_Ki67,Image|Scaling_DNA,Image|Scaling_actin,Image|Scaling_mitochondria,Image|URL_DNA,Image|URL_CD25_Ki67,Image|URL_brightfield,Image|URL_mitochondria,Image|URL_actin,Image|FileName_brightfield,Image|FileName_CD25_Ki67,Image|FileName_DNA,Image|FileName_actin,Image|FileName_mitochondria,Image|Series_CD25_Ki67,Image|Series_DNA,Image|Series_brightfield,Image|Series_actin,Image|Series_mitochondria,Image|Width_brightfield,Image|Width_CD25_Ki67,Image|Width_actin,Image|Width_mitochondria,Image|Width_DNA,Image|Group_Index,Image|Group_Number,Image|Group_Length,cell|Intensity_MedianIntensity_actin,cell|Intensity_MedianIntensity_CD25_Ki67,cell|Intensity_MedianIntensity_mitochondria,cell|Intensity_StdIntensityEdge_CD25_Ki67,cell|Intensity_StdIntensityEdge_mitochondria,cell|Intensity_StdIntensityEdge_actin,cell|Intensity_MinIntensityEdge_mitochondria,cell|Intensity_MinIntensityEdge_CD25_Ki67,cell|Intensity_MinIntensityEdge_actin,cell|Intensity_IntegratedIntensityEdge_actin,cell|Intensity_IntegratedIntensityEdge_mitochondria,cell|Intensity_IntegratedIntensityEdge_CD25_Ki67,cell|Intensity_MaxIntensity_CD25_Ki67,cell|Intensity_MaxIntensity_mitochondria,cell|Intensity_MaxIntensity_actin,cell|Intensity_MinIntensity_CD25_Ki67,cell|Intensity_MinIntensity_actin,cell|Intensity_MinIntensity_mitochondria,cell|Intensity_MADIntensity_mitochondria,cell|Intensity_MADIntensity_actin,cell|Intensity_MADIntensity_CD25_Ki67,cell|Intensity_StdIntensity_mitochondria,cell|Intensity_StdIntensity_CD25_Ki67,cell|Intensity_StdIntensity_actin,cell|Intensity_MeanIntensityEdge_mitochondria,cell|Intensity_MeanIntensityEdge_CD25_Ki67,cell|Intensity_MeanIntensityEdge_actin,cell|Intensity_IntegratedIntensity_mitochondria,cell|Intensity_IntegratedIntensity_actin,cell|Intensity_IntegratedIntensity_CD25_Ki67,cell|Intensity_MaxIntensityEdge_actin,cell|Intensity_MaxIntensityEdge_mitochondria,cell|Intensity_MaxIntensityEdge_CD25_Ki67,cell|Intensity_UpperQuartileIntensity_mitochondria,cell|Intensity_UpperQuartileIntensity_actin,cell|Intensity_UpperQuartileIntensity_CD25_Ki67,cell|Intensity_MassDisplacement_actin,cell|Intensity_MassDisplacement_CD25_Ki67,cell|Intensity_MassDisplacement_mitochondria,cell|Intensity_LowerQuartileIntensity_CD25_Ki67,cell|Intensity_LowerQuartileIntensity_mitochondria,cell|Intensity_LowerQuartileIntensity_actin,cell|Intensity_MeanIntensity_mitochondria,cell|Intensity_MeanIntensity_CD25_Ki67,cell|Intensity_MeanIntensity_actin,cell|Texture_SumAverage_mitochondria_2_00_256,cell|Texture_SumAverage_mitochondria_2_03_256,cell|Texture_SumAverage_mitochondria_2_01_256,cell|Texture_SumAverage_mitochondria_2_02_256,cell|Texture_Correlation_mitochondria_2_01_256,cell|Texture_Correlation_mitochondria_2_03_256,cell|Texture_Correlation_mitochondria_2_02_256,cell|Texture_Correlation_mitochondria_2_00_256,cell|Texture_Correlation_actin_2_03_256,cell|Texture_Correlation_actin_2_01_256,cell|Texture_Correlation_actin_2_02_256,cell|Texture_Correlation_actin_2_00_256,cell|Texture_Variance_mitochondria_2_01_256,cell|Texture_Variance_mitochondria_2_02_256,cell|Texture_Variance_mitochondria_2_03_256,cell|Texture_Variance_mitochondria_2_00_256,cell|Texture_DifferenceVariance_mitochondria_2_01_256,cell|Texture_DifferenceVariance_mitochondria_2_00_256,cell|Texture_DifferenceVariance_mitochondria_2_03_256,cell|Texture_DifferenceVariance_mitochondria_2_02_256,cell|Texture_Contrast_mitochondria_2_03_256,cell|Texture_Contrast_mitochondria_2_02_256,cell|Texture_Contrast_mitochondria_2_00_256,cell|Texture_Contrast_mitochondria_2_01_256,cell|Texture_InverseDifferenceMoment_mitochondria_2_00_256,cell|Texture_InverseDifferenceMoment_mitochondria_2_03_256,cell|Texture_InverseDifferenceMoment_mitochondria_2_02_256,cell|Texture_InverseDifferenceMoment_mitochondria_2_01_256,cell|Texture_DifferenceEntropy_mitochondria_2_03_256,cell|Texture_DifferenceEntropy_mitochondria_2_02_256,cell|Texture_DifferenceEntropy_mitochondria_2_00_256,cell|Texture_DifferenceEntropy_mitochondria_2_01_256,cell|Texture_InfoMeas2_mitochondria_2_02_256,cell|Texture_InfoMeas2_mitochondria_2_03_256,cell|Texture_InfoMeas2_mitochondria_2_00_256,cell|Texture_InfoMeas2_mitochondria_2_01_256,cell|Texture_SumVariance_mitochondria_2_01_256,cell|Texture_SumVariance_mitochondria_2_00_256,cell|Texture_SumVariance_mitochondria_2_02_256,cell|Texture_SumVariance_mitochondria_2_03_256,cell|Texture_Entropy_mitochondria_2_02_256,cell|Texture_Entropy_mitochondria_2_00_256,cell|Texture_Entropy_mitochondria_2_01_256,cell|Texture_Entropy_mitochondria_2_03_256,cell|Texture_Entropy_actin_2_00_256,cell|Texture_Entropy_actin_2_03_256,cell|Texture_Entropy_actin_2_02_256,cell|Texture_Entropy_actin_2_01_256,cell|Texture_InfoMeas1_mitochondria_2_02_256,cell|Texture_InfoMeas1_mitochondria_2_03_256,cell|Texture_InfoMeas1_mitochondria_2_01_256,cell|Texture_InfoMeas1_mitochondria_2_00_256,cell|Texture_InfoMeas1_actin_2_02_256,cell|Texture_InfoMeas1_actin_2_01_256,cell|Texture_InfoMeas1_actin_2_00_256,cell|Texture_InfoMeas1_actin_2_03_256,cell|Texture_SumEntropy_mitochondria_2_00_256,cell|Texture_SumEntropy_mitochondria_2_01_256,cell|Texture_SumEntropy_mitochondria_2_03_256,cell|Texture_SumEntropy_mitochondria_2_02_256,cell|Texture_AngularSecondMoment_mitochondria_2_03_256,cell|Texture_AngularSecondMoment_mitochondria_2_01_256,cell|Texture_AngularSecondMoment_mitochondria_2_00_256,cell|Texture_AngularSecondMoment_mitochondria_2_02_256,cell|Granularity_6_mitochondria,cell|Granularity_12_mitochondria,cell|Granularity_1_mitochondria,cell|Granularity_10_mitochondria,cell|Granularity_9_mitochondria,cell|Granularity_5_mitochondria,cell|Granularity_14_mitochondria,cell|Granularity_16_mitochondria,cell|Granularity_3_mitochondria,cell|Granularity_2_mitochondria,cell|Granularity_4_mitochondria,cell|Granularity_7_mitochondria,cell|Granularity_13_mitochondria,cell|Granularity_8_mitochondria,cell|Granularity_15_mitochondria,cell|Granularity_11_mitochondria,cell|Location_CenterMassIntensity_Z_CD25_Ki67,cell|Location_CenterMassIntensity_Z_mitochondria,cell|Location_CenterMassIntensity_Z_actin,cell|Location_CenterMassIntensity_Y_actin,cell|Location_CenterMassIntensity_Y_mitochondria,cell|Location_CenterMassIntensity_Y_CD25_Ki67,cell|Location_CenterMassIntensity_X_CD25_Ki67,cell|Location_CenterMassIntensity_X_actin,cell|Location_CenterMassIntensity_X_mitochondria,cell|Location_MaxIntensity_X_mitochondria,cell|Location_MaxIntensity_X_actin,cell|Location_MaxIntensity_X_CD25_Ki67,cell|Location_MaxIntensity_Z_CD25_Ki67,cell|Location_MaxIntensity_Z_actin,cell|Location_MaxIntensity_Z_mitochondria,cell|Location_MaxIntensity_Y_mitochondria,cell|Location_MaxIntensity_Y_CD25_Ki67,cell|Location_MaxIntensity_Y_actin,cell|Location_Center_X,cell|Location_Center_Y,cell|Location_Center_Z,cell|AreaShape_Orientation,cell|AreaShape_BoundingBoxMaximum_X,cell|AreaShape_BoundingBoxMaximum_Y,cell|AreaShape_Zernike_6_2,cell|AreaShape_Zernike_6_0,cell|AreaShape_Zernike_6_6,cell|AreaShape_Zernike_6_4,cell|AreaShape_Zernike_9_1,cell|AreaShape_Zernike_9_5,cell|AreaShape_Zernike_9_7,cell|AreaShape_Zernike_9_9,cell|AreaShape_Zernike_9_3,cell|AreaShape_Zernike_8_2,cell|AreaShape_Zernike_8_8,cell|AreaShape_Zernike_8_4,cell|AreaShape_Zernike_8_6,cell|AreaShape_Zernike_8_0,cell|AreaShape_Zernike_2_0,cell|AreaShape_Zernike_2_2,cell|AreaShape_Zernike_4_2,cell|AreaShape_Zernike_4_0,cell|AreaShape_Zernike_4_4,cell|AreaShape_Zernike_5_3,cell|AreaShape_Zernike_5_1,cell|AreaShape_Zernike_5_5,cell|AreaShape_Zernike_0_0,cell|AreaShape_Zernike_7_7,cell|AreaShape_Zernike_7_3,cell|AreaShape_Zernike_7_5,cell|AreaShape_Zernike_7_1,cell|AreaShape_Zernike_3_3,cell|AreaShape_Zernike_3_1,cell|AreaShape_Zernike_1_1,cell|AreaShape_Center_Y,cell|AreaShape_Center_X,cell|AreaShape_Extent,cell|AreaShape_Perimeter,cell|AreaShape_Eccentricity,cell|AreaShape_EulerNumber,cell|AreaShape_MinFeretDiameter,cell|AreaShape_BoundingBoxMinimum_X,cell|AreaShape_BoundingBoxMinimum_Y,cell|AreaShape_MaxFeretDiameter,cell|AreaShape_FormFactor,cell|AreaShape_MeanRadius,cell|AreaShape_BoundingBoxArea,cell|AreaShape_ConvexArea,cell|AreaShape_Compactness,cell|AreaShape_Solidity,cell|AreaShape_EquivalentDiameter,cell|AreaShape_MinorAxisLength,cell|AreaShape_Area,cell|AreaShape_MaximumRadius,cell|AreaShape_MedianRadius,cell|AreaShape_MajorAxisLength,cell|Neighbors_FirstClosestDistance_Adjacent,cell|Neighbors_SecondClosestObjectNumber_Adjacent,cell|Neighbors_AngleBetweenNeighbors_Adjacent,cell|Neighbors_FirstClosestObjectNumber_Adjacent,cell|Neighbors_NumberOfNeighbors_Adjacent,cell|Neighbors_SecondClosestDistance_Adjacent,cell|Neighbors_PercentTouching_Adjacent,cell|Children_Cytoplasm_Count,cell|Parent_cell_raw,cell|Number_Object_Number,Cytoplasm|Correlation_Overlap_CD25_Ki67_actin,Cytoplasm|Correlation_Overlap_CD25_Ki67_mitochondria,Cytoplasm|Correlation_Manders_mitochondria_CD25_Ki67,Cytoplasm|Correlation_Manders_CD25_Ki67_mitochondria,Cytoplasm|Correlation_Manders_CD25_Ki67_actin,Cytoplasm|Correlation_Manders_actin_CD25_Ki67,Cytoplasm|Correlation_K_CD25_Ki67_mitochondria,Cytoplasm|Correlation_K_CD25_Ki67_actin,Cytoplasm|Correlation_K_mitochondria_CD25_Ki67,Cytoplasm|Correlation_K_actin_CD25_Ki67,Cytoplasm|Number_Object_Number,Cytoplasm|Intensity_IntegratedIntensity_CD25_Ki67,Cytoplasm|Intensity_IntegratedIntensity_mitochondria,Cytoplasm|Intensity_IntegratedIntensity_actin,Cytoplasm|Intensity_StdIntensityEdge_actin,Cytoplasm|Intensity_StdIntensityEdge_CD25_Ki67,Cytoplasm|Intensity_StdIntensityEdge_mitochondria,Cytoplasm|Intensity_MinIntensity_actin,Cytoplasm|Intensity_MinIntensity_mitochondria,Cytoplasm|Intensity_MinIntensity_CD25_Ki67,Cytoplasm|Intensity_MassDisplacement_mitochondria,Cytoplasm|Intensity_MassDisplacement_actin,Cytoplasm|Intensity_MassDisplacement_CD25_Ki67,Cytoplasm|Intensity_MeanIntensity_CD25_Ki67,Cytoplasm|Intensity_MeanIntensity_mitochondria,Cytoplasm|Intensity_MeanIntensity_actin,Cytoplasm|Intensity_StdIntensity_actin,Cytoplasm|Intensity_StdIntensity_CD25_Ki67,Cytoplasm|Intensity_StdIntensity_mitochondria,Cytoplasm|Intensity_LowerQuartileIntensity_mitochondria,Cytoplasm|Intensity_LowerQuartileIntensity_CD25_Ki67,Cytoplasm|Intensity_LowerQuartileIntensity_actin,Cytoplasm|Intensity_MaxIntensityEdge_CD25_Ki67,Cytoplasm|Intensity_MaxIntensityEdge_mitochondria,Cytoplasm|Intensity_MaxIntensityEdge_actin,Cytoplasm|Intensity_IntegratedIntensityEdge_mitochondria,Cytoplasm|Intensity_IntegratedIntensityEdge_CD25_Ki67,Cytoplasm|Intensity_IntegratedIntensityEdge_actin,Cytoplasm|Intensity_MeanIntensityEdge_CD25_Ki67,Cytoplasm|Intensity_MeanIntensityEdge_mitochondria,Cytoplasm|Intensity_MeanIntensityEdge_actin,Cytoplasm|Intensity_MedianIntensity_actin,Cytoplasm|Intensity_MedianIntensity_mitochondria,Cytoplasm|Intensity_MedianIntensity_CD25_Ki67,Cytoplasm|Intensity_MaxIntensity_mitochondria,Cytoplasm|Intensity_MaxIntensity_actin,Cytoplasm|Intensity_MaxIntensity_CD25_Ki67,Cytoplasm|Intensity_MinIntensityEdge_actin,Cytoplasm|Intensity_MinIntensityEdge_CD25_Ki67,Cytoplasm|Intensity_MinIntensityEdge_mitochondria,Cytoplasm|Intensity_UpperQuartileIntensity_mitochondria,Cytoplasm|Intensity_UpperQuartileIntensity_actin,Cytoplasm|Intensity_UpperQuartileIntensity_CD25_Ki67,Cytoplasm|Intensity_MADIntensity_actin,Cytoplasm|Intensity_MADIntensity_mitochondria,Cytoplasm|Intensity_MADIntensity_CD25_Ki67,Cytoplasm|Location_Center_X,Cytoplasm|Location_Center_Y,Cytoplasm|Location_CenterMassIntensity_Z_CD25_Ki67,Cytoplasm|Location_CenterMassIntensity_Z_actin,Cytoplasm|Location_CenterMassIntensity_Z_mitochondria,Cytoplasm|Location_CenterMassIntensity_X_mitochondria,Cytoplasm|Location_CenterMassIntensity_X_CD25_Ki67,Cytoplasm|Location_CenterMassIntensity_X_actin,Cytoplasm|Location_CenterMassIntensity_Y_CD25_Ki67,Cytoplasm|Location_CenterMassIntensity_Y_mitochondria,Cytoplasm|Location_CenterMassIntensity_Y_actin,Cytoplasm|Location_MaxIntensity_X_actin,Cytoplasm|Location_MaxIntensity_X_mitochondria,Cytoplasm|Location_MaxIntensity_X_CD25_Ki67,Cytoplasm|Location_MaxIntensity_Z_CD25_Ki67,Cytoplasm|Location_MaxIntensity_Z_actin,Cytoplasm|Location_MaxIntensity_Z_mitochondria,Cytoplasm|Location_MaxIntensity_Y_mitochondria,Cytoplasm|Location_MaxIntensity_Y_actin,Cytoplasm|Location_MaxIntensity_Y_CD25_Ki67,Cytoplasm|Granularity_9_mitochondria,Cytoplasm|Granularity_10_mitochondria,Cytoplasm|Granularity_6_mitochondria,Cytoplasm|Granularity_16_mitochondria,Cytoplasm|Granularity_2_mitochondria,Cytoplasm|Granularity_8_mitochondria,Cytoplasm|Granularity_1_mitochondria,Cytoplasm|Granularity_7_mitochondria,Cytoplasm|Granularity_5_mitochondria,Cytoplasm|Granularity_15_mitochondria,Cytoplasm|Granularity_13_mitochondria,Cytoplasm|Granularity_14_mitochondria,Cytoplasm|Granularity_12_mitochondria,Cytoplasm|Granularity_3_mitochondria,Cytoplasm|Granularity_4_mitochondria,Cytoplasm|Granularity_11_mitochondria,Cytoplasm|Parent_Nuclei,Cytoplasm|Parent_cell,Nuclei|Texture_SumVariance_DNA_2_01_256,Nuclei|Texture_SumVariance_DNA_2_02_256,Nuclei|Texture_SumVariance_DNA_2_03_256,Nuclei|Texture_SumVariance_DNA_2_00_256,Nuclei|Texture_DifferenceEntropy_DNA_2_03_256,Nuclei|Texture_DifferenceEntropy_DNA_2_01_256,Nuclei|Texture_DifferenceEntropy_DNA_2_02_256,Nuclei|Texture_DifferenceEntropy_DNA_2_00_256,Nuclei|Texture_InfoMeas2_DNA_2_01_256,Nuclei|Texture_InfoMeas2_DNA_2_02_256,Nuclei|Texture_InfoMeas2_DNA_2_03_256,Nuclei|Texture_InfoMeas2_DNA_2_00_256,Nuclei|Texture_DifferenceVariance_DNA_2_01_256,Nuclei|Texture_DifferenceVariance_DNA_2_02_256,Nuclei|Texture_DifferenceVariance_DNA_2_03_256,Nuclei|Texture_DifferenceVariance_DNA_2_00_256,Nuclei|Texture_Correlation_DNA_2_01_256,Nuclei|Texture_Correlation_DNA_2_00_256,Nuclei|Texture_Correlation_DNA_2_02_256,Nuclei|Texture_Correlation_DNA_2_03_256,Nuclei|Texture_SumAverage_DNA_2_00_256,Nuclei|Texture_SumAverage_DNA_2_01_256,Nuclei|Texture_SumAverage_DNA_2_03_256,Nuclei|Texture_SumAverage_DNA_2_02_256,Nuclei|Texture_InfoMeas1_DNA_2_03_256,Nuclei|Texture_InfoMeas1_DNA_2_01_256,Nuclei|Texture_InfoMeas1_DNA_2_02_256,Nuclei|Texture_InfoMeas1_DNA_2_00_256,Nuclei|Texture_Contrast_DNA_2_02_256,Nuclei|Texture_Contrast_DNA_2_03_256,Nuclei|Texture_Contrast_DNA_2_01_256,Nuclei|Texture_Contrast_DNA_2_00_256,Nuclei|Texture_SumEntropy_DNA_2_00_256,Nuclei|Texture_SumEntropy_DNA_2_01_256,Nuclei|Texture_SumEntropy_DNA_2_03_256,Nuclei|Texture_SumEntropy_DNA_2_02_256,Nuclei|Texture_AngularSecondMoment_DNA_2_01_256,Nuclei|Texture_AngularSecondMoment_DNA_2_02_256,Nuclei|Texture_AngularSecondMoment_DNA_2_03_256,Nuclei|Texture_AngularSecondMoment_DNA_2_00_256,Nuclei|Texture_Variance_DNA_2_01_256,Nuclei|Texture_Variance_DNA_2_03_256,Nuclei|Texture_Variance_DNA_2_00_256,Nuclei|Texture_Variance_DNA_2_02_256,Nuclei|Texture_Entropy_DNA_2_01_256,Nuclei|Texture_Entropy_DNA_2_02_256,Nuclei|Texture_Entropy_DNA_2_03_256,Nuclei|Texture_Entropy_DNA_2_00_256,Nuclei|Texture_InverseDifferenceMoment_DNA_2_02_256,Nuclei|Texture_InverseDifferenceMoment_DNA_2_03_256,Nuclei|Texture_InverseDifferenceMoment_DNA_2_01_256,Nuclei|Texture_InverseDifferenceMoment_DNA_2_00_256,Nuclei|Location_MaxIntensity_Z_actin,Nuclei|Location_MaxIntensity_Z_mitochondria,Nuclei|Location_MaxIntensity_Z_CD25_Ki67,Nuclei|Location_MaxIntensity_Z_DNA,Nuclei|Location_MaxIntensity_X_mitochondria,Nuclei|Location_MaxIntensity_X_actin,Nuclei|Location_MaxIntensity_X_CD25_Ki67,Nuclei|Location_MaxIntensity_X_DNA,Nuclei|Location_MaxIntensity_Y_DNA,Nuclei|Location_MaxIntensity_Y_mitochondria,Nuclei|Location_MaxIntensity_Y_CD25_Ki67,Nuclei|Location_MaxIntensity_Y_actin,Nuclei|Location_Center_Y,Nuclei|Location_Center_X,Nuclei|Location_Center_Z,Nuclei|Location_CenterMassIntensity_X_actin,Nuclei|Location_CenterMassIntensity_X_CD25_Ki67,Nuclei|Location_CenterMassIntensity_X_mitochondria,Nuclei|Location_CenterMassIntensity_X_DNA,Nuclei|Location_CenterMassIntensity_Z_CD25_Ki67,Nuclei|Location_CenterMassIntensity_Z_mitochondria,Nuclei|Location_CenterMassIntensity_Z_actin,Nuclei|Location_CenterMassIntensity_Z_DNA,Nuclei|Location_CenterMassIntensity_Y_mitochondria,Nuclei|Location_CenterMassIntensity_Y_DNA,Nuclei|Location_CenterMassIntensity_Y_actin,Nuclei|Location_CenterMassIntensity_Y_CD25_Ki67,Nuclei|AreaShape_BoundingBoxMinimum_Y,Nuclei|AreaShape_BoundingBoxMinimum_X,Nuclei|AreaShape_Center_Y,Nuclei|AreaShape_Center_X,Nuclei|AreaShape_BoundingBoxMaximum_X,Nuclei|AreaShape_BoundingBoxMaximum_Y,Nuclei|AreaShape_Zernike_1_1,Nuclei|AreaShape_Zernike_9_1,Nuclei|AreaShape_Zernike_9_7,Nuclei|AreaShape_Zernike_9_5,Nuclei|AreaShape_Zernike_9_3,Nuclei|AreaShape_Zernike_9_9,Nuclei|AreaShape_Zernike_6_6,Nuclei|AreaShape_Zernike_6_0,Nuclei|AreaShape_Zernike_6_4,Nuclei|AreaShape_Zernike_6_2,Nuclei|AreaShape_Zernike_8_4,Nuclei|AreaShape_Zernike_8_8,Nuclei|AreaShape_Zernike_8_0,Nuclei|AreaShape_Zernike_8_6,Nuclei|AreaShape_Zernike_8_2,Nuclei|AreaShape_Zernike_3_1,Nuclei|AreaShape_Zernike_3_3,Nuclei|AreaShape_Zernike_5_5,Nuclei|AreaShape_Zernike_5_3,Nuclei|AreaShape_Zernike_5_1,Nuclei|AreaShape_Zernike_4_4,Nuclei|AreaShape_Zernike_4_2,Nuclei|AreaShape_Zernike_4_0,Nuclei|AreaShape_Zernike_7_7,Nuclei|AreaShape_Zernike_7_5,Nuclei|AreaShape_Zernike_7_3,Nuclei|AreaShape_Zernike_7_1,Nuclei|AreaShape_Zernike_2_2,Nuclei|AreaShape_Zernike_2_0,Nuclei|AreaShape_Zernike_0_0,Nuclei|AreaShape_ConvexArea,Nuclei|AreaShape_MaximumRadius,Nuclei|AreaShape_FormFactor,Nuclei|AreaShape_MaxFeretDiameter,Nuclei|AreaShape_MinorAxisLength,Nuclei|AreaShape_EquivalentDiameter,Nuclei|AreaShape_EulerNumber,Nuclei|AreaShape_Eccentricity,Nuclei|AreaShape_MedianRadius,Nuclei|AreaShape_Extent,Nuclei|AreaShape_BoundingBoxArea,Nuclei|AreaShape_Orientation,Nuclei|AreaShape_MeanRadius,Nuclei|AreaShape_MajorAxisLength,Nuclei|AreaShape_Compactness,Nuclei|AreaShape_Solidity,Nuclei|AreaShape_Perimeter,Nuclei|AreaShape_MinFeretDiameter,Nuclei|AreaShape_Area,Nuclei|Granularity_2_DNA,Nuclei|Granularity_15_DNA,Nuclei|Granularity_14_DNA,Nuclei|Granularity_9_DNA,Nuclei|Granularity_11_DNA,Nuclei|Granularity_16_DNA,Nuclei|Granularity_12_DNA,Nuclei|Granularity_7_DNA,Nuclei|Granularity_3_DNA,Nuclei|Granularity_10_DNA,Nuclei|Granularity_5_DNA,Nuclei|Granularity_6_DNA,Nuclei|Granularity_1_DNA,Nuclei|Granularity_8_DNA,Nuclei|Granularity_13_DNA,Nuclei|Granularity_4_DNA,Nuclei|Number_Object_Number,Nuclei|Correlation_Overlap_CD25_Ki67_actin,Nuclei|Correlation_Overlap_CD25_Ki67_mitochondria,Nuclei|Correlation_Overlap_CD25_Ki67_DNA,Nuclei|Correlation_Manders_actin_CD25_Ki67,Nuclei|Correlation_Manders_DNA_CD25_Ki67,Nuclei|Correlation_Manders_CD25_Ki67_mitochondria,Nuclei|Correlation_Manders_CD25_Ki67_DNA,Nuclei|Correlation_Manders_CD25_Ki67_actin,Nuclei|Correlation_Manders_mitochondria_CD25_Ki67,Nuclei|Correlation_K_DNA_CD25_Ki67,Nuclei|Correlation_K_CD25_Ki67_DNA,Nuclei|Correlation_K_CD25_Ki67_actin,Nuclei|Correlation_K_CD25_Ki67_mitochondria,Nuclei|Correlation_K_actin_CD25_Ki67,Nuclei|Correlation_K_mitochondria_CD25_Ki67,Nuclei|Children_Cytoplasm_Count,Nuclei|Intensity_MassDisplacement_mitochondria,Nuclei|Intensity_MassDisplacement_CD25_Ki67,Nuclei|Intensity_MassDisplacement_actin,Nuclei|Intensity_MassDisplacement_DNA,Nuclei|Intensity_MinIntensityEdge_actin,Nuclei|Intensity_MinIntensityEdge_CD25_Ki67,Nuclei|Intensity_MinIntensityEdge_mitochondria,Nuclei|Intensity_MinIntensityEdge_DNA,Nuclei|Intensity_StdIntensityEdge_mitochondria,Nuclei|Intensity_StdIntensityEdge_DNA,Nuclei|Intensity_StdIntensityEdge_actin,Nuclei|Intensity_StdIntensityEdge_CD25_Ki67,Nuclei|Intensity_MedianIntensity_DNA,Nuclei|Intensity_MedianIntensity_CD25_Ki67,Nuclei|Intensity_MedianIntensity_mitochondria,Nuclei|Intensity_MedianIntensity_actin,Nuclei|Intensity_MADIntensity_CD25_Ki67,Nuclei|Intensity_MADIntensity_actin,Nuclei|Intensity_MADIntensity_DNA,Nuclei|Intensity_MADIntensity_mitochondria,Nuclei|Intensity_MeanIntensityEdge_mitochondria,Nuclei|Intensity_MeanIntensityEdge_actin,Nuclei|Intensity_MeanIntensityEdge_DNA,Nuclei|Intensity_MeanIntensityEdge_CD25_Ki67,Nuclei|Intensity_MeanIntensity_actin,Nuclei|Intensity_MeanIntensity_DNA,Nuclei|Intensity_MeanIntensity_mitochondria,Nuclei|Intensity_MeanIntensity_CD25_Ki67,Nuclei|Intensity_MaxIntensityEdge_actin,Nuclei|Intensity_MaxIntensityEdge_DNA,Nuclei|Intensity_MaxIntensityEdge_CD25_Ki67,Nuclei|Intensity_MaxIntensityEdge_mitochondria,Nuclei|Intensity_MinIntensity_actin,Nuclei|Intensity_MinIntensity_DNA,Nuclei|Intensity_MinIntensity_CD25_Ki67,Nuclei|Intensity_MinIntensity_mitochondria,Nuclei|Intensity_StdIntensity_DNA,Nuclei|Intensity_StdIntensity_actin,Nuclei|Intensity_StdIntensity_CD25_Ki67,Nuclei|Intensity_StdIntensity_mitochondria,Nuclei|Intensity_IntegratedIntensityEdge_DNA,Nuclei|Intensity_IntegratedIntensityEdge_actin,Nuclei|Intensity_IntegratedIntensityEdge_mitochondria,Nuclei|Intensity_IntegratedIntensityEdge_CD25_Ki67,Nuclei|Intensity_MaxIntensity_mitochondria,Nuclei|Intensity_MaxIntensity_CD25_Ki67,Nuclei|Intensity_MaxIntensity_DNA,Nuclei|Intensity_MaxIntensity_actin,Nuclei|Intensity_UpperQuartileIntensity_mitochondria,Nuclei|Intensity_UpperQuartileIntensity_DNA,Nuclei|Intensity_UpperQuartileIntensity_CD25_Ki67,Nuclei|Intensity_UpperQuartileIntensity_actin,Nuclei|Intensity_LowerQuartileIntensity_DNA,Nuclei|Intensity_LowerQuartileIntensity_mitochondria,Nuclei|Intensity_LowerQuartileIntensity_CD25_Ki67,Nuclei|Intensity_LowerQuartileIntensity_actin,Nuclei|Intensity_IntegratedIntensity_mitochondria,Nuclei|Intensity_IntegratedIntensity_DNA,Nuclei|Intensity_IntegratedIntensity_actin,Nuclei|Intensity_IntegratedIntensity_CD25_Ki67,Nuclei|Parent_Nuclei_raw,Experiment|CellProfiler_Version,Experiment|Pipeline_Pipeline,Experiment|Modification_Timestamp,Experiment|Run_Timestamp
+    Representation of Nan/Inf:NaN
+    Add a prefix to file names?:Yes
+    Filename prefix:tglow_2d_pipeline_v1_
+    Overwrite existing files without warning?:Yes
+    Data to export:Experiment
+    Combine these object measurements with those of the previous object?:No
+    File name:\g<timepoint>_\g<well>_experiment.tsv
+    Use the object name for the file name?:No
+    Data to export:Image
+    Combine these object measurements with those of the previous object?:No
+    File name:\g<timepoint>_\g<well>_image.tsv
+    Use the object name for the file name?:No
+    Data to export:cell
+    Combine these object measurements with those of the previous object?:No
+    File name:\g<timepoint>_\g<well>_cells.tsv
+    Use the object name for the file name?:No
+    Data to export:Nuclei
+    Combine these object measurements with those of the previous object?:Yes
+    File name:DATA.csv
+    Use the object name for the file name?:Yes
+    Data to export:Cytoplasm
+    Combine these object measurements with those of the previous object?:Yes
+    File name:DATA.csv
+    Use the object name for the file name?:Yes
+    Data to export:Object relationships
+    Combine these object measurements with those of the previous object?:No
+    File name:\g<timepoint>_\g<well>_objectRelationships.tsv
+    Use the object name for the file name?:No

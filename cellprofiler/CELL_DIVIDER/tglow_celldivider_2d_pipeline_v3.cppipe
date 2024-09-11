@@ -1,0 +1,701 @@
+CellProfiler Pipeline: http://www.cellprofiler.org
+Version:5
+DateRevision:426
+GitHash:
+ModuleCount:45
+HasImagePlaneDetails:False
+
+Images:[module_num:1|svn_version:'Unknown'|variable_revision_number:2|show_window:False|notes:['To begin creating your project, use the Images module to compile a list of files and/or folders that you want to analyze. You can also specify a set of rules to include only the desired files in your selected folders.']|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    :
+    Filter images?:Images only
+    Select the rule criteria:and (extension does isimage) (directory doesnot containregexp "[\\\\/]\\.")
+
+Metadata:[module_num:2|svn_version:'Unknown'|variable_revision_number:6|show_window:False|notes:['The Metadata module optionally allows you to extract information describing your images (i.e, metadata) which will be stored along with your measurements. This information can be contained in the file name and/or location, or in an external file.']|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Extract metadata?:Yes
+    Metadata data type:Text
+    Metadata types:{}
+    Extraction method count:3
+    Metadata extraction method:Extract from image file headers
+    Metadata source:File name
+    Regular expression to extract from file name:^(?P<Plate>.*)_(?P<Well>[A-P][0-9]{2})_s(?P<Site>[0-9])_w(?P<ChannelNumber>[0-9])
+    Regular expression to extract from folder name:(?P<Date>[0-9]{4}_[0-9]{2}_[0-9]{2})$
+    Extract metadata from:All images
+    Select the filtering criteria:and (file does contain "")
+    Metadata file location:Elsewhere...|
+    Match file and image metadata:[]
+    Use case insensitive matching?:No
+    Metadata file name:None
+    Does cached metadata exist?:Yes
+    Metadata extraction method:Extract from file/folder names
+    Metadata source:File name
+    Regular expression to extract from file name:jm52_\d+_CellDivider_(?P<group>.+_[A-Z]\d+_f\d+)_max_projection.tiff
+    Regular expression to extract from folder name:(?P<Date>[0-9]{4}_[0-9]{2}_[0-9]{2})$
+    Extract metadata from:All images
+    Select the filtering criteria:and (file does contain "")
+    Metadata file location:Elsewhere...|
+    Match file and image metadata:[]
+    Use case insensitive matching?:No
+    Metadata file name:None
+    Does cached metadata exist?:No
+    Metadata extraction method:Extract from file/folder names
+    Metadata source:File name
+    Regular expression to extract from file name:jm52_(?P<date>\d+)_CellDivider_(?P<plate>[a-zA-Z0-9_]+)_(?P<well>[A-Z]\d+)_(?P<field>f\d+)_max_projection.tiff
+    Regular expression to extract from folder name:(?P<Date>[0-9]{4}_[0-9]{2}_[0-9]{2})$
+    Extract metadata from:All images
+    Select the filtering criteria:and (file does contain "")
+    Metadata file location:Elsewhere...|
+    Match file and image metadata:[]
+    Use case insensitive matching?:No
+    Metadata file name:None
+    Does cached metadata exist?:No
+
+NamesAndTypes:[module_num:3|svn_version:'Unknown'|variable_revision_number:8|show_window:False|notes:['The NamesAndTypes module allows you to assign a meaningful name to each image by which other modules will refer to it.']|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Assign a name to:Images matching rules
+    Select the image type:Grayscale image
+    Name to assign these images:DNA
+    Match metadata:[]
+    Image set matching method:Order
+    Set intensity range from:Image metadata
+    Assignments count:5
+    Single images count:0
+    Maximum intensity:255.0
+    Process as 3D?:No
+    Relative pixel spacing in X:1.0
+    Relative pixel spacing in Y:1.0
+    Relative pixel spacing in Z:1.0
+    Select the rule criteria:and (metadata does C "0")
+    Name to assign these images:cd25_ki67
+    Name to assign these objects:Cell
+    Select the image type:Grayscale image
+    Set intensity range from:Image metadata
+    Maximum intensity:255.0
+    Select the rule criteria:and (metadata does C "1")
+    Name to assign these images:brightfield
+    Name to assign these objects:Cell
+    Select the image type:Grayscale image
+    Set intensity range from:Image metadata
+    Maximum intensity:255.0
+    Select the rule criteria:and (metadata does C "2")
+    Name to assign these images:ctv
+    Name to assign these objects:Cell
+    Select the image type:Grayscale image
+    Set intensity range from:Image metadata
+    Maximum intensity:255.0
+    Select the rule criteria:and (metadata does C "3")
+    Name to assign these images:actin
+    Name to assign these objects:Cell
+    Select the image type:Grayscale image
+    Set intensity range from:Image metadata
+    Maximum intensity:255.0
+    Select the rule criteria:and (metadata does C "4")
+    Name to assign these images:mito
+    Name to assign these objects:Cell
+    Select the image type:Grayscale image
+    Set intensity range from:Image metadata
+    Maximum intensity:255.0
+
+Groups:[module_num:4|svn_version:'Unknown'|variable_revision_number:2|show_window:False|notes:['The Groups module optionally allows you to split your list of images into image subsets (groups) which will be processed independently of each other. Examples of groupings include screening batches, microtiter plates, time-lapse movies, etc.']|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Do you want to group your images?:No
+    grouping metadata count:1
+    Metadata category:None
+
+MeasureImageQuality:[module_num:5|svn_version:'Unknown'|variable_revision_number:6|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Calculate metrics for which images?:Select...
+    Image count:1
+    Scale count:3
+    Threshold count:1
+    Select the images to measure:actin, cd25_ki67, ctv, mito
+    Include the image rescaling value?:Yes
+    Calculate blur metrics?:Yes
+    Spatial scale for blur measurements:10
+    Spatial scale for blur measurements:20
+    Spatial scale for blur measurements:40
+    Calculate saturation metrics?:No
+    Calculate intensity metrics?:Yes
+    Calculate thresholds?:Yes
+    Use all thresholding methods?:No
+    Select a thresholding method:Otsu
+    Typical fraction of the image covered by objects:0.1
+    Two-class or three-class thresholding?:Two classes
+    Minimize the weighted variance or the entropy?:Weighted variance
+    Assign pixels in the middle intensity class to the foreground or the background?:Foreground
+
+FlagImage:[module_num:6|svn_version:'Unknown'|variable_revision_number:5|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Hidden:1
+    Hidden:1
+    Name the flag's category:Metadata
+    Name the flag:image_qc
+    How should measurements be linked?:Flag if any fail
+    Skip image set if flagged?:Yes
+    Flag is based on:Whole-image measurement
+    Select the object to be used for flagging:None
+    Which measurement?:ImageQuality_ThresholdOtsu_actin_2W
+    Flag images based on low values?:Yes
+    Minimum value:0.002
+    Flag images based on high values?:No
+    Maximum value:0.
+    Rules file location:Default Input Folder sub-folder|Documents/projects/imagingpipelines/tglow/cellprofiler/KITTY
+    Rules file name:qcclassifier_goodbad.model
+    Class number:good
+    Allow fuzzy feature matching?:No
+    Ignore flag skips on last cycle?:No
+
+RescaleIntensity:[module_num:7|svn_version:'Unknown'|variable_revision_number:3|show_window:False|notes:['For composite image']|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Select the input image:ctv
+    Name the output image:ctv_viz
+    Rescaling method:Choose specific values to be reset to the full intensity range
+    Method to calculate the minimum intensity:Custom
+    Method to calculate the maximum intensity:Custom
+    Lower intensity limit for the input image:0.0
+    Upper intensity limit for the input image:1.0
+    Intensity range for the input image:0.01434348,0.09990082 
+    Intensity range for the output image:0.0,1.0
+    Select image to match in maximum intensity:actin
+    Divisor value:0.05
+    Divisor measurement:None
+
+RescaleIntensity:[module_num:8|svn_version:'Unknown'|variable_revision_number:3|show_window:False|notes:['For composite image']|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Select the input image:mito
+    Name the output image:mito_viz
+    Rescaling method:Choose specific values to be reset to the full intensity range
+    Method to calculate the minimum intensity:Custom
+    Method to calculate the maximum intensity:Custom
+    Lower intensity limit for the input image:0.0
+    Upper intensity limit for the input image:1.0
+    Intensity range for the input image:0.3326467  ,1
+    Intensity range for the output image:0.0,1
+    Select image to match in maximum intensity:actin
+    Divisor value:0.02
+    Divisor measurement:None
+
+RescaleIntensity:[module_num:9|svn_version:'Unknown'|variable_revision_number:3|show_window:False|notes:['For composite image']|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Select the input image:cd25_ki67
+    Name the output image:cd25_ki67_viz
+    Rescaling method:Choose specific values to be reset to the full intensity range
+    Method to calculate the minimum intensity:Custom
+    Method to calculate the maximum intensity:Custom
+    Lower intensity limit for the input image:0.0
+    Upper intensity limit for the input image:1.0
+    Intensity range for the input image:0.001922637 ,0.2205081 
+    Intensity range for the output image:0.0,1.0
+    Select image to match in maximum intensity:actin
+    Divisor value:1.0
+    Divisor measurement:None
+
+RescaleIntensity:[module_num:10|svn_version:'Unknown'|variable_revision_number:3|show_window:False|notes:['For composite image']|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Select the input image:actin
+    Name the output image:actin_viz
+    Rescaling method:Choose specific values to be reset to the full intensity range
+    Method to calculate the minimum intensity:Custom
+    Method to calculate the maximum intensity:Custom
+    Lower intensity limit for the input image:0.0
+    Upper intensity limit for the input image:1.0
+    Intensity range for the input image:0.002059968 ,0.1822538 
+    Intensity range for the output image:0.0,1.0
+    Select image to match in maximum intensity:actin
+    Divisor value:1.0
+    Divisor measurement:None
+
+HistogramMatching:[module_num:11|svn_version:'Unknown'|variable_revision_number:1|show_window:False|notes:['For composite image']|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Select the input image:brightfield
+    Name the output image:brightfield_viz
+    Is your image 3D?:No
+    Use a frame within image as reference?:No
+    Image to use as reference :actin_viz
+    Frame number:5
+
+HistogramMatching:[module_num:12|svn_version:'Unknown'|variable_revision_number:1|show_window:False|notes:['For cell outlines']|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Select the input image:cd25_ki67
+    Name the output image:cd25_ki67_eq
+    Is your image 3D?:No
+    Use a frame within image as reference?:No
+    Image to use as reference :actin
+    Frame number:5
+
+HistogramMatching:[module_num:13|svn_version:'Unknown'|variable_revision_number:1|show_window:False|notes:['For cell outlines']|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Select the input image:ctv
+    Name the output image:ctv_eq
+    Is your image 3D?:No
+    Use a frame within image as reference?:No
+    Image to use as reference :actin
+    Frame number:5
+
+HistogramMatching:[module_num:14|svn_version:'Unknown'|variable_revision_number:1|show_window:False|notes:['For cell outlines']|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Select the input image:mito
+    Name the output image:mito_eq
+    Is your image 3D?:No
+    Use a frame within image as reference?:No
+    Image to use as reference :actin
+    Frame number:5
+
+HistogramMatching:[module_num:15|svn_version:'Unknown'|variable_revision_number:1|show_window:False|notes:['For cell outlines']|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Select the input image:brightfield
+    Name the output image:brightfield_eq
+    Is your image 3D?:No
+    Use a frame within image as reference?:No
+    Image to use as reference :actin
+    Frame number:5
+
+ImageMath:[module_num:16|svn_version:'Unknown'|variable_revision_number:5|show_window:False|notes:['For cell outlines']|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Operation:Add
+    Raise the power of the result by:1.0
+    Multiply the result by:1.0
+    Add to result:0.0
+    Set values less than 0 equal to 0?:Yes
+    Set values greater than 1 equal to 1?:No
+    Replace invalid values with 0?:Yes
+    Ignore the image masks?:Yes
+    Name the output image:cell_intensity_eq
+    Image or measurement?:Image
+    Select the first image:actin
+    Multiply the first image by:1
+    Measurement:
+    Image or measurement?:Image
+    Select the second image:brightfield_eq
+    Multiply the second image by:0
+    Measurement:
+    Image or measurement?:Image
+    Select the third image:mito_eq
+    Multiply the third image by:1
+    Measurement:
+    Image or measurement?:Image
+    Select the fourth image:cd25_ki67_eq
+    Multiply the fourth image by:1.0
+    Measurement:
+
+RescaleIntensity:[module_num:17|svn_version:'Unknown'|variable_revision_number:3|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Select the input image:cell_intensity_eq
+    Name the output image:cell_intensity_eq_scaled
+    Rescaling method:Stretch each image to use the full intensity range
+    Method to calculate the minimum intensity:Custom
+    Method to calculate the maximum intensity:Custom
+    Lower intensity limit for the input image:0.0
+    Upper intensity limit for the input image:1.0
+    Intensity range for the input image:0.0,1.0
+    Intensity range for the output image:0.0,1.0
+    Select image to match in maximum intensity:None
+    Divisor value:1.0
+    Divisor measurement:None
+
+Threshold:[module_num:18|svn_version:'Unknown'|variable_revision_number:12|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Select the input image:cell_intensity_eq_scaled
+    Name the output image:cell_intensity_thresh
+    Threshold strategy:Global
+    Thresholding method:Otsu
+    Threshold smoothing scale:0.0
+    Threshold correction factor:1.0
+    Lower and upper bounds on threshold:0.0,1.0
+    Manual threshold:0.0
+    Select the measurement to threshold with:None
+    Two-class or three-class thresholding?:Three classes
+    Log transform before thresholding?:No
+    Assign pixels in the middle intensity class to the foreground or the background?:Foreground
+    Size of adaptive window:50
+    Lower outlier fraction:0.05
+    Upper outlier fraction:0.05
+    Averaging method:Mean
+    Variance method:Standard deviation
+    # of deviations:2.0
+    Thresholding method:Minimum Cross-Entropy
+
+RemoveHoles:[module_num:19|svn_version:'Unknown'|variable_revision_number:1|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Select the input image:cell_intensity_thresh
+    Name the output image:cell_mask_hrm
+    Size of holes to fill:50
+
+EnhanceOrSuppressFeatures:[module_num:20|svn_version:'Unknown'|variable_revision_number:7|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Select the input image:cell_mask_hrm
+    Name the output image:cell_mask
+    Select the operation:Suppress
+    Feature size:10
+    Feature type:Speckles
+    Range of hole sizes:1,10
+    Smoothing scale:2.0
+    Shear angle:0.0
+    Decay:0.95
+    Enhancement method:Tubeness
+    Speed and accuracy:Fast
+    Rescale result image:No
+
+ImageMath:[module_num:21|svn_version:'Unknown'|variable_revision_number:5|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Operation:Invert
+    Raise the power of the result by:1.0
+    Multiply the result by:1.0
+    Add to result:0.0
+    Set values less than 0 equal to 0?:Yes
+    Set values greater than 1 equal to 1?:Yes
+    Replace invalid values with 0?:Yes
+    Ignore the image masks?:No
+    Name the output image:actin_inv
+    Image or measurement?:Image
+    Select the first image:actin
+    Multiply the first image by:1.0
+    Measurement:
+    Image or measurement?:Image
+    Select the second image:None
+    Multiply the second image by:1.0
+    Measurement:
+
+RescaleIntensity:[module_num:22|svn_version:'Unknown'|variable_revision_number:3|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Select the input image:actin_inv
+    Name the output image:actin_inv_scaled
+    Rescaling method:Stretch each image to use the full intensity range
+    Method to calculate the minimum intensity:Custom
+    Method to calculate the maximum intensity:Custom
+    Lower intensity limit for the input image:0.0
+    Upper intensity limit for the input image:1.0
+    Intensity range for the input image:0.0,1.0
+    Intensity range for the output image:0.0,1.0
+    Select image to match in maximum intensity:None
+    Divisor value:1.0
+    Divisor measurement:None
+
+ImageMath:[module_num:23|svn_version:'Unknown'|variable_revision_number:5|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Operation:Multiply
+    Raise the power of the result by:8
+    Multiply the result by:1.0
+    Add to result:0.0
+    Set values less than 0 equal to 0?:Yes
+    Set values greater than 1 equal to 1?:Yes
+    Replace invalid values with 0?:Yes
+    Ignore the image masks?:No
+    Name the output image:actin_inv_masked
+    Image or measurement?:Image
+    Select the first image:actin_inv_scaled
+    Multiply the first image by:1.0
+    Measurement:
+    Image or measurement?:Image
+    Select the second image:cell_mask
+    Multiply the second image by:1
+    Measurement:
+
+MedianFilter:[module_num:24|svn_version:'Unknown'|variable_revision_number:1|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Select the input image:actin_inv_masked
+    Name the output image:actin_inv_filtered_median
+    Window:3
+
+ErodeImage:[module_num:25|svn_version:'Unknown'|variable_revision_number:1|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Select the input image:actin_inv_filtered_median
+    Name the output image:actin_inv_masked_eroded
+    Structuring element:disk,2
+
+GaussianFilter:[module_num:26|svn_version:'Unknown'|variable_revision_number:1|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Select the input image:actin_inv_masked_eroded
+    Name the output image:actin_inv_filtered
+    Sigma:2
+
+RescaleIntensity:[module_num:27|svn_version:'Unknown'|variable_revision_number:3|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Select the input image:actin_inv_filtered
+    Name the output image:cell_seeds
+    Rescaling method:Stretch each image to use the full intensity range
+    Method to calculate the minimum intensity:Custom
+    Method to calculate the maximum intensity:Custom
+    Lower intensity limit for the input image:0.0
+    Upper intensity limit for the input image:1.0
+    Intensity range for the input image:0.0,1.0
+    Intensity range for the output image:0.0,1.0
+    Select image to match in maximum intensity:None
+    Divisor value:1.0
+    Divisor measurement:None
+
+IdentifyPrimaryObjects:[module_num:28|svn_version:'Unknown'|variable_revision_number:15|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Select the input image:cell_seeds
+    Name the primary objects to be identified:seed_raw
+    Typical diameter of objects, in pixel units (Min,Max):20,150
+    Discard objects outside the diameter range?:Yes
+    Discard objects touching the border of the image?:Yes
+    Method to distinguish clumped objects:Intensity
+    Method to draw dividing lines between clumped objects:Intensity
+    Size of smoothing filter:30
+    Suppress local maxima that are closer than this minimum allowed distance:30
+    Speed up by using lower-resolution image to find local maxima?:No
+    Fill holes in identified objects?:After both thresholding and declumping
+    Automatically calculate size of smoothing filter for declumping?:No
+    Automatically calculate minimum allowed distance between local maxima?:No
+    Handling of objects if excessive number of objects identified:Continue
+    Maximum number of objects:500
+    Use advanced settings?:Yes
+    Threshold setting version:12
+    Threshold strategy:Global
+    Thresholding method:Otsu
+    Threshold smoothing scale:0
+    Threshold correction factor:1.0
+    Lower and upper bounds on threshold:0.0,1.0
+    Manual threshold:0.0
+    Select the measurement to threshold with:None
+    Two-class or three-class thresholding?:Two classes
+    Log transform before thresholding?:No
+    Assign pixels in the middle intensity class to the foreground or the background?:Foreground
+    Size of adaptive window:50
+    Lower outlier fraction:0.05
+    Upper outlier fraction:0.05
+    Averaging method:Mean
+    Variance method:Standard deviation
+    # of deviations:2.0
+    Thresholding method:Minimum Cross-Entropy
+
+IdentifySecondaryObjects:[module_num:29|svn_version:'Unknown'|variable_revision_number:10|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Select the input objects:seed_raw
+    Name the objects to be identified:cell_raw
+    Select the method to identify the secondary objects:Propagation
+    Select the input image:cell_intensity_eq_scaled
+    Number of pixels by which to expand the primary objects:10
+    Regularization factor:0.05
+    Discard secondary objects touching the border of the image?:No
+    Discard the associated primary objects?:No
+    Name the new primary objects:FilteredNuclei
+    Fill holes in identified objects?:Yes
+    Threshold setting version:12
+    Threshold strategy:Global
+    Thresholding method:Otsu
+    Threshold smoothing scale:0.0
+    Threshold correction factor:1.0
+    Lower and upper bounds on threshold:0.0,1.0
+    Manual threshold:0.0
+    Select the measurement to threshold with:None
+    Two-class or three-class thresholding?:Three classes
+    Log transform before thresholding?:No
+    Assign pixels in the middle intensity class to the foreground or the background?:Foreground
+    Size of adaptive window:50
+    Lower outlier fraction:0.05
+    Upper outlier fraction:0.05
+    Averaging method:Mean
+    Variance method:Standard deviation
+    # of deviations:2.0
+    Thresholding method:Minimum Cross-Entropy
+
+IdentifyTertiaryObjects:[module_num:30|svn_version:'Unknown'|variable_revision_number:3|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Select the larger identified objects:cell_raw
+    Select the smaller identified objects:seed_raw
+    Name the tertiary objects to be identified:memb_raw
+    Shrink smaller object prior to subtraction?:Yes
+
+FilterObjects:[module_num:31|svn_version:'Unknown'|variable_revision_number:10|show_window:False|notes:['Remove nuclei with centers overlapping the image border within 5%']|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Select the objects to filter:seed_raw
+    Name the output objects:seed
+    Select the filtering mode:Measurements
+    Select the filtering method:Limits
+    Select the objects that contain the filtered objects:None
+    Select the location of the rules or classifier file:Elsewhere...|
+    Rules or classifier file name:rules.txt
+    Class number:1
+    Measurement count:2
+    Additional object count:2
+    Assign overlapping child to:Both parents
+    Keep removed objects as a separate set?:No
+    Name the objects removed by the filter:RemovedObjects
+    Select the measurement to filter by:Location_Center_X
+    Filter using a minimum measurement value?:Yes
+    Minimum value:108
+    Filter using a maximum measurement value?:Yes
+    Maximum value:2052
+    Select the measurement to filter by:Location_Center_Y
+    Filter using a minimum measurement value?:Yes
+    Minimum value:108
+    Filter using a maximum measurement value?:Yes
+    Maximum value:2052
+    Select additional object to relabel:cell_raw
+    Name the relabeled objects:cell
+    Select additional object to relabel:memb_raw
+    Name the relabeled objects:memb
+    Allow fuzzy feature matching?:No
+
+GrayToColor:[module_num:32|svn_version:'Unknown'|variable_revision_number:4|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Select a color scheme:Composite
+    Rescale intensity:Yes
+    Select the image to be colored red:Leave this black
+    Select the image to be colored green:Leave this black
+    Select the image to be colored blue:Leave this black
+    Name the output image:composite_img
+    Relative weight for the red image:1.0
+    Relative weight for the green image:1.0
+    Relative weight for the blue image:1.0
+    Select the image to be colored cyan:Leave this black
+    Select the image to be colored magenta:Leave this black
+    Select the image to be colored yellow:Leave this black
+    Select the image that determines brightness:Leave this black
+    Relative weight for the cyan image:1.0
+    Relative weight for the magenta image:1.0
+    Relative weight for the yellow image:1.0
+    Relative weight for the brightness image:1.0
+    Hidden:3
+    Image name:actin_viz
+    Color:#FF1400
+    Weight:1
+    Image name:ctv_viz
+    Color:#00A018
+    Weight:1.0
+    Image name:cd25_ki67_viz
+    Color:#2A00FF
+    Weight:1.0
+
+OverlayOutlines:[module_num:33|svn_version:'Unknown'|variable_revision_number:4|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Display outlines on a blank image?:No
+    Select image on which to display outlines:composite_img
+    Name the output image:composite_img_overlay
+    Outline display mode:Color
+    Select method to determine brightness of outlines:Max of image
+    How to outline:Inner
+    Select outline color:#FEDE0F
+    Select objects to display:cell
+
+SaveImages:[module_num:34|svn_version:'Unknown'|variable_revision_number:16|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Select the type of image to save:Image
+    Select the image to save:composite_img
+    Select method for constructing file names:Single name
+    Select image name for file prefix:DNA
+    Enter single file name:tglow_2d_composite_\g<group>
+    Number of digits:4
+    Append a suffix to the image file name?:Yes
+    Text to append to the image name:_composite
+    Saved file format:png
+    Output file location:Default Output Folder sub-folder|segmentation_images
+    Image bit depth:8-bit integer
+    Overwrite existing files without warning?:Yes
+    When to save:Every cycle
+    Record the file and path information to the saved image?:No
+    Create subfolders in the output folder?:No
+    Base image folder:Elsewhere...|
+    How to save the series:T (Time)
+    Save with lossless compression?:Yes
+
+SaveImages:[module_num:35|svn_version:'Unknown'|variable_revision_number:16|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Select the type of image to save:Image
+    Select the image to save:composite_img_overlay
+    Select method for constructing file names:Single name
+    Select image name for file prefix:DNA
+    Enter single file name:tglow_2d_composite_segmented_\g<group>
+    Number of digits:4
+    Append a suffix to the image file name?:Yes
+    Text to append to the image name:_composite_segmented
+    Saved file format:png
+    Output file location:Default Output Folder sub-folder|segmentation_images
+    Image bit depth:8-bit integer
+    Overwrite existing files without warning?:Yes
+    When to save:Every cycle
+    Record the file and path information to the saved image?:No
+    Create subfolders in the output folder?:No
+    Base image folder:Elsewhere...|
+    How to save the series:T (Time)
+    Save with lossless compression?:Yes
+
+MeasureImageIntensity:[module_num:36|svn_version:'Unknown'|variable_revision_number:4|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Select images to measure:actin, brightfield, cd25_ki67, ctv, mito
+    Measure the intensity only from areas enclosed by objects?:No
+    Select input object sets:cells
+    Calculate custom percentiles:Yes
+    Specify percentiles to measure:10,90
+
+MeasureObjectIntensity:[module_num:37|svn_version:'Unknown'|variable_revision_number:4|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Select images to measure:actin, cd25_ki67, ctv, mito
+    Select objects to measure:cell
+
+MeasureObjectIntensity:[module_num:38|svn_version:'Unknown'|variable_revision_number:4|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Select images to measure:actin, cd25_ki67
+    Select objects to measure:memb, seed
+
+MeasureObjectSizeShape:[module_num:39|svn_version:'Unknown'|variable_revision_number:3|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Select object sets to measure:cell, seed
+    Calculate the Zernike features?:Yes
+    Calculate the advanced features?:No
+
+MeasureObjectIntensityDistribution:[module_num:40|svn_version:'Unknown'|variable_revision_number:6|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Select images to measure:actin, cd25_ki67, ctv, mito
+    Hidden:1
+    Hidden:1
+    Hidden:0
+    Calculate intensity Zernikes?:Magnitudes and phase
+    Maximum zernike moment:9
+    Select objects to measure:cell
+    Object to use as center?:These objects
+    Select objects to use as centers:None
+    Scale the bins?:Yes
+    Number of bins:5
+    Maximum radius:100
+
+MeasureColocalization:[module_num:41|svn_version:'Unknown'|variable_revision_number:5|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Select images to measure:actin, cd25_ki67, ctv, mito
+    Set threshold as percentage of maximum intensity for the images:5.0
+    Select where to measure correlation:Within objects
+    Select objects to measure:cell
+    Run all metrics?:No
+    Calculate correlation and slope metrics?:No
+    Calculate the Manders coefficients?:Yes
+    Calculate the Rank Weighted Colocalization coefficients?:No
+    Calculate the Overlap coefficients?:Yes
+    Calculate the Manders coefficients using Costes auto threshold?:No
+    Method for Costes thresholding:Faster
+
+MeasureTexture:[module_num:42|svn_version:'Unknown'|variable_revision_number:7|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Select images to measure:actin, ctv, mito
+    Select objects to measure:cell
+    Enter how many gray levels to measure the texture at:256
+    Hidden:1
+    Measure whole images or objects?:Objects
+    Texture scale to measure:2
+
+MeasureGranularity:[module_num:43|svn_version:'Unknown'|variable_revision_number:4|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Select images to measure:ctv, mito
+    Measure within objects?:Yes
+    Select objects to measure:cell
+    Subsampling factor for granularity measurements:0.25
+    Subsampling factor for background reduction:0.25
+    Radius of structuring element:1
+    Range of the granular spectrum:16
+
+MeasureObjectNeighbors:[module_num:44|svn_version:'Unknown'|variable_revision_number:3|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Select objects to measure:cell
+    Select neighboring objects to measure:cell
+    Method to determine neighbors:Adjacent
+    Neighbor distance:5
+    Consider objects discarded for touching image border?:Yes
+    Retain the image of objects colored by numbers of neighbors?:No
+    Name the output image:ObjectNeighborCount
+    Select colormap:Blues
+    Retain the image of objects colored by percent of touching pixels?:No
+    Name the output image:PercentTouching
+    Select colormap:Oranges
+
+ExportToSpreadsheet:[module_num:45|svn_version:'Unknown'|variable_revision_number:13|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Select the column delimiter:Tab
+    Add image metadata columns to your object data file?:No
+    Add image file and folder names to your object data file?:No
+    Select the measurements to export:Yes
+    Calculate the per-image mean values for object measurements?:No
+    Calculate the per-image median values for object measurements?:No
+    Calculate the per-image standard deviation values for object measurements?:No
+    Output file location:Default Output Folder|Desktop/Julie/20230728_TCA/results_test_farm
+    Create a GenePattern GCT file?:No
+    Select source of sample row name:Metadata
+    Select the image to use as the identifier:None
+    Select the metadata to use as the identifier:None
+    Export all measurement types?:No
+    Press button to select measurements:cell|Granularity_14_mito,cell|Granularity_14_ctv,cell|Granularity_6_mito,cell|Granularity_6_ctv,cell|Granularity_9_ctv,cell|Granularity_9_mito,cell|Granularity_16_ctv,cell|Granularity_16_mito,cell|Granularity_3_ctv,cell|Granularity_3_mito,cell|Granularity_11_mito,cell|Granularity_11_ctv,cell|Granularity_1_ctv,cell|Granularity_1_mito,cell|Granularity_8_mito,cell|Granularity_8_ctv,cell|Granularity_10_ctv,cell|Granularity_10_mito,cell|Granularity_13_ctv,cell|Granularity_13_mito,cell|Granularity_5_ctv,cell|Granularity_5_mito,cell|Granularity_4_ctv,cell|Granularity_4_mito,cell|Granularity_15_mito,cell|Granularity_15_ctv,cell|Granularity_7_mito,cell|Granularity_7_ctv,cell|Granularity_2_ctv,cell|Granularity_2_mito,cell|Granularity_12_mito,cell|Granularity_12_ctv,cell|Texture_Correlation_ctv_2_00_256,cell|Texture_Correlation_ctv_2_02_256,cell|Texture_Correlation_ctv_2_03_256,cell|Texture_Correlation_ctv_2_01_256,cell|Texture_Correlation_actin_2_01_256,cell|Texture_Correlation_actin_2_03_256,cell|Texture_Correlation_actin_2_02_256,cell|Texture_Correlation_actin_2_00_256,cell|Texture_Correlation_mito_2_01_256,cell|Texture_Correlation_mito_2_00_256,cell|Texture_Correlation_mito_2_02_256,cell|Texture_Correlation_mito_2_03_256,cell|Texture_InverseDifferenceMoment_mito_2_00_256,cell|Texture_InverseDifferenceMoment_mito_2_01_256,cell|Texture_InverseDifferenceMoment_mito_2_03_256,cell|Texture_InverseDifferenceMoment_mito_2_02_256,cell|Texture_InverseDifferenceMoment_actin_2_01_256,cell|Texture_InverseDifferenceMoment_actin_2_00_256,cell|Texture_InverseDifferenceMoment_actin_2_02_256,cell|Texture_InverseDifferenceMoment_actin_2_03_256,cell|Texture_InverseDifferenceMoment_ctv_2_01_256,cell|Texture_InverseDifferenceMoment_ctv_2_03_256,cell|Texture_InverseDifferenceMoment_ctv_2_00_256,cell|Texture_InverseDifferenceMoment_ctv_2_02_256,cell|Texture_AngularSecondMoment_ctv_2_02_256,cell|Texture_AngularSecondMoment_ctv_2_00_256,cell|Texture_AngularSecondMoment_ctv_2_03_256,cell|Texture_AngularSecondMoment_ctv_2_01_256,cell|Texture_AngularSecondMoment_actin_2_00_256,cell|Texture_AngularSecondMoment_actin_2_02_256,cell|Texture_AngularSecondMoment_actin_2_01_256,cell|Texture_AngularSecondMoment_actin_2_03_256,cell|Texture_AngularSecondMoment_mito_2_00_256,cell|Texture_AngularSecondMoment_mito_2_01_256,cell|Texture_AngularSecondMoment_mito_2_03_256,cell|Texture_AngularSecondMoment_mito_2_02_256,cell|Texture_InfoMeas2_mito_2_00_256,cell|Texture_InfoMeas2_mito_2_01_256,cell|Texture_InfoMeas2_mito_2_03_256,cell|Texture_InfoMeas2_mito_2_02_256,cell|Texture_InfoMeas2_ctv_2_01_256,cell|Texture_InfoMeas2_ctv_2_03_256,cell|Texture_InfoMeas2_ctv_2_02_256,cell|Texture_InfoMeas2_ctv_2_00_256,cell|Texture_InfoMeas2_actin_2_03_256,cell|Texture_InfoMeas2_actin_2_02_256,cell|Texture_InfoMeas2_actin_2_01_256,cell|Texture_InfoMeas2_actin_2_00_256,cell|Texture_Contrast_mito_2_00_256,cell|Texture_Contrast_mito_2_03_256,cell|Texture_Contrast_mito_2_01_256,cell|Texture_Contrast_mito_2_02_256,cell|Texture_Contrast_ctv_2_03_256,cell|Texture_Contrast_ctv_2_01_256,cell|Texture_Contrast_ctv_2_02_256,cell|Texture_Contrast_ctv_2_00_256,cell|Texture_Contrast_actin_2_01_256,cell|Texture_Contrast_actin_2_03_256,cell|Texture_Contrast_actin_2_02_256,cell|Texture_Contrast_actin_2_00_256,cell|Texture_DifferenceVariance_actin_2_03_256,cell|Texture_DifferenceVariance_actin_2_01_256,cell|Texture_DifferenceVariance_actin_2_00_256,cell|Texture_DifferenceVariance_actin_2_02_256,cell|Texture_DifferenceVariance_ctv_2_01_256,cell|Texture_DifferenceVariance_ctv_2_00_256,cell|Texture_DifferenceVariance_ctv_2_02_256,cell|Texture_DifferenceVariance_ctv_2_03_256,cell|Texture_DifferenceVariance_mito_2_02_256,cell|Texture_DifferenceVariance_mito_2_01_256,cell|Texture_DifferenceVariance_mito_2_03_256,cell|Texture_DifferenceVariance_mito_2_00_256,cell|Texture_SumAverage_ctv_2_01_256,cell|Texture_SumAverage_ctv_2_02_256,cell|Texture_SumAverage_ctv_2_00_256,cell|Texture_SumAverage_ctv_2_03_256,cell|Texture_SumAverage_mito_2_03_256,cell|Texture_SumAverage_mito_2_01_256,cell|Texture_SumAverage_mito_2_02_256,cell|Texture_SumAverage_mito_2_00_256,cell|Texture_SumAverage_actin_2_03_256,cell|Texture_SumAverage_actin_2_02_256,cell|Texture_SumAverage_actin_2_01_256,cell|Texture_SumAverage_actin_2_00_256,cell|Texture_InfoMeas1_mito_2_01_256,cell|Texture_InfoMeas1_mito_2_02_256,cell|Texture_InfoMeas1_mito_2_03_256,cell|Texture_InfoMeas1_mito_2_00_256,cell|Texture_InfoMeas1_ctv_2_01_256,cell|Texture_InfoMeas1_ctv_2_02_256,cell|Texture_InfoMeas1_ctv_2_00_256,cell|Texture_InfoMeas1_ctv_2_03_256,cell|Texture_InfoMeas1_actin_2_02_256,cell|Texture_InfoMeas1_actin_2_01_256,cell|Texture_InfoMeas1_actin_2_00_256,cell|Texture_InfoMeas1_actin_2_03_256,cell|Texture_SumEntropy_mito_2_02_256,cell|Texture_SumEntropy_mito_2_01_256,cell|Texture_SumEntropy_mito_2_00_256,cell|Texture_SumEntropy_mito_2_03_256,cell|Texture_SumEntropy_actin_2_01_256,cell|Texture_SumEntropy_actin_2_03_256,cell|Texture_SumEntropy_actin_2_00_256,cell|Texture_SumEntropy_actin_2_02_256,cell|Texture_SumEntropy_ctv_2_01_256,cell|Texture_SumEntropy_ctv_2_02_256,cell|Texture_SumEntropy_ctv_2_00_256,cell|Texture_SumEntropy_ctv_2_03_256,cell|Texture_DifferenceEntropy_ctv_2_02_256,cell|Texture_DifferenceEntropy_ctv_2_03_256,cell|Texture_DifferenceEntropy_ctv_2_00_256,cell|Texture_DifferenceEntropy_ctv_2_01_256,cell|Texture_DifferenceEntropy_mito_2_00_256,cell|Texture_DifferenceEntropy_mito_2_03_256,cell|Texture_DifferenceEntropy_mito_2_02_256,cell|Texture_DifferenceEntropy_mito_2_01_256,cell|Texture_DifferenceEntropy_actin_2_03_256,cell|Texture_DifferenceEntropy_actin_2_02_256,cell|Texture_DifferenceEntropy_actin_2_00_256,cell|Texture_DifferenceEntropy_actin_2_01_256,cell|Texture_Variance_ctv_2_00_256,cell|Texture_Variance_ctv_2_03_256,cell|Texture_Variance_ctv_2_02_256,cell|Texture_Variance_ctv_2_01_256,cell|Texture_Variance_actin_2_02_256,cell|Texture_Variance_actin_2_00_256,cell|Texture_Variance_actin_2_01_256,cell|Texture_Variance_actin_2_03_256,cell|Texture_Variance_mito_2_01_256,cell|Texture_Variance_mito_2_03_256,cell|Texture_Variance_mito_2_02_256,cell|Texture_Variance_mito_2_00_256,cell|Texture_Entropy_ctv_2_03_256,cell|Texture_Entropy_ctv_2_01_256,cell|Texture_Entropy_ctv_2_02_256,cell|Texture_Entropy_ctv_2_00_256,cell|Texture_Entropy_actin_2_02_256,cell|Texture_Entropy_actin_2_03_256,cell|Texture_Entropy_actin_2_00_256,cell|Texture_Entropy_actin_2_01_256,cell|Texture_Entropy_mito_2_03_256,cell|Texture_Entropy_mito_2_00_256,cell|Texture_Entropy_mito_2_02_256,cell|Texture_Entropy_mito_2_01_256,cell|Texture_SumVariance_mito_2_02_256,cell|Texture_SumVariance_mito_2_00_256,cell|Texture_SumVariance_mito_2_03_256,cell|Texture_SumVariance_mito_2_01_256,cell|Texture_SumVariance_actin_2_01_256,cell|Texture_SumVariance_actin_2_02_256,cell|Texture_SumVariance_actin_2_00_256,cell|Texture_SumVariance_actin_2_03_256,cell|Texture_SumVariance_ctv_2_01_256,cell|Texture_SumVariance_ctv_2_03_256,cell|Texture_SumVariance_ctv_2_00_256,cell|Texture_SumVariance_ctv_2_02_256,cell|Location_MaxIntensity_Y_ctv,cell|Location_MaxIntensity_Y_cd25_ki67,cell|Location_MaxIntensity_Y_mito,cell|Location_MaxIntensity_Y_actin,cell|Location_MaxIntensity_Z_actin,cell|Location_MaxIntensity_Z_ctv,cell|Location_MaxIntensity_Z_mito,cell|Location_MaxIntensity_Z_cd25_ki67,cell|Location_MaxIntensity_X_mito,cell|Location_MaxIntensity_X_ctv,cell|Location_MaxIntensity_X_actin,cell|Location_CenterMassIntensity_Y_ctv,cell|Location_CenterMassIntensity_Y_mito,cell|Location_CenterMassIntensity_Y_actin,cell|Location_CenterMassIntensity_Y_cd25_ki67,cell|Location_CenterMassIntensity_X_ctv,cell|Location_CenterMassIntensity_X_cd25_ki67,cell|Location_CenterMassIntensity_X_mito,cell|Location_CenterMassIntensity_X_actin,cell|Location_CenterMassIntensity_Z_actin,cell|Location_CenterMassIntensity_Z_cd25_ki67,cell|Location_CenterMassIntensity_Z_ctv,cell|Location_CenterMassIntensity_Z_mito,cell|RadialDistribution_FracAtD_ctv_3of5,cell|RadialDistribution_FracAtD_ctv_2of5,cell|RadialDistribution_FracAtD_ctv_5of5,cell|RadialDistribution_FracAtD_ctv_4of5,cell|RadialDistribution_FracAtD_ctv_1of5,cell|RadialDistribution_FracAtD_actin_5of5,cell|RadialDistribution_FracAtD_actin_4of5,cell|RadialDistribution_FracAtD_actin_3of5,cell|RadialDistribution_FracAtD_actin_2of5,cell|RadialDistribution_FracAtD_actin_1of5,cell|RadialDistribution_FracAtD_cd25_ki67_2of5,cell|RadialDistribution_FracAtD_cd25_ki67_3of5,cell|RadialDistribution_FracAtD_cd25_ki67_5of5,cell|RadialDistribution_FracAtD_cd25_ki67_1of5,cell|RadialDistribution_FracAtD_cd25_ki67_4of5,cell|RadialDistribution_FracAtD_mito_2of5,cell|RadialDistribution_FracAtD_mito_1of5,cell|RadialDistribution_FracAtD_mito_3of5,cell|RadialDistribution_FracAtD_mito_5of5,cell|RadialDistribution_FracAtD_mito_4of5,cell|RadialDistribution_ZernikePhase_ctv_9_3,cell|RadialDistribution_ZernikePhase_ctv_9_5,cell|RadialDistribution_ZernikePhase_ctv_9_7,cell|RadialDistribution_ZernikePhase_ctv_9_1,cell|RadialDistribution_ZernikePhase_ctv_9_9,cell|RadialDistribution_ZernikePhase_ctv_4_4,cell|RadialDistribution_ZernikePhase_ctv_4_0,cell|RadialDistribution_ZernikePhase_ctv_4_2,cell|RadialDistribution_ZernikePhase_ctv_8_0,cell|RadialDistribution_ZernikePhase_ctv_8_4,cell|RadialDistribution_ZernikePhase_ctv_8_8,cell|RadialDistribution_ZernikePhase_ctv_8_6,cell|RadialDistribution_ZernikePhase_ctv_8_2,cell|RadialDistribution_ZernikePhase_ctv_5_1,cell|RadialDistribution_ZernikePhase_ctv_5_5,cell|RadialDistribution_ZernikePhase_ctv_5_3,cell|RadialDistribution_ZernikePhase_ctv_7_5,cell|RadialDistribution_ZernikePhase_ctv_7_3,cell|RadialDistribution_ZernikePhase_ctv_7_1,cell|RadialDistribution_ZernikePhase_ctv_7_7,cell|RadialDistribution_ZernikePhase_ctv_2_0,cell|RadialDistribution_ZernikePhase_ctv_2_2,cell|RadialDistribution_ZernikePhase_ctv_6_2,cell|RadialDistribution_ZernikePhase_ctv_6_4,cell|RadialDistribution_ZernikePhase_ctv_6_0,cell|RadialDistribution_ZernikePhase_ctv_6_6,cell|RadialDistribution_ZernikePhase_ctv_3_1,cell|RadialDistribution_ZernikePhase_ctv_3_3,cell|RadialDistribution_ZernikePhase_ctv_1_1,cell|RadialDistribution_ZernikePhase_ctv_0_0,cell|RadialDistribution_ZernikePhase_actin_4_2,cell|RadialDistribution_ZernikePhase_actin_4_4,cell|RadialDistribution_ZernikePhase_actin_4_0,cell|RadialDistribution_ZernikePhase_actin_1_1,cell|RadialDistribution_ZernikePhase_actin_5_3,cell|RadialDistribution_ZernikePhase_actin_5_5,cell|RadialDistribution_ZernikePhase_actin_5_1,cell|RadialDistribution_ZernikePhase_actin_9_7,cell|RadialDistribution_ZernikePhase_actin_9_3,cell|RadialDistribution_ZernikePhase_actin_9_5,cell|RadialDistribution_ZernikePhase_actin_9_1,cell|RadialDistribution_ZernikePhase_actin_9_9,cell|RadialDistribution_ZernikePhase_actin_7_7,cell|RadialDistribution_ZernikePhase_actin_7_5,cell|RadialDistribution_ZernikePhase_actin_7_1,cell|RadialDistribution_ZernikePhase_actin_7_3,cell|RadialDistribution_ZernikePhase_actin_8_4,cell|RadialDistribution_ZernikePhase_actin_8_0,cell|RadialDistribution_ZernikePhase_actin_8_2,cell|RadialDistribution_ZernikePhase_actin_8_8,cell|RadialDistribution_ZernikePhase_actin_8_6,cell|RadialDistribution_ZernikePhase_actin_6_0,cell|RadialDistribution_ZernikePhase_actin_6_2,cell|RadialDistribution_ZernikePhase_actin_6_4,cell|RadialDistribution_ZernikePhase_actin_6_6,cell|RadialDistribution_ZernikePhase_actin_0_0,cell|RadialDistribution_ZernikePhase_actin_3_3,cell|RadialDistribution_ZernikePhase_actin_3_1,cell|RadialDistribution_ZernikePhase_actin_2_2,cell|RadialDistribution_ZernikePhase_actin_2_0,cell|RadialDistribution_ZernikePhase_mito_7_1,cell|RadialDistribution_ZernikePhase_mito_7_7,cell|RadialDistribution_ZernikePhase_mito_7_3,cell|RadialDistribution_ZernikePhase_mito_7_5,cell|RadialDistribution_ZernikePhase_mito_4_2,cell|RadialDistribution_ZernikePhase_mito_4_4,cell|RadialDistribution_ZernikePhase_mito_4_0,cell|RadialDistribution_ZernikePhase_mito_3_3,cell|RadialDistribution_ZernikePhase_mito_3_1,cell|RadialDistribution_ZernikePhase_mito_9_9,cell|RadialDistribution_ZernikePhase_mito_9_1,cell|RadialDistribution_ZernikePhase_mito_9_7,cell|RadialDistribution_ZernikePhase_mito_9_3,cell|RadialDistribution_ZernikePhase_mito_9_5,cell|RadialDistribution_ZernikePhase_mito_8_4,cell|RadialDistribution_ZernikePhase_mito_8_2,cell|RadialDistribution_ZernikePhase_mito_8_8,cell|RadialDistribution_ZernikePhase_mito_8_0,cell|RadialDistribution_ZernikePhase_mito_8_6,cell|RadialDistribution_ZernikePhase_mito_6_2,cell|RadialDistribution_ZernikePhase_mito_6_6,cell|RadialDistribution_ZernikePhase_mito_6_4,cell|RadialDistribution_ZernikePhase_mito_6_0,cell|RadialDistribution_ZernikePhase_mito_2_0,cell|RadialDistribution_ZernikePhase_mito_2_2,cell|RadialDistribution_ZernikePhase_mito_5_1,cell|RadialDistribution_ZernikePhase_mito_5_5,cell|RadialDistribution_ZernikePhase_mito_5_3,cell|RadialDistribution_ZernikePhase_mito_1_1,cell|RadialDistribution_ZernikePhase_mito_0_0,cell|RadialDistribution_ZernikePhase_cd25_ki67_4_4,cell|RadialDistribution_ZernikePhase_cd25_ki67_4_2,cell|RadialDistribution_ZernikePhase_cd25_ki67_4_0,cell|RadialDistribution_ZernikePhase_cd25_ki67_3_3,cell|RadialDistribution_ZernikePhase_cd25_ki67_3_1,cell|RadialDistribution_ZernikePhase_cd25_ki67_8_2,cell|RadialDistribution_ZernikePhase_cd25_ki67_8_0,cell|RadialDistribution_ZernikePhase_cd25_ki67_8_6,cell|RadialDistribution_ZernikePhase_cd25_ki67_8_8,cell|RadialDistribution_ZernikePhase_cd25_ki67_8_4,cell|RadialDistribution_ZernikePhase_cd25_ki67_9_7,cell|RadialDistribution_ZernikePhase_cd25_ki67_9_3,cell|RadialDistribution_ZernikePhase_cd25_ki67_9_9,cell|RadialDistribution_ZernikePhase_cd25_ki67_9_5,cell|RadialDistribution_ZernikePhase_cd25_ki67_9_1,cell|RadialDistribution_ZernikePhase_cd25_ki67_5_3,cell|RadialDistribution_ZernikePhase_cd25_ki67_5_5,cell|RadialDistribution_ZernikePhase_cd25_ki67_5_1,cell|RadialDistribution_ZernikePhase_cd25_ki67_6_0,cell|RadialDistribution_ZernikePhase_cd25_ki67_6_6,cell|RadialDistribution_ZernikePhase_cd25_ki67_6_4,cell|RadialDistribution_ZernikePhase_cd25_ki67_6_2,cell|RadialDistribution_ZernikePhase_cd25_ki67_2_0,cell|RadialDistribution_ZernikePhase_cd25_ki67_2_2,cell|RadialDistribution_ZernikePhase_cd25_ki67_0_0,cell|RadialDistribution_ZernikePhase_cd25_ki67_7_5,cell|RadialDistribution_ZernikePhase_cd25_ki67_7_1,cell|RadialDistribution_ZernikePhase_cd25_ki67_7_3,cell|RadialDistribution_ZernikePhase_cd25_ki67_7_7,cell|RadialDistribution_ZernikePhase_cd25_ki67_1_1,cell|RadialDistribution_ZernikeMagnitude_ctv_7_1,cell|RadialDistribution_ZernikeMagnitude_ctv_7_3,cell|RadialDistribution_ZernikeMagnitude_ctv_7_5,cell|RadialDistribution_ZernikeMagnitude_ctv_7_7,cell|RadialDistribution_ZernikeMagnitude_ctv_6_2,cell|RadialDistribution_ZernikeMagnitude_ctv_6_0,cell|RadialDistribution_ZernikeMagnitude_ctv_6_6,cell|RadialDistribution_ZernikeMagnitude_ctv_6_4,cell|RadialDistribution_ZernikeMagnitude_ctv_0_0,cell|RadialDistribution_ZernikeMagnitude_ctv_9_1,cell|RadialDistribution_ZernikeMagnitude_ctv_9_9,cell|RadialDistribution_ZernikeMagnitude_ctv_9_3,cell|RadialDistribution_ZernikeMagnitude_ctv_9_7,cell|RadialDistribution_ZernikeMagnitude_ctv_9_5,cell|RadialDistribution_ZernikeMagnitude_ctv_4_0,cell|RadialDistribution_ZernikeMagnitude_ctv_4_4,cell|RadialDistribution_ZernikeMagnitude_ctv_4_2,cell|RadialDistribution_ZernikeMagnitude_ctv_8_0,cell|RadialDistribution_ZernikeMagnitude_ctv_8_8,cell|RadialDistribution_ZernikeMagnitude_ctv_8_2,cell|RadialDistribution_ZernikeMagnitude_ctv_8_4,cell|RadialDistribution_ZernikeMagnitude_ctv_8_6,cell|RadialDistribution_ZernikeMagnitude_ctv_3_3,cell|RadialDistribution_ZernikeMagnitude_ctv_3_1,cell|RadialDistribution_ZernikeMagnitude_ctv_2_2,cell|RadialDistribution_ZernikeMagnitude_ctv_2_0,cell|RadialDistribution_ZernikeMagnitude_ctv_5_5,cell|RadialDistribution_ZernikeMagnitude_ctv_5_1,cell|RadialDistribution_ZernikeMagnitude_ctv_5_3,cell|RadialDistribution_ZernikeMagnitude_ctv_1_1,cell|RadialDistribution_ZernikeMagnitude_actin_4_0,cell|RadialDistribution_ZernikeMagnitude_actin_4_4,cell|RadialDistribution_ZernikeMagnitude_actin_4_2,cell|RadialDistribution_ZernikeMagnitude_actin_7_7,cell|RadialDistribution_ZernikeMagnitude_actin_7_3,cell|RadialDistribution_ZernikeMagnitude_actin_7_5,cell|RadialDistribution_ZernikeMagnitude_actin_7_1,cell|RadialDistribution_ZernikeMagnitude_actin_6_2,cell|RadialDistribution_ZernikeMagnitude_actin_6_0,cell|RadialDistribution_ZernikeMagnitude_actin_6_6,cell|RadialDistribution_ZernikeMagnitude_actin_6_4,cell|RadialDistribution_ZernikeMagnitude_actin_8_0,cell|RadialDistribution_ZernikeMagnitude_actin_8_6,cell|RadialDistribution_ZernikeMagnitude_actin_8_2,cell|RadialDistribution_ZernikeMagnitude_actin_8_4,cell|RadialDistribution_ZernikeMagnitude_actin_8_8,cell|RadialDistribution_ZernikeMagnitude_actin_5_3,cell|RadialDistribution_ZernikeMagnitude_actin_5_5,cell|RadialDistribution_ZernikeMagnitude_actin_5_1,cell|RadialDistribution_ZernikeMagnitude_actin_3_3,cell|RadialDistribution_ZernikeMagnitude_actin_3_1,cell|RadialDistribution_ZernikeMagnitude_actin_9_7,cell|RadialDistribution_ZernikeMagnitude_actin_9_3,cell|RadialDistribution_ZernikeMagnitude_actin_9_9,cell|RadialDistribution_ZernikeMagnitude_actin_9_1,cell|RadialDistribution_ZernikeMagnitude_actin_9_5,cell|RadialDistribution_ZernikeMagnitude_actin_2_2,cell|RadialDistribution_ZernikeMagnitude_actin_2_0,cell|RadialDistribution_ZernikeMagnitude_actin_1_1,cell|RadialDistribution_ZernikeMagnitude_actin_0_0,cell|RadialDistribution_ZernikeMagnitude_cd25_ki67_7_3,cell|RadialDistribution_ZernikeMagnitude_cd25_ki67_7_7,cell|RadialDistribution_ZernikeMagnitude_cd25_ki67_7_1,cell|RadialDistribution_ZernikeMagnitude_cd25_ki67_7_5,cell|RadialDistribution_ZernikeMagnitude_cd25_ki67_4_2,cell|RadialDistribution_ZernikeMagnitude_cd25_ki67_4_0,cell|RadialDistribution_ZernikeMagnitude_cd25_ki67_4_4,cell|RadialDistribution_ZernikeMagnitude_cd25_ki67_1_1,cell|RadialDistribution_ZernikeMagnitude_cd25_ki67_2_2,cell|RadialDistribution_ZernikeMagnitude_cd25_ki67_2_0,cell|RadialDistribution_ZernikeMagnitude_cd25_ki67_9_3,cell|RadialDistribution_ZernikeMagnitude_cd25_ki67_9_9,cell|RadialDistribution_ZernikeMagnitude_cd25_ki67_9_1,cell|RadialDistribution_ZernikeMagnitude_cd25_ki67_9_7,cell|RadialDistribution_ZernikeMagnitude_cd25_ki67_9_5,cell|RadialDistribution_ZernikeMagnitude_cd25_ki67_6_4,cell|RadialDistribution_ZernikeMagnitude_cd25_ki67_6_0,cell|RadialDistribution_ZernikeMagnitude_cd25_ki67_6_2,cell|RadialDistribution_ZernikeMagnitude_cd25_ki67_6_6,cell|RadialDistribution_ZernikeMagnitude_cd25_ki67_5_5,cell|RadialDistribution_ZernikeMagnitude_cd25_ki67_5_3,cell|RadialDistribution_ZernikeMagnitude_cd25_ki67_5_1,cell|RadialDistribution_ZernikeMagnitude_cd25_ki67_8_4,cell|RadialDistribution_ZernikeMagnitude_cd25_ki67_8_6,cell|RadialDistribution_ZernikeMagnitude_cd25_ki67_8_8,cell|RadialDistribution_ZernikeMagnitude_cd25_ki67_8_0,cell|RadialDistribution_ZernikeMagnitude_cd25_ki67_8_2,cell|RadialDistribution_ZernikeMagnitude_cd25_ki67_0_0,cell|RadialDistribution_ZernikeMagnitude_cd25_ki67_3_1,cell|RadialDistribution_ZernikeMagnitude_cd25_ki67_3_3,cell|RadialDistribution_ZernikeMagnitude_mito_7_5,cell|RadialDistribution_ZernikeMagnitude_mito_7_7,cell|RadialDistribution_ZernikeMagnitude_mito_7_3,cell|RadialDistribution_ZernikeMagnitude_mito_7_1,cell|RadialDistribution_ZernikeMagnitude_mito_8_8,cell|RadialDistribution_ZernikeMagnitude_mito_8_2,cell|RadialDistribution_ZernikeMagnitude_mito_8_0,cell|RadialDistribution_ZernikeMagnitude_mito_8_4,cell|RadialDistribution_ZernikeMagnitude_mito_8_6,cell|RadialDistribution_ZernikeMagnitude_mito_4_4,cell|RadialDistribution_ZernikeMagnitude_mito_4_0,cell|RadialDistribution_ZernikeMagnitude_mito_4_2,cell|RadialDistribution_ZernikeMagnitude_mito_2_2,cell|RadialDistribution_ZernikeMagnitude_mito_2_0,cell|RadialDistribution_ZernikeMagnitude_mito_0_0,cell|RadialDistribution_ZernikeMagnitude_mito_9_3,cell|RadialDistribution_ZernikeMagnitude_mito_9_1,cell|RadialDistribution_ZernikeMagnitude_mito_9_7,cell|RadialDistribution_ZernikeMagnitude_mito_9_9,cell|RadialDistribution_ZernikeMagnitude_mito_9_5,cell|RadialDistribution_ZernikeMagnitude_mito_1_1,cell|RadialDistribution_ZernikeMagnitude_mito_3_3,cell|RadialDistribution_ZernikeMagnitude_mito_3_1,cell|RadialDistribution_ZernikeMagnitude_mito_5_5,cell|RadialDistribution_ZernikeMagnitude_mito_5_3,cell|RadialDistribution_ZernikeMagnitude_mito_5_1,cell|RadialDistribution_ZernikeMagnitude_mito_6_4,cell|RadialDistribution_ZernikeMagnitude_mito_6_2,cell|RadialDistribution_ZernikeMagnitude_mito_6_0,cell|RadialDistribution_ZernikeMagnitude_mito_6_6,cell|RadialDistribution_MeanFrac_cd25_ki67_3of5,cell|RadialDistribution_MeanFrac_cd25_ki67_2of5,cell|RadialDistribution_MeanFrac_cd25_ki67_4of5,cell|RadialDistribution_MeanFrac_cd25_ki67_1of5,cell|RadialDistribution_MeanFrac_cd25_ki67_5of5,cell|RadialDistribution_MeanFrac_ctv_2of5,cell|RadialDistribution_MeanFrac_ctv_4of5,cell|RadialDistribution_MeanFrac_ctv_3of5,cell|RadialDistribution_MeanFrac_ctv_1of5,cell|RadialDistribution_MeanFrac_ctv_5of5,cell|RadialDistribution_MeanFrac_mito_3of5,cell|RadialDistribution_MeanFrac_mito_4of5,cell|RadialDistribution_MeanFrac_mito_2of5,cell|RadialDistribution_MeanFrac_mito_5of5,cell|RadialDistribution_MeanFrac_mito_1of5,cell|RadialDistribution_RadialCV_mito_2of5,cell|RadialDistribution_RadialCV_mito_3of5,cell|RadialDistribution_RadialCV_mito_1of5,cell|RadialDistribution_RadialCV_mito_5of5,cell|RadialDistribution_RadialCV_mito_4of5,cell|RadialDistribution_RadialCV_ctv_1of5,cell|RadialDistribution_RadialCV_ctv_4of5,cell|RadialDistribution_RadialCV_ctv_2of5,cell|RadialDistribution_RadialCV_ctv_3of5,cell|RadialDistribution_RadialCV_ctv_5of5,cell|RadialDistribution_RadialCV_actin_3of5,cell|RadialDistribution_RadialCV_actin_5of5,cell|RadialDistribution_RadialCV_actin_4of5,cell|RadialDistribution_RadialCV_actin_2of5,cell|RadialDistribution_RadialCV_actin_1of5,cell|RadialDistribution_RadialCV_cd25_ki67_1of5,cell|RadialDistribution_RadialCV_cd25_ki67_2of5,cell|RadialDistribution_RadialCV_cd25_ki67_3of5,cell|RadialDistribution_RadialCV_cd25_ki67_5of5,cell|RadialDistribution_RadialCV_cd25_ki67_4of5,cell|AreaShape_Zernike_8_8,cell|AreaShape_Zernike_8_6,cell|AreaShape_Zernike_8_0,cell|AreaShape_Zernike_8_2,cell|AreaShape_Zernike_8_4,cell|AreaShape_Zernike_6_4,cell|AreaShape_Zernike_6_6,cell|AreaShape_Zernike_6_0,cell|AreaShape_Zernike_6_2,cell|AreaShape_Zernike_5_5,cell|AreaShape_Zernike_5_3,cell|AreaShape_Zernike_5_1,cell|AreaShape_Zernike_9_7,cell|AreaShape_Zernike_9_5,cell|AreaShape_Zernike_9_1,cell|AreaShape_Zernike_9_3,cell|AreaShape_Zernike_9_9,cell|AreaShape_Zernike_3_1,cell|AreaShape_Zernike_3_3,cell|AreaShape_Zernike_2_0,cell|AreaShape_Zernike_2_2,cell|AreaShape_Zernike_4_0,cell|AreaShape_Zernike_4_2,cell|AreaShape_Zernike_4_4,cell|AreaShape_Zernike_7_1,cell|AreaShape_Zernike_7_7,cell|AreaShape_Zernike_7_5,cell|AreaShape_Zernike_7_3,cell|AreaShape_Zernike_1_1,cell|AreaShape_Zernike_0_0,cell|AreaShape_MaximumRadius,cell|AreaShape_EquivalentDiameter,cell|AreaShape_Extent,cell|AreaShape_ConvexArea,cell|AreaShape_BoundingBoxArea,cell|AreaShape_Center_X,cell|AreaShape_Center_Y,cell|AreaShape_Solidity,cell|AreaShape_EulerNumber,cell|AreaShape_Area,cell|AreaShape_BoundingBoxMinimum_X,cell|AreaShape_BoundingBoxMinimum_Y,cell|AreaShape_BoundingBoxMaximum_Y,cell|AreaShape_BoundingBoxMaximum_X,cell|AreaShape_FormFactor,cell|AreaShape_Eccentricity,cell|AreaShape_MajorAxisLength,cell|AreaShape_Compactness,cell|AreaShape_MinFeretDiameter,cell|AreaShape_Perimeter,cell|AreaShape_MinorAxisLength,cell|AreaShape_Orientation,cell|AreaShape_MeanRadius,cell|AreaShape_MaxFeretDiameter,cell|AreaShape_MedianRadius,cell|Correlation_K_ctv_actin,cell|Correlation_K_ctv_cd25_ki67,cell|Correlation_K_ctv_mito,cell|Correlation_K_actin_mito,cell|Correlation_K_actin_cd25_ki67,cell|Correlation_K_actin_ctv,cell|Correlation_K_mito_cd25_ki67,cell|Correlation_K_mito_actin,cell|Correlation_K_mito_ctv,cell|Correlation_K_cd25_ki67_mito,cell|Correlation_K_cd25_ki67_actin,cell|Correlation_K_cd25_ki67_ctv,cell|Correlation_Manders_cd25_ki67_mito,cell|Correlation_Manders_cd25_ki67_ctv,cell|Correlation_Manders_cd25_ki67_actin,cell|Correlation_Manders_ctv_cd25_ki67,cell|Correlation_Manders_ctv_mito,cell|Correlation_Manders_ctv_actin,cell|Correlation_Manders_mito_cd25_ki67,cell|Correlation_Manders_mito_ctv,cell|Correlation_Manders_mito_actin,cell|Correlation_Manders_actin_mito,cell|Correlation_Manders_actin_cd25_ki67,cell|Correlation_Manders_actin_ctv,cell|Correlation_Overlap_ctv_mito,cell|Correlation_Overlap_cd25_ki67_ctv,cell|Correlation_Overlap_cd25_ki67_mito,cell|Correlation_Overlap_actin_mito,cell|Correlation_Overlap_actin_cd25_ki67,cell|Correlation_Overlap_actin_ctv,cell|Intensity_MinIntensity_ctv,cell|Intensity_MinIntensity_mito,cell|Intensity_MinIntensity_actin,cell|Intensity_MinIntensity_cd25_ki67,cell|Intensity_MinIntensityEdge_mito,cell|Intensity_MinIntensityEdge_cd25_ki67,cell|Intensity_MinIntensityEdge_ctv,cell|Intensity_MinIntensityEdge_actin,cell|Intensity_IntegratedIntensity_ctv,cell|Intensity_IntegratedIntensity_cd25_ki67,cell|Intensity_IntegratedIntensity_actin,cell|Intensity_IntegratedIntensity_mito,cell|Intensity_MedianIntensity_ctv,cell|Intensity_MedianIntensity_cd25_ki67,cell|Intensity_MedianIntensity_actin,cell|Intensity_MedianIntensity_mito,cell|Intensity_MeanIntensityEdge_mito,cell|Intensity_MeanIntensityEdge_ctv,cell|Intensity_MeanIntensityEdge_actin,cell|Intensity_MeanIntensityEdge_cd25_ki67,cell|Intensity_UpperQuartileIntensity_ctv,cell|Intensity_UpperQuartileIntensity_actin,cell|Intensity_UpperQuartileIntensity_cd25_ki67,cell|Intensity_UpperQuartileIntensity_mito,cell|Intensity_StdIntensity_ctv,cell|Intensity_StdIntensity_cd25_ki67,cell|Intensity_StdIntensity_mito,cell|Intensity_StdIntensity_actin,cell|Intensity_LowerQuartileIntensity_ctv,cell|Intensity_LowerQuartileIntensity_cd25_ki67,cell|Intensity_LowerQuartileIntensity_mito,cell|Intensity_LowerQuartileIntensity_actin,cell|Intensity_IntegratedIntensityEdge_actin,cell|Intensity_IntegratedIntensityEdge_ctv,cell|Intensity_IntegratedIntensityEdge_mito,cell|Intensity_MassDisplacement_actin,cell|Intensity_MassDisplacement_mito,cell|Intensity_MassDisplacement_ctv,cell|Intensity_MeanIntensity_ctv,cell|Intensity_MeanIntensity_mito,cell|Intensity_MeanIntensity_actin,cell|Intensity_StdIntensityEdge_ctv,cell|Intensity_StdIntensityEdge_mito,cell|Intensity_StdIntensityEdge_actin,cell|Intensity_StdIntensityEdge_cd25_ki67,cell|Intensity_MaxIntensity_mito,cell|Intensity_MaxIntensity_ctv,cell|Intensity_MaxIntensity_actin,cell|Intensity_MaxIntensity_cd25_ki67,cell|Intensity_MaxIntensityEdge_ctv,cell|Intensity_MaxIntensityEdge_mito,cell|Intensity_MaxIntensityEdge_actin,cell|Intensity_MaxIntensityEdge_cd25_ki67,cell|Intensity_MADIntensity_actin,cell|Intensity_MADIntensity_mito,cell|Intensity_MADIntensity_ctv,cell|Neighbors_PercentTouching_Adjacent,cell|Neighbors_AngleBetweenNeighbors_Adjacent,cell|Neighbors_FirstClosestDistance_Adjacent,cell|Neighbors_SecondClosestObjectNumber_Adjacent,cell|Neighbors_FirstClosestObjectNumber_Adjacent,cell|Neighbors_SecondClosestDistance_Adjacent,cell|Neighbors_NumberOfNeighbors_Adjacent,Image|MD5Digest_mito,Image|MD5Digest_brightfield,Image|MD5Digest_cd25_ki67,Image|MD5Digest_ctv,Image|MD5Digest_actin,Image|Granularity_15_mito,Image|Granularity_15_ctv,Image|Granularity_8_mito,Image|Granularity_8_ctv,Image|Granularity_9_ctv,Image|Granularity_9_mito,Image|Granularity_13_mito,Image|Granularity_13_ctv,Image|Granularity_1_ctv,Image|Granularity_1_mito,Image|Granularity_4_ctv,Image|Granularity_4_mito,Image|Granularity_14_mito,Image|Granularity_14_ctv,Image|Granularity_3_mito,Image|Granularity_3_ctv,Image|Granularity_12_mito,Image|Granularity_12_ctv,Image|Granularity_6_ctv,Image|Granularity_6_mito,Image|Granularity_5_ctv,Image|Granularity_5_mito,Image|Granularity_10_mito,Image|Granularity_10_ctv,Image|Granularity_7_mito,Image|Granularity_7_ctv,Image|Granularity_11_mito,Image|Granularity_11_ctv,Image|Granularity_16_ctv,Image|Granularity_16_mito,Image|Granularity_2_ctv,Image|Granularity_2_mito,Image|Width_brightfield,Image|Width_mito,Image|Width_actin,Image|Width_ctv,Image|Width_cd25_ki67,Image|ExecutionTime_27RescaleIntensity,Image|ExecutionTime_36MeasureImageIntensity,Image|ExecutionTime_06FlagImage,Image|ExecutionTime_22RescaleIntensity,Image|ExecutionTime_03NamesAndTypes,Image|ExecutionTime_20EnhanceOrSuppressFeatures,Image|ExecutionTime_15HistogramMatching,Image|ExecutionTime_01Images,Image|ExecutionTime_34SaveImages,Image|ExecutionTime_35SaveImages,Image|ExecutionTime_41MeasureColocalization,Image|ExecutionTime_17RescaleIntensity,Image|ExecutionTime_42MeasureTexture,Image|ExecutionTime_16ImageMath,Image|ExecutionTime_04Groups,Image|ExecutionTime_12HistogramMatching,Image|ExecutionTime_29IdentifySecondaryObjects,Image|ExecutionTime_05MeasureImageQuality,Image|ExecutionTime_28IdentifyPrimaryObjects,Image|ExecutionTime_30IdentifyTertiaryObjects,Image|ExecutionTime_09RescaleIntensity,Image|ExecutionTime_25ErodeImage,Image|ExecutionTime_21ImageMath,Image|ExecutionTime_43MeasureGranularity,Image|ExecutionTime_37MeasureObjectIntensity,Image|ExecutionTime_07RescaleIntensity,Image|ExecutionTime_14HistogramMatching,Image|ExecutionTime_19RemoveHoles,Image|ExecutionTime_10RescaleIntensity,Image|ExecutionTime_33OverlayOutlines,Image|ExecutionTime_38MeasureObjectIntensity,Image|ExecutionTime_40MeasureObjectIntensityDistribution,Image|ExecutionTime_13HistogramMatching,Image|ExecutionTime_39MeasureObjectSizeShape,Image|ExecutionTime_24MedianFilter,Image|ExecutionTime_18Threshold,Image|ExecutionTime_32GrayToColor,Image|ExecutionTime_08RescaleIntensity,Image|ExecutionTime_31FilterObjects,Image|ExecutionTime_23ImageMath,Image|ExecutionTime_02Metadata,Image|ExecutionTime_11HistogramMatching,Image|ExecutionTime_26GaussianFilter,Image|ExecutionTime_44MeasureObjectNeighbors,Image|Intensity_MeanIntensity_ctv,Image|Intensity_MeanIntensity_brightfield,Image|Intensity_MeanIntensity_actin,Image|Intensity_MeanIntensity_cd25_ki67,Image|Intensity_MeanIntensity_mito,Image|Intensity_MaxIntensity_actin,Image|Intensity_MaxIntensity_ctv,Image|Intensity_MaxIntensity_cd25_ki67,Image|Intensity_MaxIntensity_brightfield,Image|Intensity_MaxIntensity_mito,Image|Intensity_StdIntensity_cd25_ki67,Image|Intensity_StdIntensity_mito,Image|Intensity_StdIntensity_actin,Image|Intensity_StdIntensity_ctv,Image|Intensity_MinIntensity_ctv,Image|Intensity_MinIntensity_cd25_ki67,Image|Intensity_MinIntensity_actin,Image|Intensity_MinIntensity_mito,Image|Intensity_PercentMaximal_mito,Image|Intensity_PercentMaximal_brightfield,Image|Intensity_PercentMaximal_cd25_ki67,Image|Intensity_PercentMaximal_ctv,Image|Intensity_PercentMaximal_actin,Image|Intensity_LowerQuartileIntensity_ctv,Image|Intensity_LowerQuartileIntensity_cd25_ki67,Image|Intensity_LowerQuartileIntensity_mito,Image|Intensity_LowerQuartileIntensity_brightfield,Image|Intensity_LowerQuartileIntensity_actin,Image|Intensity_Percentile_90_cd25_ki67,Image|Intensity_Percentile_90_brightfield,Image|Intensity_Percentile_90_ctv,Image|Intensity_Percentile_90_actin,Image|Intensity_Percentile_90_mito,Image|Intensity_Percentile_10_mito,Image|Intensity_Percentile_10_ctv,Image|Intensity_Percentile_10_actin,Image|Intensity_Percentile_10_brightfield,Image|Intensity_Percentile_10_cd25_ki67,Image|Intensity_UpperQuartileIntensity_mito,Image|Intensity_UpperQuartileIntensity_ctv,Image|Intensity_UpperQuartileIntensity_actin,Image|Intensity_UpperQuartileIntensity_cd25_ki67,Image|Intensity_MADIntensity_ctv,Image|Intensity_MADIntensity_cd25_ki67,Image|Intensity_MADIntensity_mito,Image|Intensity_MADIntensity_actin,Image|Intensity_TotalArea_cd25_ki67,Image|Intensity_TotalArea_ctv,Image|Intensity_TotalArea_actin,Image|Intensity_TotalArea_mito,Image|Intensity_TotalArea_brightfield,Image|Intensity_MedianIntensity_ctv,Image|Intensity_MedianIntensity_mito,Image|Intensity_MedianIntensity_cd25_ki67,Image|Intensity_MedianIntensity_actin,Image|Intensity_TotalIntensity_ctv,Image|Intensity_TotalIntensity_mito,Image|Intensity_TotalIntensity_actin,Image|Intensity_TotalIntensity_cd25_ki67,Image|Scaling_cd25_ki67,Image|Scaling_ctv,Image|Scaling_mito,Image|Scaling_actin,Image|Scaling_brightfield,Image|ModuleError_44MeasureObjectNeighbors,Image|ModuleError_03NamesAndTypes,Image|ModuleError_25ErodeImage,Image|ModuleError_33OverlayOutlines,Image|ModuleError_39MeasureObjectSizeShape,Image|ModuleError_36MeasureImageIntensity,Image|ModuleError_01Images,Image|ModuleError_07RescaleIntensity,Image|ModuleError_15HistogramMatching,Image|ModuleError_18Threshold,Image|ModuleError_08RescaleIntensity,Image|ModuleError_30IdentifyTertiaryObjects,Image|ModuleError_20EnhanceOrSuppressFeatures,Image|ModuleError_41MeasureColocalization,Image|ModuleError_22RescaleIntensity,Image|ModuleError_16ImageMath,Image|ModuleError_40MeasureObjectIntensityDistribution,Image|ModuleError_11HistogramMatching,Image|ModuleError_26GaussianFilter,Image|ModuleError_38MeasureObjectIntensity,Image|ModuleError_31FilterObjects,Image|ModuleError_21ImageMath,Image|ModuleError_06FlagImage,Image|ModuleError_17RescaleIntensity,Image|ModuleError_02Metadata,Image|ModuleError_27RescaleIntensity,Image|ModuleError_37MeasureObjectIntensity,Image|ModuleError_12HistogramMatching,Image|ModuleError_32GrayToColor,Image|ModuleError_42MeasureTexture,Image|ModuleError_13HistogramMatching,Image|ModuleError_29IdentifySecondaryObjects,Image|ModuleError_23ImageMath,Image|ModuleError_28IdentifyPrimaryObjects,Image|ModuleError_05MeasureImageQuality,Image|ModuleError_34SaveImages,Image|ModuleError_14HistogramMatching,Image|ModuleError_35SaveImages,Image|ModuleError_24MedianFilter,Image|ModuleError_43MeasureGranularity,Image|ModuleError_04Groups,Image|ModuleError_09RescaleIntensity,Image|ModuleError_19RemoveHoles,Image|ModuleError_10RescaleIntensity,Image|Metadata_Series,Image|Metadata_group,Image|Metadata_SizeY,Image|Metadata_C,Image|Metadata_SizeC,Image|Metadata_SizeX,Image|Metadata_Frame,Image|Metadata_field,Image|Metadata_SizeT,Image|Metadata_plate,Image|Metadata_Well,Image|Metadata_ColorFormat,Image|Metadata_Site,Image|Metadata_well,Image|Metadata_date,Image|Metadata_image_qc,Image|Metadata_Plate,Image|Metadata_FileLocation,Image|Metadata_SizeZ,Image|Metadata_Z,Image|Metadata_T,Image|Metadata_ChannelName,Image|Frame_brightfield,Image|Frame_ctv,Image|Frame_actin,Image|Frame_cd25_ki67,Image|Frame_mito,Image|FileName_cd25_ki67,Image|FileName_ctv,Image|FileName_mito,Image|FileName_brightfield,Image|FileName_actin,Image|ImageQuality_LocalFocusScore_actin_20,Image|ImageQuality_LocalFocusScore_actin_40,Image|ImageQuality_LocalFocusScore_actin_10,Image|ImageQuality_LocalFocusScore_mito_40,Image|ImageQuality_LocalFocusScore_mito_20,Image|ImageQuality_LocalFocusScore_mito_10,Image|ImageQuality_LocalFocusScore_cd25_ki67_40,Image|ImageQuality_LocalFocusScore_cd25_ki67_20,Image|ImageQuality_LocalFocusScore_cd25_ki67_10,Image|ImageQuality_LocalFocusScore_ctv_10,Image|ImageQuality_LocalFocusScore_ctv_20,Image|ImageQuality_LocalFocusScore_ctv_40,Image|ImageQuality_MedianIntensity_cd25_ki67,Image|ImageQuality_MedianIntensity_mito,Image|ImageQuality_MedianIntensity_actin,Image|ImageQuality_MedianIntensity_ctv,Image|ImageQuality_Correlation_ctv_40,Image|ImageQuality_Correlation_ctv_10,Image|ImageQuality_Correlation_ctv_20,Image|ImageQuality_Correlation_cd25_ki67_10,Image|ImageQuality_Correlation_cd25_ki67_40,Image|ImageQuality_Correlation_cd25_ki67_20,Image|ImageQuality_Correlation_mito_10,Image|ImageQuality_Correlation_mito_20,Image|ImageQuality_Correlation_mito_40,Image|ImageQuality_Correlation_actin_20,Image|ImageQuality_Correlation_actin_40,Image|ImageQuality_Correlation_actin_10,Image|ImageQuality_Scaling_cd25_ki67,Image|ImageQuality_Scaling_ctv,Image|ImageQuality_Scaling_mito,Image|ImageQuality_Scaling_actin,Image|ImageQuality_ThresholdOtsu_actin_2W,Image|ImageQuality_ThresholdOtsu_mito_2W,Image|ImageQuality_ThresholdOtsu_ctv_2W,Image|ImageQuality_ThresholdOtsu_cd25_ki67_2W,Image|ImageQuality_PowerLogLogSlope_actin,Image|ImageQuality_PowerLogLogSlope_cd25_ki67,Image|ImageQuality_PowerLogLogSlope_ctv,Image|ImageQuality_PowerLogLogSlope_mito,Image|ImageQuality_FocusScore_cd25_ki67,Image|ImageQuality_FocusScore_ctv,Image|ImageQuality_FocusScore_actin,Image|ImageQuality_FocusScore_mito,Image|ImageQuality_MinIntensity_mito,Image|ImageQuality_MinIntensity_ctv,Image|ImageQuality_MinIntensity_cd25_ki67,Image|ImageQuality_MinIntensity_actin,Image|ImageQuality_TotalIntensity_mito,Image|ImageQuality_TotalIntensity_ctv,Image|ImageQuality_TotalIntensity_cd25_ki67,Image|ImageQuality_TotalIntensity_actin,Image|ImageQuality_MADIntensity_actin,Image|ImageQuality_MADIntensity_mito,Image|ImageQuality_StdIntensity_cd25_ki67,Image|ImageQuality_StdIntensity_ctv,Image|ImageQuality_StdIntensity_mito,Image|ImageQuality_StdIntensity_actin,Image|ImageQuality_MaxIntensity_ctv,Image|ImageQuality_MaxIntensity_actin,Image|ImageQuality_MaxIntensity_mito,Image|ImageQuality_MaxIntensity_cd25_ki67,Image|ImageQuality_MeanIntensity_mito,Image|ImageQuality_MeanIntensity_ctv,Image|ImageQuality_MeanIntensity_actin,Image|ImageQuality_MeanIntensity_cd25_ki67,Image|ImageQuality_TotalArea_cd25_ki67,Image|ImageQuality_TotalArea_actin,Image|ImageQuality_TotalArea_mito,Image|ImageQuality_TotalArea_ctv,Image|Series_cd25_ki67,Image|Series_mito,Image|Series_brightfield,Image|Series_actin,Image|Series_ctv,Image|Threshold_SumOfEntropies_seed_raw,Image|Threshold_SumOfEntropies_cell_raw,Image|Threshold_SumOfEntropies_cell_intensity_thresh,Image|Threshold_FinalThreshold_cell_intensity_thresh,Image|Threshold_FinalThreshold_cell_raw,Image|Threshold_FinalThreshold_seed_raw,Image|Threshold_WeightedVariance_cell_raw,Image|Threshold_WeightedVariance_cell_intensity_thresh,Image|Threshold_WeightedVariance_seed_raw,Image|Threshold_OrigThreshold_cell_intensity_thresh,Image|Threshold_OrigThreshold_cell_raw,Image|Threshold_OrigThreshold_seed_raw,Image|Height_cd25_ki67,Image|Height_brightfield,Image|Height_mito,Image|Height_actin,Image|Height_ctv,Image|Group_Index,Image|Group_Number,Image|Group_Length,Image|PathName_ctv,Image|PathName_actin,Image|PathName_cd25_ki67,Image|PathName_brightfield,Image|PathName_mito,Image|Count_cell_raw,Image|Count_seed,Image|Count_seed_raw,Image|Count_memb_raw,Image|URL_ctv,Image|URL_actin,Image|URL_cd25_ki67,Image|URL_mito,Image|URL_brightfield,seed|AreaShape_MinorAxisLength,seed|AreaShape_BoundingBoxMaximum_X,seed|AreaShape_BoundingBoxMaximum_Y,seed|AreaShape_Zernike_9_7,seed|AreaShape_Zernike_9_3,seed|AreaShape_Zernike_9_9,seed|AreaShape_Zernike_9_1,seed|AreaShape_Zernike_9_5,seed|AreaShape_Zernike_7_3,seed|AreaShape_Zernike_7_7,seed|AreaShape_Zernike_7_5,seed|AreaShape_Zernike_7_1,seed|AreaShape_Zernike_8_0,seed|AreaShape_Zernike_8_2,seed|AreaShape_Zernike_8_8,seed|AreaShape_Zernike_8_6,seed|AreaShape_Zernike_8_4,seed|AreaShape_Zernike_0_0,seed|AreaShape_Zernike_2_0,seed|AreaShape_Zernike_2_2,seed|AreaShape_Zernike_3_3,seed|AreaShape_Zernike_3_1,seed|AreaShape_Zernike_6_2,seed|AreaShape_Zernike_6_4,seed|AreaShape_Zernike_6_6,seed|AreaShape_Zernike_6_0,seed|AreaShape_Zernike_1_1,seed|AreaShape_Zernike_5_5,seed|AreaShape_Zernike_5_3,seed|AreaShape_Zernike_5_1,seed|AreaShape_Zernike_4_0,seed|AreaShape_Zernike_4_4,seed|AreaShape_Zernike_4_2,seed|AreaShape_Perimeter,seed|AreaShape_BoundingBoxMinimum_X,seed|AreaShape_BoundingBoxMinimum_Y,seed|AreaShape_ConvexArea,seed|AreaShape_MeanRadius,seed|AreaShape_Compactness,seed|AreaShape_MajorAxisLength,seed|AreaShape_MinFeretDiameter,seed|AreaShape_Area,seed|AreaShape_EquivalentDiameter,seed|AreaShape_Solidity,seed|AreaShape_Eccentricity,seed|AreaShape_Orientation,seed|AreaShape_BoundingBoxArea,seed|AreaShape_MaximumRadius,seed|AreaShape_Extent,seed|AreaShape_MedianRadius,seed|AreaShape_FormFactor,seed|AreaShape_MaxFeretDiameter,seed|AreaShape_Center_Y,seed|AreaShape_Center_X,seed|AreaShape_EulerNumber,seed|Location_CenterMassIntensity_X_actin,seed|Location_CenterMassIntensity_X_cd25_ki67,seed|Location_CenterMassIntensity_Z_actin,seed|Location_CenterMassIntensity_Z_cd25_ki67,seed|Location_CenterMassIntensity_Y_actin,seed|Location_CenterMassIntensity_Y_cd25_ki67,seed|Location_MaxIntensity_X_cd25_ki67,seed|Location_MaxIntensity_X_actin,seed|Location_MaxIntensity_Z_cd25_ki67,seed|Location_MaxIntensity_Z_actin,seed|Location_MaxIntensity_Y_cd25_ki67,seed|Location_MaxIntensity_Y_actin,seed|Location_Center_Z,seed|Location_Center_X,seed|Location_Center_Y,seed|Number_Object_Number,seed|Intensity_StdIntensity_cd25_ki67,seed|Intensity_StdIntensity_actin,seed|Intensity_MADIntensity_actin,seed|Intensity_MADIntensity_cd25_ki67,seed|Intensity_IntegratedIntensityEdge_actin,seed|Intensity_IntegratedIntensityEdge_cd25_ki67,seed|Intensity_LowerQuartileIntensity_cd25_ki67,seed|Intensity_LowerQuartileIntensity_actin,seed|Intensity_IntegratedIntensity_actin,seed|Intensity_IntegratedIntensity_cd25_ki67,seed|Intensity_MinIntensity_cd25_ki67,seed|Intensity_MinIntensity_actin,seed|Intensity_UpperQuartileIntensity_actin,seed|Intensity_UpperQuartileIntensity_cd25_ki67,seed|Intensity_MaxIntensity_actin,seed|Intensity_MaxIntensity_cd25_ki67,seed|Intensity_MeanIntensityEdge_cd25_ki67,seed|Intensity_MeanIntensityEdge_actin,seed|Intensity_MinIntensityEdge_cd25_ki67,seed|Intensity_MinIntensityEdge_actin,seed|Intensity_MassDisplacement_actin,seed|Intensity_MassDisplacement_cd25_ki67,seed|Intensity_MedianIntensity_actin,seed|Intensity_MedianIntensity_cd25_ki67,seed|Intensity_MaxIntensityEdge_actin,seed|Intensity_MaxIntensityEdge_cd25_ki67,seed|Intensity_MeanIntensity_cd25_ki67,seed|Intensity_MeanIntensity_actin,seed|Intensity_StdIntensityEdge_cd25_ki67,seed|Intensity_StdIntensityEdge_actin,seed|Parent_seed_raw,memb|Intensity_StdIntensity_cd25_ki67,memb|Intensity_StdIntensity_actin,memb|Intensity_MeanIntensity_actin,memb|Intensity_MeanIntensity_cd25_ki67,memb|Intensity_LowerQuartileIntensity_actin,memb|Intensity_LowerQuartileIntensity_cd25_ki67,memb|Intensity_MaxIntensityEdge_actin,memb|Intensity_MaxIntensityEdge_cd25_ki67,memb|Intensity_IntegratedIntensityEdge_cd25_ki67,memb|Intensity_IntegratedIntensityEdge_actin,memb|Intensity_MaxIntensity_cd25_ki67,memb|Intensity_MaxIntensity_actin,memb|Intensity_MinIntensity_actin,memb|Intensity_MinIntensity_cd25_ki67,memb|Intensity_MinIntensityEdge_cd25_ki67,memb|Intensity_MinIntensityEdge_actin,memb|Intensity_MedianIntensity_cd25_ki67,memb|Intensity_MedianIntensity_actin,memb|Intensity_UpperQuartileIntensity_cd25_ki67,memb|Intensity_UpperQuartileIntensity_actin,memb|Intensity_StdIntensityEdge_actin,memb|Intensity_StdIntensityEdge_cd25_ki67,memb|Intensity_MassDisplacement_actin,memb|Intensity_MassDisplacement_cd25_ki67,memb|Intensity_MADIntensity_actin,memb|Intensity_MADIntensity_cd25_ki67,memb|Intensity_MeanIntensityEdge_cd25_ki67,memb|Intensity_MeanIntensityEdge_actin,memb|Intensity_IntegratedIntensity_actin,memb|Intensity_IntegratedIntensity_cd25_ki67,memb|Location_CenterMassIntensity_Z_actin,memb|Location_CenterMassIntensity_Z_cd25_ki67,memb|Location_CenterMassIntensity_X_cd25_ki67,memb|Location_CenterMassIntensity_X_actin,memb|Location_CenterMassIntensity_Y_cd25_ki67,memb|Location_CenterMassIntensity_Y_actin,memb|Location_MaxIntensity_X_cd25_ki67,memb|Location_MaxIntensity_X_actin,memb|Location_MaxIntensity_Y_actin,memb|Location_MaxIntensity_Y_cd25_ki67,memb|Location_MaxIntensity_Z_cd25_ki67,memb|Location_MaxIntensity_Z_actin,Experiment|Pipeline_Pipeline,Experiment|CellProfiler_Version,Experiment|Modification_Timestamp,Experiment|Run_Timestamp
+    Representation of Nan/Inf:NaN
+    Add a prefix to file names?:Yes
+    Filename prefix:tglow_cell_divider_2d_pipeline_v3_
+    Overwrite existing files without warning?:Yes
+    Data to export:Experiment
+    Combine these object measurements with those of the previous object?:No
+    File name:\g<plate>_\g<well>_experiment.tsv
+    Use the object name for the file name?:No
+    Data to export:Image
+    Combine these object measurements with those of the previous object?:No
+    File name:\g<plate>_\g<well>_image.tsv
+    Use the object name for the file name?:No
+    Data to export:cell
+    Combine these object measurements with those of the previous object?:No
+    File name:\g<plate>_\g<well>_cells.tsv
+    Use the object name for the file name?:No
+    Data to export:seed
+    Combine these object measurements with those of the previous object?:Yes
+    File name:\g<plate>_\g<well>_objectRelationships.tsv
+    Use the object name for the file name?:No
+    Data to export:memb
+    Combine these object measurements with those of the previous object?:Yes
+    File name:DATA.csv
+    Use the object name for the file name?:Yes
+    Data to export:Object relationships
+    Combine these object measurements with those of the previous object?:No
+    File name:\g<plate>_\g<well>_objectRelationships.tsv
+    Use the object name for the file name?:No

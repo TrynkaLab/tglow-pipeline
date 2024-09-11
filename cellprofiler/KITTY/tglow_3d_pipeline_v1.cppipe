@@ -1,0 +1,991 @@
+CellProfiler Pipeline: http://www.cellprofiler.org
+Version:5
+DateRevision:426
+GitHash:
+ModuleCount:75
+HasImagePlaneDetails:False
+
+Images:[module_num:1|svn_version:'Unknown'|variable_revision_number:2|show_window:False|notes:['To begin creating your project, use the Images module to compile a list of files and/or folders that you want to analyze. You can also specify a set of rules to include only the desired files in your selected folders.']|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    :
+    Filter images?:Images only
+    Select the rule criteria:and (extension does isimage) (directory doesnot containregexp "[\\\\/]\\.")
+
+Metadata:[module_num:2|svn_version:'Unknown'|variable_revision_number:6|show_window:False|notes:['The Metadata module optionally allows you to extract information describing your images (i.e, metadata) which will be stored along with your measurements. This information can be contained in the file name and/or location, or in an external file.']|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Extract metadata?:Yes
+    Metadata data type:Text
+    Metadata types:{}
+    Extraction method count:2
+    Metadata extraction method:Extract from file/folder names
+    Metadata source:File name
+    Regular expression to extract from file name:jm52_KITTY_20230929_(?P<timepoint>[a-zA-Z0-9_]+)_(?P<well>[A-Z]\d+)_(?P<field>f\d+)_(?P<channel>ch\d+).tiff
+    Regular expression to extract from folder name:(?P<Date>[0-9]{4}_[0-9]{2}_[0-9]{2})$
+    Extract metadata from:All images
+    Select the filtering criteria:and (file does contain "")
+    Metadata file location:Elsewhere...|
+    Match file and image metadata:[]
+    Use case insensitive matching?:No
+    Metadata file name:None
+    Does cached metadata exist?:Yes
+    Metadata extraction method:Extract from file/folder names
+    Metadata source:File name
+    Regular expression to extract from file name:jm52_KITTY_20230929_(?P<group>.+_[A-Z]\d+_f\d+)_ch\d+.tiff
+    Regular expression to extract from folder name:(?P<Date>[0-9]{4}_[0-9]{2}_[0-9]{2})$
+    Extract metadata from:All images
+    Select the filtering criteria:and (file does contain "")
+    Metadata file location:Elsewhere...|
+    Match file and image metadata:[]
+    Use case insensitive matching?:No
+    Metadata file name:None
+    Does cached metadata exist?:No
+
+NamesAndTypes:[module_num:3|svn_version:'Unknown'|variable_revision_number:8|show_window:False|notes:['The NamesAndTypes module allows you to assign a meaningful name to each image by which other modules will refer to it.']|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Assign a name to:Images matching rules
+    Select the image type:Grayscale image
+    Name to assign these images:DNA
+    Match metadata:[{'actin': 'group', 'brightfield': 'group', 'cd25_ki67': 'group', 'dna': 'group', 'mito': 'group'}]
+    Image set matching method:Metadata
+    Set intensity range from:Image metadata
+    Assignments count:5
+    Single images count:0
+    Maximum intensity:255.0
+    Process as 3D?:Yes
+    Relative pixel spacing in X:1
+    Relative pixel spacing in Y:1
+    Relative pixel spacing in Z:10
+    Select the rule criteria:and (file does contain "ch1")
+    Name to assign these images:cd25_ki67
+    Name to assign these objects:Cell
+    Select the image type:Grayscale image
+    Set intensity range from:Image metadata
+    Maximum intensity:255.0
+    Select the rule criteria:and (file does contain "ch2")
+    Name to assign these images:brightfield
+    Name to assign these objects:Nucleus
+    Select the image type:Grayscale image
+    Set intensity range from:Image metadata
+    Maximum intensity:255.0
+    Select the rule criteria:and (file does contain "ch3")
+    Name to assign these images:dna
+    Name to assign these objects:Cytoplasm
+    Select the image type:Grayscale image
+    Set intensity range from:Image metadata
+    Maximum intensity:255.0
+    Select the rule criteria:and (file does contain "ch4")
+    Name to assign these images:mito
+    Name to assign these objects:Speckle
+    Select the image type:Grayscale image
+    Set intensity range from:Image metadata
+    Maximum intensity:255.0
+    Select the rule criteria:and (file does contain "ch5")
+    Name to assign these images:actin
+    Name to assign these objects:Object1
+    Select the image type:Grayscale image
+    Set intensity range from:Image metadata
+    Maximum intensity:255.0
+
+Groups:[module_num:4|svn_version:'Unknown'|variable_revision_number:2|show_window:False|notes:['The Groups module optionally allows you to split your list of images into image subsets (groups) which will be processed independently of each other. Examples of groupings include screening batches, microtiter plates, time-lapse movies, etc.']|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Do you want to group your images?:No
+    grouping metadata count:1
+    Metadata category:group
+
+RescaleIntensity:[module_num:5|svn_version:'Unknown'|variable_revision_number:3|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Select the input image:dna
+    Name the output image:dna_scaled
+    Rescaling method:Stretch each image to use the full intensity range
+    Method to calculate the minimum intensity:Custom
+    Method to calculate the maximum intensity:Custom
+    Lower intensity limit for the input image:0.0
+    Upper intensity limit for the input image:1.0
+    Intensity range for the input image:0.0,1.0
+    Intensity range for the output image:0.0,1.0
+    Select image to match in maximum intensity:None
+    Divisor value:1.0
+    Divisor measurement:None
+
+Threshold:[module_num:6|svn_version:'Unknown'|variable_revision_number:12|show_window:False|notes:['Set a manual minimum for nucleus detection. This avoid images with no signal getting objects']|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Select the input image:dna
+    Name the output image:dna_bg_mask
+    Threshold strategy:Global
+    Thresholding method:Manual
+    Threshold smoothing scale:0.0
+    Threshold correction factor:1.0
+    Lower and upper bounds on threshold:0.0,1.0
+    Manual threshold:0.005
+    Select the measurement to threshold with:None
+    Two-class or three-class thresholding?:Two classes
+    Log transform before thresholding?:No
+    Assign pixels in the middle intensity class to the foreground or the background?:Foreground
+    Size of adaptive window:50
+    Lower outlier fraction:0.05
+    Upper outlier fraction:0.05
+    Averaging method:Mean
+    Variance method:Standard deviation
+    # of deviations:2.0
+    Thresholding method:Minimum Cross-Entropy
+
+ImageMath:[module_num:7|svn_version:'Unknown'|variable_revision_number:5|show_window:False|notes:['Apply the mask for background in a baked in way. This avoids inherritance of the masks to downstream objects which happens if you use MaskImage and could give unexpected behavoir later on.']|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Operation:Multiply
+    Raise the power of the result by:1.0
+    Multiply the result by:1.0
+    Add to result:0.0
+    Set values less than 0 equal to 0?:Yes
+    Set values greater than 1 equal to 1?:Yes
+    Replace invalid values with 0?:Yes
+    Ignore the image masks?:No
+    Name the output image:dna_scaled_bg_masked
+    Image or measurement?:Image
+    Select the first image:dna_scaled
+    Multiply the first image by:1.0
+    Measurement:
+    Image or measurement?:Image
+    Select the second image:dna_bg_mask
+    Multiply the second image by:1.0
+    Measurement:
+
+Resize:[module_num:8|svn_version:'Unknown'|variable_revision_number:5|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Select the input image:dna_scaled
+    Name the output image:dna_scaled_2x
+    Resizing method:Resize by a fraction or multiple of the original size
+    X Resizing factor:0.5
+    Y Resizing factor:0.5
+    Z Resizing factor:1
+    Width (x) of the final image:100
+    Height (y) of the final image:100
+    # of planes (z) in the final image:10
+    Interpolation method:Nearest Neighbor
+    Method to specify the dimensions:Manual
+    Select the image with the desired dimensions:None
+    Additional image count:0
+
+MedianFilter:[module_num:9|svn_version:'Unknown'|variable_revision_number:1|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Select the input image:dna_scaled_2x
+    Name the output image:dna_filtered_2x
+    Window:5
+
+Threshold:[module_num:10|svn_version:'Unknown'|variable_revision_number:12|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Select the input image:dna_filtered_2x
+    Name the output image:dna_tresh_2x
+    Threshold strategy:Adaptive
+    Thresholding method:Otsu
+    Threshold smoothing scale:0.0
+    Threshold correction factor:1.1
+    Lower and upper bounds on threshold:0.005,1.0
+    Manual threshold:0.0
+    Select the measurement to threshold with:None
+    Two-class or three-class thresholding?:Two classes
+    Log transform before thresholding?:No
+    Assign pixels in the middle intensity class to the foreground or the background?:Foreground
+    Size of adaptive window:50
+    Lower outlier fraction:0.05
+    Upper outlier fraction:0.05
+    Averaging method:Mean
+    Variance method:Standard deviation
+    # of deviations:6
+    Thresholding method:Otsu
+
+RemoveHoles:[module_num:11|svn_version:'Unknown'|variable_revision_number:1|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Select the input image:dna_tresh_2x
+    Name the output image:dna_hrm_2x
+    Size of holes to fill:25
+
+Watershed:[module_num:12|svn_version:'Unknown'|variable_revision_number:3|show_window:False|notes:['']|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Select the input image:dna_hrm_2x
+    Name the output object:nucleus_2x_raw
+    Use advanced settings?:Yes
+    Generate from:Distance
+    Markers:None
+    Mask:Leave blank
+    Connectivity:1
+    Compactness:0.0
+    Footprint:8
+    Downsample:1
+    Separate watershed labels:No
+    Declump method:Shape
+    Reference Image:dna_power
+    Segmentation distance transform smoothing factor:1
+    Minimum distance between seeds:8
+    Minimum absolute internal distance:0
+    Pixels from border to exclude:0
+    Maximum number of seeds:-1
+    Structuring element for seed dilation:ball,1
+
+FilterObjects:[module_num:13|svn_version:'Unknown'|variable_revision_number:10|show_window:False|notes:['Remove objects whose center is within 3% of the image boundry (the overlapping percentage between tiles. In 2x rescaled space the safe area is between 32 and 1048 pixels (64 and 2096 in full image space)']|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Select the objects to filter:nucleus_2x_raw
+    Name the output objects:nucleus_2x_raw_no_border
+    Select the filtering mode:Measurements
+    Select the filtering method:Limits
+    Select the objects that contain the filtered objects:None
+    Select the location of the rules or classifier file:Elsewhere...|
+    Rules or classifier file name:rules.txt
+    Class number:1
+    Measurement count:2
+    Additional object count:0
+    Assign overlapping child to:Both parents
+    Keep removed objects as a separate set?:No
+    Name the objects removed by the filter:RemovedObjects
+    Select the measurement to filter by:Location_Center_X
+    Filter using a minimum measurement value?:Yes
+    Minimum value:32
+    Filter using a maximum measurement value?:Yes
+    Maximum value:1048
+    Select the measurement to filter by:Location_Center_Y
+    Filter using a minimum measurement value?:Yes
+    Minimum value:32
+    Filter using a maximum measurement value?:Yes
+    Maximum value:1048
+    Allow fuzzy feature matching?:No
+
+MeasureObjectSizeShape:[module_num:14|svn_version:'Unknown'|variable_revision_number:3|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Select object sets to measure:nucleus_2x_raw_no_border
+    Calculate the Zernike features?:No
+    Calculate the advanced features?:No
+
+FilterObjects:[module_num:15|svn_version:'Unknown'|variable_revision_number:10|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Select the objects to filter:nucleus_2x_raw_no_border
+    Name the output objects:nucleus_2x_small
+    Select the filtering mode:Measurements
+    Select the filtering method:Limits
+    Select the objects that contain the filtered objects:nucleus_raw
+    Select the location of the rules or classifier file:Elsewhere...|
+    Rules or classifier file name:rules.txt
+    Class number:1
+    Measurement count:1
+    Additional object count:0
+    Assign overlapping child to:Parent with most overlap
+    Keep removed objects as a separate set?:Yes
+    Name the objects removed by the filter:nucleus_2x_large
+    Select the measurement to filter by:AreaShape_EquivalentDiameter
+    Filter using a minimum measurement value?:Yes
+    Minimum value:0.0
+    Filter using a maximum measurement value?:Yes
+    Maximum value:8
+    Allow fuzzy feature matching?:No
+
+DilateObjects:[module_num:16|svn_version:'Unknown'|variable_revision_number:1|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Select the input object:nucleus_2x_small
+    Name the output object:nulceus_2x_small_dilated
+    Structuring element:disk,1
+
+CombineObjects:[module_num:17|svn_version:'Unknown'|variable_revision_number:1|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Select initial object set:nucleus_2x_large
+    Select object set to combine:nulceus_2x_small_dilated
+    Select how to handle overlapping objects:Merge
+    Name the combined object set:nucleus_2x
+
+FillObjects:[module_num:18|svn_version:'Unknown'|variable_revision_number:2|show_window:False|notes:["This was here to fill gaps in the nuclei, but it doesn't seem its needed anymore, and computation is relatively exprensive, so testing how it deals without."]|batch_state:array([], dtype=uint8)|enabled:False|wants_pause:False]
+    Select the input object:nucleus_2x
+    Name the output object:nucleus_2x_filled
+    Minimum hole size:64.0
+    Planewise fill:Yes
+    Filling method:Holes
+
+ResizeObjects:[module_num:19|svn_version:'Unknown'|variable_revision_number:3|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Select the input object:nucleus_2x
+    Name the output object:nucleus
+    Method:Factor
+    X Factor:2
+    Y Factor:2
+    Z Factor:1
+    Width (X):100
+    Height (Y):100
+    Planes (Z):10
+    Select the image with the desired dimensions:None
+
+OverlayOutlines:[module_num:20|svn_version:'Unknown'|variable_revision_number:4|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:False|wants_pause:False]
+    Display outlines on a blank image?:No
+    Select image on which to display outlines:dna_scaled
+    Name the output image:OrigOverlay
+    Outline display mode:Color
+    Select method to determine brightness of outlines:Max of image
+    How to outline:Inner
+    Select outline color:#261EF4
+    Select objects to display:nucleus
+
+ImageMath:[module_num:21|svn_version:'Unknown'|variable_revision_number:5|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Operation:None
+    Raise the power of the result by:0.5
+    Multiply the result by:1.0
+    Add to result:0.0
+    Set values less than 0 equal to 0?:Yes
+    Set values greater than 1 equal to 1?:Yes
+    Replace invalid values with 0?:Yes
+    Ignore the image masks?:No
+    Name the output image:actin_sqrt
+    Image or measurement?:Image
+    Select the first image:actin
+    Multiply the first image by:1.0
+    Measurement:
+    Image or measurement?:Image
+    Select the second image:None
+    Multiply the second image by:1.0
+    Measurement:
+
+RescaleIntensity:[module_num:22|svn_version:'Unknown'|variable_revision_number:3|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Select the input image:actin_sqrt
+    Name the output image:actin_scaled
+    Rescaling method:Stretch each image to use the full intensity range
+    Method to calculate the minimum intensity:Custom
+    Method to calculate the maximum intensity:Custom
+    Lower intensity limit for the input image:0.0
+    Upper intensity limit for the input image:1.0
+    Intensity range for the input image:0.0,1.0
+    Intensity range for the output image:0.0,1.0
+    Select image to match in maximum intensity:None
+    Divisor value:1.0
+    Divisor measurement:None
+
+RescaleIntensity:[module_num:23|svn_version:'Unknown'|variable_revision_number:3|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Select the input image:mito
+    Name the output image:mito_scaled
+    Rescaling method:Stretch each image to use the full intensity range
+    Method to calculate the minimum intensity:Custom
+    Method to calculate the maximum intensity:Custom
+    Lower intensity limit for the input image:0.0
+    Upper intensity limit for the input image:1.0
+    Intensity range for the input image:0.0,1.0
+    Intensity range for the output image:0.0,1.0
+    Select image to match in maximum intensity:None
+    Divisor value:1.0
+    Divisor measurement:None
+
+ImageMath:[module_num:24|svn_version:'Unknown'|variable_revision_number:5|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Operation:None
+    Raise the power of the result by:0.5
+    Multiply the result by:1.0
+    Add to result:0.0
+    Set values less than 0 equal to 0?:Yes
+    Set values greater than 1 equal to 1?:Yes
+    Replace invalid values with 0?:Yes
+    Ignore the image masks?:No
+    Name the output image:cd25_ki67_sqrt
+    Image or measurement?:Image
+    Select the first image:cd25_ki67
+    Multiply the first image by:1.0
+    Measurement:
+    Image or measurement?:Image
+    Select the second image:None
+    Multiply the second image by:1.0
+    Measurement:
+
+RescaleIntensity:[module_num:25|svn_version:'Unknown'|variable_revision_number:3|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Select the input image:cd25_ki67_sqrt
+    Name the output image:cd25_ki67_scaled
+    Rescaling method:Stretch each image to use the full intensity range
+    Method to calculate the minimum intensity:Custom
+    Method to calculate the maximum intensity:Custom
+    Lower intensity limit for the input image:0.0
+    Upper intensity limit for the input image:1.0
+    Intensity range for the input image:0.0,1.0
+    Intensity range for the output image:0.0,1.0
+    Select image to match in maximum intensity:None
+    Divisor value:1.0
+    Divisor measurement:None
+
+Resize:[module_num:26|svn_version:'Unknown'|variable_revision_number:5|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Select the input image:actin_scaled
+    Name the output image:actin_2x
+    Resizing method:Resize by a fraction or multiple of the original size
+    X Resizing factor:0.5
+    Y Resizing factor:0.5
+    Z Resizing factor:1
+    Width (x) of the final image:100
+    Height (y) of the final image:100
+    # of planes (z) in the final image:10
+    Interpolation method:Nearest Neighbor
+    Method to specify the dimensions:Manual
+    Select the image with the desired dimensions:None
+    Additional image count:0
+
+Resize:[module_num:27|svn_version:'Unknown'|variable_revision_number:5|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Select the input image:cd25_ki67
+    Name the output image:cd25_ki67_2x
+    Resizing method:Resize by a fraction or multiple of the original size
+    X Resizing factor:0.5
+    Y Resizing factor:0.5
+    Z Resizing factor:1
+    Width (x) of the final image:100
+    Height (y) of the final image:100
+    # of planes (z) in the final image:10
+    Interpolation method:Nearest Neighbor
+    Method to specify the dimensions:Manual
+    Select the image with the desired dimensions:None
+    Additional image count:0
+
+Resize:[module_num:28|svn_version:'Unknown'|variable_revision_number:5|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Select the input image:mito_scaled
+    Name the output image:mito_2x
+    Resizing method:Resize by a fraction or multiple of the original size
+    X Resizing factor:0.5
+    Y Resizing factor:0.5
+    Z Resizing factor:1
+    Width (x) of the final image:100
+    Height (y) of the final image:100
+    # of planes (z) in the final image:10
+    Interpolation method:Nearest Neighbor
+    Method to specify the dimensions:Manual
+    Select the image with the desired dimensions:None
+    Additional image count:0
+
+MedianFilter:[module_num:29|svn_version:'Unknown'|variable_revision_number:1|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Select the input image:actin_2x
+    Name the output image:actin_filtered_2x
+    Window:4
+
+MedianFilter:[module_num:30|svn_version:'Unknown'|variable_revision_number:1|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Select the input image:cd25_ki67_2x
+    Name the output image:cd25_ki67_filtered_2x
+    Window:4
+
+MedianFilter:[module_num:31|svn_version:'Unknown'|variable_revision_number:1|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Select the input image:mito_2x
+    Name the output image:mito_filtered_2x
+    Window:4
+
+Threshold:[module_num:32|svn_version:'Unknown'|variable_revision_number:12|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Select the input image:actin_filtered_2x
+    Name the output image:actin_thresh_2x
+    Threshold strategy:Global
+    Thresholding method:Otsu
+    Threshold smoothing scale:0.0
+    Threshold correction factor:1.1
+    Lower and upper bounds on threshold:0.005,1.0
+    Manual threshold:0.0
+    Select the measurement to threshold with:None
+    Two-class or three-class thresholding?:Two classes
+    Log transform before thresholding?:No
+    Assign pixels in the middle intensity class to the foreground or the background?:Foreground
+    Size of adaptive window:50
+    Lower outlier fraction:0.05
+    Upper outlier fraction:0.05
+    Averaging method:Mean
+    Variance method:Standard deviation
+    # of deviations:2.0
+    Thresholding method:Minimum Cross-Entropy
+
+Threshold:[module_num:33|svn_version:'Unknown'|variable_revision_number:12|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Select the input image:cd25_ki67_filtered_2x
+    Name the output image:cd25_ki67_tresh_2x
+    Threshold strategy:Global
+    Thresholding method:Otsu
+    Threshold smoothing scale:0.0
+    Threshold correction factor:1.1
+    Lower and upper bounds on threshold:0.005,1.0
+    Manual threshold:0.0
+    Select the measurement to threshold with:None
+    Two-class or three-class thresholding?:Two classes
+    Log transform before thresholding?:No
+    Assign pixels in the middle intensity class to the foreground or the background?:Background
+    Size of adaptive window:50
+    Lower outlier fraction:0.05
+    Upper outlier fraction:0.05
+    Averaging method:Mean
+    Variance method:Standard deviation
+    # of deviations:2.0
+    Thresholding method:Otsu
+
+Threshold:[module_num:34|svn_version:'Unknown'|variable_revision_number:12|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Select the input image:mito_filtered_2x
+    Name the output image:mito_thresh_2x
+    Threshold strategy:Global
+    Thresholding method:Otsu
+    Threshold smoothing scale:0.0
+    Threshold correction factor:1.1
+    Lower and upper bounds on threshold:0.005,1.0
+    Manual threshold:0.0
+    Select the measurement to threshold with:None
+    Two-class or three-class thresholding?:Three classes
+    Log transform before thresholding?:No
+    Assign pixels in the middle intensity class to the foreground or the background?:Foreground
+    Size of adaptive window:50
+    Lower outlier fraction:0.05
+    Upper outlier fraction:0.05
+    Averaging method:Mean
+    Variance method:Standard deviation
+    # of deviations:2.0
+    Thresholding method:Minimum Cross-Entropy
+
+ImageMath:[module_num:35|svn_version:'Unknown'|variable_revision_number:5|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Operation:Add
+    Raise the power of the result by:1.0
+    Multiply the result by:1.0
+    Add to result:0.0
+    Set values less than 0 equal to 0?:Yes
+    Set values greater than 1 equal to 1?:Yes
+    Replace invalid values with 0?:Yes
+    Ignore the image masks?:No
+    Name the output image:cell_combined_2x
+    Image or measurement?:Image
+    Select the first image:dna_tresh_2x
+    Multiply the first image by:1.0
+    Measurement:
+    Image or measurement?:Image
+    Select the second image:actin_thresh_2x
+    Multiply the second image by:1.0
+    Measurement:
+    Image or measurement?:Image
+    Select the third image:cd25_ki67_tresh_2x
+    Multiply the third image by:1.0
+    Measurement:
+    Image or measurement?:Image
+    Select the fourth image:mito_thresh_2x
+    Multiply the fourth image by:1.0
+    Measurement:
+
+Closing:[module_num:36|svn_version:'Unknown'|variable_revision_number:1|show_window:False|notes:['Cleans up little gaps in the mask, do this prior to removing holes to close outlies. Use a disk to not consider merging in 3d as this tends to expand the mask quite a lot.']|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Select the input image:cell_combined_2x
+    Name the output image:cell_closed_2x
+    Structuring element:disk,2
+
+RemoveHoles:[module_num:37|svn_version:'Unknown'|variable_revision_number:1|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Select the input image:cell_combined_2x
+    Name the output image:cell_hrm_2x
+    Size of holes to fill:64
+
+ConvertObjectsToImage:[module_num:38|svn_version:'Unknown'|variable_revision_number:1|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Select the input objects:nucleus_2x
+    Name the output image:nucleus_img_2x
+    Select the color format:uint16
+    Select the colormap:Default
+
+ImageMath:[module_num:39|svn_version:'Unknown'|variable_revision_number:5|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Operation:Invert
+    Raise the power of the result by:1
+    Multiply the result by:1.0
+    Add to result:0.0
+    Set values less than 0 equal to 0?:Yes
+    Set values greater than 1 equal to 1?:Yes
+    Replace invalid values with 0?:Yes
+    Ignore the image masks?:No
+    Name the output image:actin_filtered_inv_2x
+    Image or measurement?:Image
+    Select the first image:actin_2x
+    Multiply the first image by:1.0
+    Measurement:
+    Image or measurement?:Image
+    Select the second image:None
+    Multiply the second image by:1.0
+    Measurement:
+
+RescaleIntensity:[module_num:40|svn_version:'Unknown'|variable_revision_number:3|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Select the input image:actin_filtered_inv_2x
+    Name the output image:actin_filtered_inv_scaled_2x
+    Rescaling method:Stretch each image to use the full intensity range
+    Method to calculate the minimum intensity:Custom
+    Method to calculate the maximum intensity:Custom
+    Lower intensity limit for the input image:0.0
+    Upper intensity limit for the input image:1.0
+    Intensity range for the input image:0.0,1.0
+    Intensity range for the output image:0.0,1.0
+    Select image to match in maximum intensity:None
+    Divisor value:1.0
+    Divisor measurement:None
+
+MaskImage:[module_num:41|svn_version:'Unknown'|variable_revision_number:3|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Select the input image:actin_filtered_inv_scaled_2x
+    Name the output image:actin_inv_masked_2x
+    Use objects or an image as a mask?:Image
+    Select object for mask:None
+    Select image for mask:cell_hrm_2x
+    Invert the mask?:No
+
+ImageMath:[module_num:42|svn_version:'Unknown'|variable_revision_number:5|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Operation:Add
+    Raise the power of the result by:1.0
+    Multiply the result by:1.0
+    Add to result:0.0
+    Set values less than 0 equal to 0?:Yes
+    Set values greater than 1 equal to 1?:Yes
+    Replace invalid values with 0?:Yes
+    Ignore the image masks?:No
+    Name the output image:actin_inv_dna_2x
+    Image or measurement?:Image
+    Select the first image:actin_inv_masked_2x
+    Multiply the first image by:1.0
+    Measurement:
+    Image or measurement?:Image
+    Select the second image:dna_tresh_2x
+    Multiply the second image by:1
+    Measurement:
+
+GaussianFilter:[module_num:43|svn_version:'Unknown'|variable_revision_number:1|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Select the input image:actin_inv_dna_2x
+    Name the output image:actin_inv_dna_filtered_2x
+    Sigma:2
+
+RescaleIntensity:[module_num:44|svn_version:'Unknown'|variable_revision_number:3|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Select the input image:actin_inv_dna_filtered_2x
+    Name the output image:cell_intensity_map
+    Rescaling method:Stretch each image to use the full intensity range
+    Method to calculate the minimum intensity:Custom
+    Method to calculate the maximum intensity:Custom
+    Lower intensity limit for the input image:0.0
+    Upper intensity limit for the input image:1.0
+    Intensity range for the input image:0.0,1.0
+    Intensity range for the output image:0.0,1.0
+    Select image to match in maximum intensity:None
+    Divisor value:1.0
+    Divisor measurement:None
+
+Watershed:[module_num:45|svn_version:'Unknown'|variable_revision_number:3|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Select the input image:cell_hrm_2x
+    Name the output object:cells_2x_raw
+    Use advanced settings?:Yes
+    Generate from:Markers
+    Markers:nucleus_img_2x
+    Mask:cell_hrm_2x
+    Connectivity:1
+    Compactness:0
+    Footprint:8
+    Downsample:1
+    Separate watershed labels:Yes
+    Declump method:Intensity
+    Reference Image:cell_intensity_map
+    Segmentation distance transform smoothing factor:0
+    Minimum distance between seeds:5
+    Minimum absolute internal distance:0
+    Pixels from border to exclude:0
+    Maximum number of seeds:-1
+    Structuring element for seed dilation:ball,1
+
+OverlayOutlines:[module_num:46|svn_version:'Unknown'|variable_revision_number:4|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:False|wants_pause:False]
+    Display outlines on a blank image?:No
+    Select image on which to display outlines:cell_intensity_map
+    Name the output image:OrigOverlay
+    Outline display mode:Color
+    Select method to determine brightness of outlines:Max of image
+    How to outline:Inner
+    Select outline color:#9B52FF
+    Select objects to display:nucleus_2x
+    Select outline color:#F8FA0E
+    Select objects to display:cells_2x_raw
+
+MeasureObjectSizeShape:[module_num:47|svn_version:'Unknown'|variable_revision_number:3|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Select object sets to measure:cells_2x_raw
+    Calculate the Zernike features?:No
+    Calculate the advanced features?:No
+
+FilterObjects:[module_num:48|svn_version:'Unknown'|variable_revision_number:10|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Select the objects to filter:cells_2x_raw
+    Name the output objects:cells_2x_small
+    Select the filtering mode:Measurements
+    Select the filtering method:Limits
+    Select the objects that contain the filtered objects:None
+    Select the location of the rules or classifier file:Elsewhere...|
+    Rules or classifier file name:rules.txt
+    Class number:1
+    Measurement count:1
+    Additional object count:0
+    Assign overlapping child to:Both parents
+    Keep removed objects as a separate set?:Yes
+    Name the objects removed by the filter:cells_2x_large
+    Select the measurement to filter by:AreaShape_EquivalentDiameter
+    Filter using a minimum measurement value?:Yes
+    Minimum value:0.0
+    Filter using a maximum measurement value?:Yes
+    Maximum value:10
+    Allow fuzzy feature matching?:No
+
+DilateObjects:[module_num:49|svn_version:'Unknown'|variable_revision_number:1|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Select the input object:cells_2x_small
+    Name the output object:cells_2x_small_dilated
+    Structuring element:Disk,1
+
+CombineObjects:[module_num:50|svn_version:'Unknown'|variable_revision_number:1|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Select initial object set:cells_2x_large
+    Select object set to combine:cells_2x_small_dilated
+    Select how to handle overlapping objects:Merge
+    Name the combined object set:cells_2x_combined
+
+FilterObjects:[module_num:51|svn_version:'Unknown'|variable_revision_number:10|show_window:False|notes:['Remove cells near the edge']|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Select the objects to filter:cells_2x_combined
+    Name the output objects:cells_2x
+    Select the filtering mode:Measurements
+    Select the filtering method:Limits
+    Select the objects that contain the filtered objects:None
+    Select the location of the rules or classifier file:Elsewhere...|
+    Rules or classifier file name:rules.txt
+    Class number:1
+    Measurement count:2
+    Additional object count:0
+    Assign overlapping child to:Both parents
+    Keep removed objects as a separate set?:No
+    Name the objects removed by the filter:RemovedObjects
+    Select the measurement to filter by:Location_Center_X
+    Filter using a minimum measurement value?:Yes
+    Minimum value:32
+    Filter using a maximum measurement value?:Yes
+    Maximum value:1048
+    Select the measurement to filter by:Location_Center_Y
+    Filter using a minimum measurement value?:Yes
+    Minimum value:32
+    Filter using a maximum measurement value?:Yes
+    Maximum value:1048
+    Allow fuzzy feature matching?:No
+
+FillObjects:[module_num:52|svn_version:'Unknown'|variable_revision_number:2|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Select the input object:cells_2x
+    Name the output object:cells_filled_2x
+    Minimum hole size:64
+    Planewise fill:Yes
+    Filling method:Holes
+
+ResizeObjects:[module_num:53|svn_version:'Unknown'|variable_revision_number:3|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Select the input object:cells_filled_2x
+    Name the output object:cells
+    Method:Factor
+    X Factor:2
+    Y Factor:2
+    Z Factor:1
+    Width (X):100
+    Height (Y):100
+    Planes (Z):10
+    Select the image with the desired dimensions:None
+
+ImageMath:[module_num:54|svn_version:'Unknown'|variable_revision_number:5|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Operation:Maximum
+    Raise the power of the result by:1
+    Multiply the result by:1.0
+    Add to result:0.0
+    Set values less than 0 equal to 0?:Yes
+    Set values greater than 1 equal to 1?:Yes
+    Replace invalid values with 0?:Yes
+    Ignore the image masks?:No
+    Name the output image:all_channels_sum
+    Image or measurement?:Image
+    Select the first image:actin_scaled
+    Multiply the first image by:1
+    Measurement:
+    Image or measurement?:Image
+    Select the second image:cd25_ki67_scaled
+    Multiply the second image by:0
+    Measurement:
+    Image or measurement?:Image
+    Select the third image:dna_scaled
+    Multiply the third image by:2
+    Measurement:
+    Image or measurement?:Image
+    Select the fourth image:mito_scaled
+    Multiply the fourth image by:0
+    Measurement:
+
+OverlayOutlines:[module_num:55|svn_version:'Unknown'|variable_revision_number:4|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Display outlines on a blank image?:No
+    Select image on which to display outlines:all_channels_sum
+    Name the output image:segmentation_outlines
+    Outline display mode:Color
+    Select method to determine brightness of outlines:Max of image
+    How to outline:Inner
+    Select outline color:#9B52FF
+    Select objects to display:nucleus
+    Select outline color:#F8FA0E
+    Select objects to display:cells
+
+ConvertObjectsToImage:[module_num:56|svn_version:'Unknown'|variable_revision_number:1|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Select the input objects:cells
+    Name the output image:cells_img
+    Select the color format:uint16
+    Select the colormap:Default
+
+MaskImage:[module_num:57|svn_version:'Unknown'|variable_revision_number:3|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Select the input image:cells_img
+    Name the output image:cyto_img
+    Use objects or an image as a mask?:Objects
+    Select object for mask:nucleus
+    Select image for mask:None
+    Invert the mask?:Yes
+
+ErodeImage:[module_num:58|svn_version:'Unknown'|variable_revision_number:1|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Select the input image:cyto_img
+    Name the output image:cyto_img_shrunken
+    Structuring element:Disk,1
+
+ConvertImageToObjects:[module_num:59|svn_version:'Unknown'|variable_revision_number:1|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Select the input image:cyto_img_shrunken
+    Name the output object:cyto
+    Convert to boolean image:No
+    Preserve original labels:Yes
+    Background label:0
+    Connectivity:0
+
+ErodeObjects:[module_num:60|svn_version:'Unknown'|variable_revision_number:1|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Select the input object:nucleus
+    Name the output object:nucleus_eroded
+    Structuring element:Disk,2
+    Prevent object removal:Yes
+    Relabel resulting objects:No
+
+MaskImage:[module_num:61|svn_version:'Unknown'|variable_revision_number:3|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Select the input image:cd25_ki67
+    Name the output image:ki67
+    Use objects or an image as a mask?:Objects
+    Select object for mask:nucleus_eroded
+    Select image for mask:nucleus_img_eroded_mask
+    Invert the mask?:No
+
+MaskImage:[module_num:62|svn_version:'Unknown'|variable_revision_number:3|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Select the input image:cd25_ki67
+    Name the output image:cd25
+    Use objects or an image as a mask?:Objects
+    Select object for mask:cyto
+    Select image for mask:None
+    Invert the mask?:No
+
+RelateObjects:[module_num:63|svn_version:'Unknown'|variable_revision_number:5|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Parent objects:cells
+    Child objects:nucleus
+    Calculate child-parent distances?:None
+    Calculate per-parent means for all child measurements?:No
+    Calculate distances to other parents?:No
+    Do you want to save the children with parents as a new object set?:No
+    Name the output object:combined
+    Parent name:None
+
+RelateObjects:[module_num:64|svn_version:'Unknown'|variable_revision_number:5|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Parent objects:cells
+    Child objects:cyto
+    Calculate child-parent distances?:None
+    Calculate per-parent means for all child measurements?:No
+    Calculate distances to other parents?:No
+    Do you want to save the children with parents as a new object set?:No
+    Name the output object:RelateObjects
+    Parent name:None
+
+MeasureObjectIntensity:[module_num:65|svn_version:'Unknown'|variable_revision_number:4|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Select images to measure:actin, cd25, dna, mito
+    Select objects to measure:cells, cyto
+
+MeasureObjectIntensity:[module_num:66|svn_version:'Unknown'|variable_revision_number:4|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Select images to measure:dna, ki67
+    Select objects to measure:nucleus
+
+MeasureObjectSizeShape:[module_num:67|svn_version:'Unknown'|variable_revision_number:3|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Select object sets to measure:cells, cyto, nucleus
+    Calculate the Zernike features?:No
+    Calculate the advanced features?:No
+
+MeasureObjectNeighbors:[module_num:68|svn_version:'Unknown'|variable_revision_number:3|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Select objects to measure:cells
+    Select neighboring objects to measure:cells
+    Method to determine neighbors:Adjacent
+    Neighbor distance:5
+    Consider objects discarded for touching image border?:Yes
+    Retain the image of objects colored by numbers of neighbors?:No
+    Name the output image:ObjectNeighborCount
+    Select colormap:Blues
+    Retain the image of objects colored by percent of touching pixels?:No
+    Name the output image:PercentTouching
+    Select colormap:Oranges
+
+MeasureImageAreaOccupied:[module_num:69|svn_version:'Unknown'|variable_revision_number:5|show_window:False|notes:['Measure the image area occupied. Doing this on the 2x threshold of the cells mask as a proxy, as this is qutie a bit quicker and should still be accurate.']|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Measure the area occupied by:Binary Image
+    Select binary images to measure:cell_hrm_2x
+    Select object sets to measure:cells
+
+MeasureTexture:[module_num:70|svn_version:'Unknown'|variable_revision_number:7|show_window:False|notes:['Cytoplasm (non nuclear cell) texture for Mito and Ki67']|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Select images to measure:brightfield, cd25, mito
+    Select objects to measure:cells, cyto
+    Enter how many gray levels to measure the texture at:256
+    Hidden:1
+    Measure whole images or objects?:Objects
+    Texture scale to measure:3
+
+MeasureTexture:[module_num:71|svn_version:'Unknown'|variable_revision_number:7|show_window:False|notes:['Nuclear DNA texture']|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Select images to measure:dna, ki67
+    Select objects to measure:nucleus
+    Enter how many gray levels to measure the texture at:256
+    Hidden:1
+    Measure whole images or objects?:Objects
+    Texture scale to measure:3
+
+MeasureGranularity:[module_num:72|svn_version:'Unknown'|variable_revision_number:4|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Select images to measure:cd25, mito
+    Measure within objects?:Yes
+    Select objects to measure:cells
+    Subsampling factor for granularity measurements:0.25
+    Subsampling factor for background reduction:0.25
+    Radius of structuring element:1
+    Range of the granular spectrum:12
+
+SaveImages:[module_num:73|svn_version:'Unknown'|variable_revision_number:16|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Select the type of image to save:Image
+    Select the image to save:segmentation_outlines
+    Select method for constructing file names:Single name
+    Select image name for file prefix:dna
+    Enter single file name:tglow_3d_pipeline_v1_\g<group>
+    Number of digits:4
+    Append a suffix to the image file name?:Yes
+    Text to append to the image name:
+    Saved file format:tiff
+    Output file location:Default Output Folder sub-folder|segmentation_images
+    Image bit depth:8-bit integer
+    Overwrite existing files without warning?:Yes
+    When to save:Last cycle
+    Record the file and path information to the saved image?:No
+    Create subfolders in the output folder?:No
+    Base image folder:Elsewhere...|
+    How to save the series:Z (Slice)
+    Save with lossless compression?:No
+
+MeasureImageQuality:[module_num:74|svn_version:'Unknown'|variable_revision_number:6|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Calculate metrics for which images?:All loaded images
+    Image count:1
+    Scale count:2
+    Threshold count:1
+    Select the images to measure:dna
+    Include the image rescaling value?:Yes
+    Calculate blur metrics?:No
+    Spatial scale for blur measurements:32
+    Spatial scale for blur measurements:64
+    Calculate saturation metrics?:Yes
+    Calculate intensity metrics?:Yes
+    Calculate thresholds?:Yes
+    Use all thresholding methods?:No
+    Select a thresholding method:Otsu
+    Typical fraction of the image covered by objects:0.1
+    Two-class or three-class thresholding?:Two classes
+    Minimize the weighted variance or the entropy?:Weighted variance
+    Assign pixels in the middle intensity class to the foreground or the background?:Foreground
+
+ExportToSpreadsheet:[module_num:75|svn_version:'Unknown'|variable_revision_number:13|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Select the column delimiter:Tab
+    Add image metadata columns to your object data file?:No
+    Add image file and folder names to your object data file?:No
+    Select the measurements to export:Yes
+    Calculate the per-image mean values for object measurements?:No
+    Calculate the per-image median values for object measurements?:No
+    Calculate the per-image standard deviation values for object measurements?:No
+    Output file location:Default Output Folder|Applications/Documents/projects/CAT/analysis/KITTY/kitty_image_pipeline_testing/output
+    Create a GenePattern GCT file?:No
+    Select source of sample row name:Metadata
+    Select the image to use as the identifier:None
+    Select the metadata to use as the identifier:None
+    Export all measurement types?:No
+    Press button to select measurements:cells|Texture_DifferenceEntropy_brightfield_3_07_256,cells|Texture_DifferenceEntropy_brightfield_3_11_256,cells|Texture_DifferenceEntropy_brightfield_3_08_256,cells|Texture_DifferenceEntropy_brightfield_3_00_256,cells|Texture_DifferenceEntropy_brightfield_3_03_256,cells|Texture_DifferenceEntropy_brightfield_3_06_256,cells|Texture_DifferenceEntropy_brightfield_3_01_256,cells|Texture_DifferenceEntropy_brightfield_3_05_256,cells|Texture_DifferenceEntropy_brightfield_3_09_256,cells|Texture_DifferenceEntropy_brightfield_3_10_256,cells|Texture_DifferenceEntropy_brightfield_3_02_256,cells|Texture_DifferenceEntropy_brightfield_3_12_256,cells|Texture_DifferenceEntropy_brightfield_3_04_256,cells|Texture_DifferenceEntropy_cd25_3_11_256,cells|Texture_DifferenceEntropy_cd25_3_01_256,cells|Texture_DifferenceEntropy_cd25_3_06_256,cells|Texture_DifferenceEntropy_cd25_3_05_256,cells|Texture_DifferenceEntropy_cd25_3_07_256,cells|Texture_DifferenceEntropy_cd25_3_10_256,cells|Texture_DifferenceEntropy_cd25_3_04_256,cells|Texture_DifferenceEntropy_cd25_3_00_256,cells|Texture_DifferenceEntropy_cd25_3_02_256,cells|Texture_DifferenceEntropy_cd25_3_09_256,cells|Texture_DifferenceEntropy_cd25_3_08_256,cells|Texture_DifferenceEntropy_cd25_3_03_256,cells|Texture_DifferenceEntropy_cd25_3_12_256,cells|Texture_DifferenceEntropy_mito_3_02_256,cells|Texture_DifferenceEntropy_mito_3_07_256,cells|Texture_DifferenceEntropy_mito_3_01_256,cells|Texture_DifferenceEntropy_mito_3_09_256,cells|Texture_DifferenceEntropy_mito_3_05_256,cells|Texture_DifferenceEntropy_mito_3_08_256,cells|Texture_DifferenceEntropy_mito_3_11_256,cells|Texture_DifferenceEntropy_mito_3_06_256,cells|Texture_DifferenceEntropy_mito_3_10_256,cells|Texture_DifferenceEntropy_mito_3_00_256,cells|Texture_DifferenceEntropy_mito_3_12_256,cells|Texture_DifferenceEntropy_mito_3_03_256,cells|Texture_DifferenceEntropy_mito_3_04_256,cells|Texture_DifferenceVariance_cd25_3_11_256,cells|Texture_DifferenceVariance_cd25_3_06_256,cells|Texture_DifferenceVariance_cd25_3_04_256,cells|Texture_DifferenceVariance_cd25_3_10_256,cells|Texture_DifferenceVariance_cd25_3_05_256,cells|Texture_DifferenceVariance_cd25_3_01_256,cells|Texture_DifferenceVariance_cd25_3_09_256,cells|Texture_DifferenceVariance_cd25_3_07_256,cells|Texture_DifferenceVariance_cd25_3_00_256,cells|Texture_DifferenceVariance_cd25_3_08_256,cells|Texture_DifferenceVariance_cd25_3_12_256,cells|Texture_DifferenceVariance_cd25_3_02_256,cells|Texture_DifferenceVariance_cd25_3_03_256,cells|Texture_DifferenceVariance_mito_3_04_256,cells|Texture_DifferenceVariance_mito_3_10_256,cells|Texture_DifferenceVariance_mito_3_02_256,cells|Texture_DifferenceVariance_mito_3_11_256,cells|Texture_DifferenceVariance_mito_3_07_256,cells|Texture_DifferenceVariance_mito_3_09_256,cells|Texture_DifferenceVariance_mito_3_01_256,cells|Texture_DifferenceVariance_mito_3_05_256,cells|Texture_DifferenceVariance_mito_3_08_256,cells|Texture_DifferenceVariance_mito_3_12_256,cells|Texture_DifferenceVariance_mito_3_00_256,cells|Texture_DifferenceVariance_mito_3_03_256,cells|Texture_DifferenceVariance_mito_3_06_256,cells|Texture_DifferenceVariance_brightfield_3_02_256,cells|Texture_DifferenceVariance_brightfield_3_12_256,cells|Texture_DifferenceVariance_brightfield_3_04_256,cells|Texture_DifferenceVariance_brightfield_3_03_256,cells|Texture_DifferenceVariance_brightfield_3_00_256,cells|Texture_DifferenceVariance_brightfield_3_11_256,cells|Texture_DifferenceVariance_brightfield_3_08_256,cells|Texture_DifferenceVariance_brightfield_3_05_256,cells|Texture_DifferenceVariance_brightfield_3_10_256,cells|Texture_DifferenceVariance_brightfield_3_07_256,cells|Texture_DifferenceVariance_brightfield_3_01_256,cells|Texture_DifferenceVariance_brightfield_3_09_256,cells|Texture_DifferenceVariance_brightfield_3_06_256,cells|Texture_AngularSecondMoment_cd25_3_06_256,cells|Texture_AngularSecondMoment_cd25_3_10_256,cells|Texture_AngularSecondMoment_cd25_3_03_256,cells|Texture_AngularSecondMoment_cd25_3_05_256,cells|Texture_AngularSecondMoment_cd25_3_12_256,cells|Texture_AngularSecondMoment_cd25_3_11_256,cells|Texture_AngularSecondMoment_cd25_3_04_256,cells|Texture_AngularSecondMoment_cd25_3_08_256,cells|Texture_AngularSecondMoment_cd25_3_01_256,cells|Texture_AngularSecondMoment_cd25_3_00_256,cells|Texture_AngularSecondMoment_cd25_3_02_256,cells|Texture_AngularSecondMoment_cd25_3_09_256,cells|Texture_AngularSecondMoment_cd25_3_07_256,cells|Texture_AngularSecondMoment_brightfield_3_12_256,cells|Texture_AngularSecondMoment_brightfield_3_00_256,cells|Texture_AngularSecondMoment_brightfield_3_10_256,cells|Texture_AngularSecondMoment_brightfield_3_05_256,cells|Texture_AngularSecondMoment_brightfield_3_06_256,cells|Texture_AngularSecondMoment_brightfield_3_09_256,cells|Texture_AngularSecondMoment_brightfield_3_07_256,cells|Texture_AngularSecondMoment_brightfield_3_02_256,cells|Texture_AngularSecondMoment_brightfield_3_03_256,cells|Texture_AngularSecondMoment_brightfield_3_04_256,cells|Texture_AngularSecondMoment_brightfield_3_11_256,cells|Texture_AngularSecondMoment_brightfield_3_01_256,cells|Texture_AngularSecondMoment_brightfield_3_08_256,cells|Texture_AngularSecondMoment_mito_3_05_256,cells|Texture_AngularSecondMoment_mito_3_10_256,cells|Texture_AngularSecondMoment_mito_3_02_256,cells|Texture_AngularSecondMoment_mito_3_12_256,cells|Texture_AngularSecondMoment_mito_3_01_256,cells|Texture_AngularSecondMoment_mito_3_00_256,cells|Texture_AngularSecondMoment_mito_3_09_256,cells|Texture_AngularSecondMoment_mito_3_11_256,cells|Texture_AngularSecondMoment_mito_3_06_256,cells|Texture_AngularSecondMoment_mito_3_03_256,cells|Texture_AngularSecondMoment_mito_3_04_256,cells|Texture_AngularSecondMoment_mito_3_07_256,cells|Texture_AngularSecondMoment_mito_3_08_256,cells|Texture_Contrast_brightfield_3_04_256,cells|Texture_Contrast_brightfield_3_11_256,cells|Texture_Contrast_brightfield_3_02_256,cells|Texture_Contrast_brightfield_3_00_256,cells|Texture_Contrast_brightfield_3_09_256,cells|Texture_Contrast_brightfield_3_07_256,cells|Texture_Contrast_brightfield_3_05_256,cells|Texture_Contrast_brightfield_3_10_256,cells|Texture_Contrast_brightfield_3_08_256,cells|Texture_Contrast_brightfield_3_01_256,cells|Texture_Contrast_brightfield_3_06_256,cells|Texture_Contrast_brightfield_3_12_256,cells|Texture_Contrast_brightfield_3_03_256,cells|Texture_Contrast_cd25_3_09_256,cells|Texture_Contrast_cd25_3_08_256,cells|Texture_Contrast_cd25_3_10_256,cells|Texture_Contrast_cd25_3_01_256,cells|Texture_Contrast_cd25_3_12_256,cells|Texture_Contrast_cd25_3_05_256,cells|Texture_Contrast_cd25_3_07_256,cells|Texture_Contrast_cd25_3_06_256,cells|Texture_Contrast_cd25_3_04_256,cells|Texture_Contrast_cd25_3_11_256,cells|Texture_Contrast_cd25_3_00_256,cells|Texture_Contrast_cd25_3_02_256,cells|Texture_Contrast_cd25_3_03_256,cells|Texture_Contrast_mito_3_10_256,cells|Texture_Contrast_mito_3_03_256,cells|Texture_Contrast_mito_3_01_256,cells|Texture_Contrast_mito_3_00_256,cells|Texture_Contrast_mito_3_02_256,cells|Texture_Contrast_mito_3_09_256,cells|Texture_Contrast_mito_3_04_256,cells|Texture_Contrast_mito_3_06_256,cells|Texture_Contrast_mito_3_05_256,cells|Texture_Contrast_mito_3_07_256,cells|Texture_Contrast_mito_3_11_256,cells|Texture_Contrast_mito_3_08_256,cells|Texture_Contrast_mito_3_12_256,cells|Texture_InfoMeas1_cd25_3_05_256,cells|Texture_InfoMeas1_cd25_3_06_256,cells|Texture_InfoMeas1_cd25_3_10_256,cells|Texture_InfoMeas1_cd25_3_03_256,cells|Texture_InfoMeas1_cd25_3_04_256,cells|Texture_InfoMeas1_cd25_3_08_256,cells|Texture_InfoMeas1_cd25_3_01_256,cells|Texture_InfoMeas1_cd25_3_09_256,cells|Texture_InfoMeas1_cd25_3_00_256,cells|Texture_InfoMeas1_cd25_3_07_256,cells|Texture_InfoMeas1_cd25_3_11_256,cells|Texture_InfoMeas1_cd25_3_12_256,cells|Texture_InfoMeas1_cd25_3_02_256,cells|Texture_InfoMeas1_brightfield_3_05_256,cells|Texture_InfoMeas1_brightfield_3_08_256,cells|Texture_InfoMeas1_brightfield_3_01_256,cells|Texture_InfoMeas1_brightfield_3_07_256,cells|Texture_InfoMeas1_brightfield_3_10_256,cells|Texture_InfoMeas1_brightfield_3_00_256,cells|Texture_InfoMeas1_brightfield_3_11_256,cells|Texture_InfoMeas1_brightfield_3_09_256,cells|Texture_InfoMeas1_brightfield_3_02_256,cells|Texture_InfoMeas1_brightfield_3_03_256,cells|Texture_InfoMeas1_brightfield_3_06_256,cells|Texture_InfoMeas1_brightfield_3_12_256,cells|Texture_InfoMeas1_brightfield_3_04_256,cells|Texture_InfoMeas1_mito_3_10_256,cells|Texture_InfoMeas1_mito_3_02_256,cells|Texture_InfoMeas1_mito_3_12_256,cells|Texture_InfoMeas1_mito_3_04_256,cells|Texture_InfoMeas1_mito_3_05_256,cells|Texture_InfoMeas1_mito_3_06_256,cells|Texture_InfoMeas1_mito_3_01_256,cells|Texture_InfoMeas1_mito_3_09_256,cells|Texture_InfoMeas1_mito_3_07_256,cells|Texture_InfoMeas1_mito_3_00_256,cells|Texture_InfoMeas1_mito_3_03_256,cells|Texture_InfoMeas1_mito_3_08_256,cells|Texture_InfoMeas1_mito_3_11_256,cells|Texture_Correlation_mito_3_03_256,cells|Texture_Correlation_mito_3_08_256,cells|Texture_Correlation_mito_3_04_256,cells|Texture_Correlation_mito_3_06_256,cells|Texture_Correlation_mito_3_02_256,cells|Texture_Correlation_mito_3_11_256,cells|Texture_Correlation_mito_3_00_256,cells|Texture_Correlation_mito_3_12_256,cells|Texture_Correlation_mito_3_09_256,cells|Texture_Correlation_mito_3_07_256,cells|Texture_Correlation_mito_3_05_256,cells|Texture_Correlation_mito_3_10_256,cells|Texture_Correlation_mito_3_01_256,cells|Texture_Correlation_brightfield_3_04_256,cells|Texture_Correlation_brightfield_3_07_256,cells|Texture_Correlation_brightfield_3_10_256,cells|Texture_Correlation_brightfield_3_02_256,cells|Texture_Correlation_brightfield_3_00_256,cells|Texture_Correlation_brightfield_3_11_256,cells|Texture_Correlation_brightfield_3_01_256,cells|Texture_Correlation_brightfield_3_09_256,cells|Texture_Correlation_brightfield_3_05_256,cells|Texture_Correlation_brightfield_3_12_256,cells|Texture_Correlation_brightfield_3_03_256,cells|Texture_Correlation_brightfield_3_06_256,cells|Texture_Correlation_brightfield_3_08_256,cells|Texture_Correlation_cd25_3_11_256,cells|Texture_Correlation_cd25_3_02_256,cells|Texture_Correlation_cd25_3_07_256,cells|Texture_Correlation_cd25_3_09_256,cells|Texture_Correlation_cd25_3_12_256,cells|Texture_Correlation_cd25_3_00_256,cells|Texture_Correlation_cd25_3_10_256,cells|Texture_Correlation_cd25_3_05_256,cells|Texture_Correlation_cd25_3_04_256,cells|Texture_Correlation_cd25_3_08_256,cells|Texture_Correlation_cd25_3_03_256,cells|Texture_Correlation_cd25_3_06_256,cells|Texture_Correlation_cd25_3_01_256,cells|Texture_InverseDifferenceMoment_cd25_3_10_256,cells|Texture_InverseDifferenceMoment_cd25_3_02_256,cells|Texture_InverseDifferenceMoment_cd25_3_04_256,cells|Texture_InverseDifferenceMoment_cd25_3_03_256,cells|Texture_InverseDifferenceMoment_cd25_3_05_256,cells|Texture_InverseDifferenceMoment_cd25_3_00_256,cells|Texture_InverseDifferenceMoment_cd25_3_07_256,cells|Texture_InverseDifferenceMoment_cd25_3_11_256,cells|Texture_InverseDifferenceMoment_cd25_3_09_256,cells|Texture_InverseDifferenceMoment_cd25_3_08_256,cells|Texture_InverseDifferenceMoment_cd25_3_01_256,cells|Texture_InverseDifferenceMoment_cd25_3_06_256,cells|Texture_InverseDifferenceMoment_cd25_3_12_256,cells|Texture_InverseDifferenceMoment_mito_3_11_256,cells|Texture_InverseDifferenceMoment_mito_3_05_256,cells|Texture_InverseDifferenceMoment_mito_3_10_256,cells|Texture_InverseDifferenceMoment_mito_3_12_256,cells|Texture_InverseDifferenceMoment_mito_3_07_256,cells|Texture_InverseDifferenceMoment_mito_3_04_256,cells|Texture_InverseDifferenceMoment_mito_3_06_256,cells|Texture_InverseDifferenceMoment_mito_3_02_256,cells|Texture_InverseDifferenceMoment_mito_3_08_256,cells|Texture_InverseDifferenceMoment_mito_3_09_256,cells|Texture_InverseDifferenceMoment_mito_3_03_256,cells|Texture_InverseDifferenceMoment_mito_3_00_256,cells|Texture_InverseDifferenceMoment_mito_3_01_256,cells|Texture_InverseDifferenceMoment_brightfield_3_02_256,cells|Texture_InverseDifferenceMoment_brightfield_3_00_256,cells|Texture_InverseDifferenceMoment_brightfield_3_04_256,cells|Texture_InverseDifferenceMoment_brightfield_3_01_256,cells|Texture_InverseDifferenceMoment_brightfield_3_12_256,cells|Texture_InverseDifferenceMoment_brightfield_3_09_256,cells|Texture_InverseDifferenceMoment_brightfield_3_10_256,cells|Texture_InverseDifferenceMoment_brightfield_3_07_256,cells|Texture_InverseDifferenceMoment_brightfield_3_11_256,cells|Texture_InverseDifferenceMoment_brightfield_3_03_256,cells|Texture_InverseDifferenceMoment_brightfield_3_05_256,cells|Texture_InverseDifferenceMoment_brightfield_3_06_256,cells|Texture_InverseDifferenceMoment_brightfield_3_08_256,cells|Texture_Variance_brightfield_3_08_256,cells|Texture_Variance_brightfield_3_02_256,cells|Texture_Variance_brightfield_3_10_256,cells|Texture_Variance_brightfield_3_01_256,cells|Texture_Variance_brightfield_3_12_256,cells|Texture_Variance_brightfield_3_05_256,cells|Texture_Variance_brightfield_3_09_256,cells|Texture_Variance_brightfield_3_06_256,cells|Texture_Variance_brightfield_3_00_256,cells|Texture_Variance_brightfield_3_04_256,cells|Texture_Variance_brightfield_3_03_256,cells|Texture_Variance_brightfield_3_07_256,cells|Texture_Variance_brightfield_3_11_256,cells|Texture_Variance_mito_3_02_256,cells|Texture_Variance_mito_3_00_256,cells|Texture_Variance_mito_3_09_256,cells|Texture_Variance_mito_3_01_256,cells|Texture_Variance_mito_3_12_256,cells|Texture_Variance_mito_3_07_256,cells|Texture_Variance_mito_3_04_256,cells|Texture_Variance_mito_3_03_256,cells|Texture_Variance_mito_3_11_256,cells|Texture_Variance_mito_3_08_256,cells|Texture_Variance_mito_3_05_256,cells|Texture_Variance_mito_3_10_256,cells|Texture_Variance_mito_3_06_256,cells|Texture_Variance_cd25_3_03_256,cells|Texture_Variance_cd25_3_04_256,cells|Texture_Variance_cd25_3_09_256,cells|Texture_Variance_cd25_3_07_256,cells|Texture_Variance_cd25_3_01_256,cells|Texture_Variance_cd25_3_06_256,cells|Texture_Variance_cd25_3_10_256,cells|Texture_Variance_cd25_3_05_256,cells|Texture_Variance_cd25_3_00_256,cells|Texture_Variance_cd25_3_12_256,cells|Texture_Variance_cd25_3_02_256,cells|Texture_Variance_cd25_3_11_256,cells|Texture_Variance_cd25_3_08_256,cells|Texture_SumAverage_brightfield_3_04_256,cells|Texture_SumAverage_brightfield_3_12_256,cells|Texture_SumAverage_brightfield_3_06_256,cells|Texture_SumAverage_brightfield_3_09_256,cells|Texture_SumAverage_brightfield_3_10_256,cells|Texture_SumAverage_brightfield_3_01_256,cells|Texture_SumAverage_brightfield_3_02_256,cells|Texture_SumAverage_brightfield_3_00_256,cells|Texture_SumAverage_brightfield_3_07_256,cells|Texture_SumAverage_brightfield_3_08_256,cells|Texture_SumAverage_brightfield_3_05_256,cells|Texture_SumAverage_brightfield_3_11_256,cells|Texture_SumAverage_brightfield_3_03_256,cells|Texture_SumAverage_cd25_3_01_256,cells|Texture_SumAverage_cd25_3_12_256,cells|Texture_SumAverage_cd25_3_07_256,cells|Texture_SumAverage_cd25_3_06_256,cells|Texture_SumAverage_cd25_3_10_256,cells|Texture_SumAverage_cd25_3_03_256,cells|Texture_SumAverage_cd25_3_02_256,cells|Texture_SumAverage_cd25_3_11_256,cells|Texture_SumAverage_cd25_3_04_256,cells|Texture_SumAverage_cd25_3_00_256,cells|Texture_SumAverage_cd25_3_08_256,cells|Texture_SumAverage_cd25_3_05_256,cells|Texture_SumAverage_cd25_3_09_256,cells|Texture_SumAverage_mito_3_06_256,cells|Texture_SumAverage_mito_3_10_256,cells|Texture_SumAverage_mito_3_12_256,cells|Texture_SumAverage_mito_3_04_256,cells|Texture_SumAverage_mito_3_08_256,cells|Texture_SumAverage_mito_3_07_256,cells|Texture_SumAverage_mito_3_11_256,cells|Texture_SumAverage_mito_3_09_256,cells|Texture_SumAverage_mito_3_03_256,cells|Texture_SumAverage_mito_3_00_256,cells|Texture_SumAverage_mito_3_02_256,cells|Texture_SumAverage_mito_3_01_256,cells|Texture_SumAverage_mito_3_05_256,cells|Texture_Entropy_brightfield_3_00_256,cells|Texture_Entropy_brightfield_3_09_256,cells|Texture_Entropy_brightfield_3_08_256,cells|Texture_Entropy_brightfield_3_05_256,cells|Texture_Entropy_brightfield_3_03_256,cells|Texture_Entropy_brightfield_3_02_256,cells|Texture_Entropy_brightfield_3_07_256,cells|Texture_Entropy_brightfield_3_04_256,cells|Texture_Entropy_brightfield_3_12_256,cells|Texture_Entropy_brightfield_3_06_256,cells|Texture_Entropy_brightfield_3_11_256,cells|Texture_Entropy_brightfield_3_10_256,cells|Texture_Entropy_brightfield_3_01_256,cells|Texture_Entropy_cd25_3_01_256,cells|Texture_Entropy_cd25_3_04_256,cells|Texture_Entropy_cd25_3_00_256,cells|Texture_Entropy_cd25_3_02_256,cells|Texture_Entropy_cd25_3_07_256,cells|Texture_Entropy_cd25_3_12_256,cells|Texture_Entropy_cd25_3_05_256,cells|Texture_Entropy_cd25_3_08_256,cells|Texture_Entropy_cd25_3_03_256,cells|Texture_Entropy_cd25_3_06_256,cells|Texture_Entropy_cd25_3_11_256,cells|Texture_Entropy_cd25_3_09_256,cells|Texture_Entropy_cd25_3_10_256,cells|Texture_Entropy_mito_3_10_256,cells|Texture_Entropy_mito_3_09_256,cells|Texture_Entropy_mito_3_07_256,cells|Texture_Entropy_mito_3_06_256,cells|Texture_Entropy_mito_3_05_256,cells|Texture_Entropy_mito_3_12_256,cells|Texture_Entropy_mito_3_01_256,cells|Texture_Entropy_mito_3_02_256,cells|Texture_Entropy_mito_3_04_256,cells|Texture_Entropy_mito_3_00_256,cells|Texture_Entropy_mito_3_03_256,cells|Texture_Entropy_mito_3_08_256,cells|Texture_Entropy_mito_3_11_256,cells|Texture_SumVariance_cd25_3_03_256,cells|Texture_SumVariance_cd25_3_05_256,cells|Texture_SumVariance_cd25_3_07_256,cells|Texture_SumVariance_cd25_3_02_256,cells|Texture_SumVariance_cd25_3_04_256,cells|Texture_SumVariance_cd25_3_12_256,cells|Texture_SumVariance_cd25_3_00_256,cells|Texture_SumVariance_cd25_3_10_256,cells|Texture_SumVariance_cd25_3_09_256,cells|Texture_SumVariance_cd25_3_06_256,cells|Texture_SumVariance_cd25_3_01_256,cells|Texture_SumVariance_cd25_3_11_256,cells|Texture_SumVariance_cd25_3_08_256,cells|Texture_SumVariance_mito_3_00_256,cells|Texture_SumVariance_mito_3_02_256,cells|Texture_SumVariance_mito_3_09_256,cells|Texture_SumVariance_mito_3_05_256,cells|Texture_SumVariance_mito_3_03_256,cells|Texture_SumVariance_mito_3_07_256,cells|Texture_SumVariance_mito_3_11_256,cells|Texture_SumVariance_mito_3_06_256,cells|Texture_SumVariance_mito_3_04_256,cells|Texture_SumVariance_mito_3_01_256,cells|Texture_SumVariance_mito_3_08_256,cells|Texture_SumVariance_mito_3_10_256,cells|Texture_SumVariance_mito_3_12_256,cells|Texture_SumVariance_brightfield_3_08_256,cells|Texture_SumVariance_brightfield_3_05_256,cells|Texture_SumVariance_brightfield_3_06_256,cells|Texture_SumVariance_brightfield_3_10_256,cells|Texture_SumVariance_brightfield_3_09_256,cells|Texture_SumVariance_brightfield_3_04_256,cells|Texture_SumVariance_brightfield_3_03_256,cells|Texture_SumVariance_brightfield_3_01_256,cells|Texture_SumVariance_brightfield_3_07_256,cells|Texture_SumVariance_brightfield_3_11_256,cells|Texture_SumVariance_brightfield_3_12_256,cells|Texture_SumVariance_brightfield_3_02_256,cells|Texture_SumVariance_brightfield_3_00_256,cells|Texture_SumEntropy_cd25_3_07_256,cells|Texture_SumEntropy_cd25_3_05_256,cells|Texture_SumEntropy_cd25_3_03_256,cells|Texture_SumEntropy_cd25_3_02_256,cells|Texture_SumEntropy_cd25_3_11_256,cells|Texture_SumEntropy_cd25_3_04_256,cells|Texture_SumEntropy_cd25_3_10_256,cells|Texture_SumEntropy_cd25_3_00_256,cells|Texture_SumEntropy_cd25_3_09_256,cells|Texture_SumEntropy_cd25_3_12_256,cells|Texture_SumEntropy_cd25_3_08_256,cells|Texture_SumEntropy_cd25_3_01_256,cells|Texture_SumEntropy_cd25_3_06_256,cells|Texture_SumEntropy_brightfield_3_01_256,cells|Texture_SumEntropy_brightfield_3_07_256,cells|Texture_SumEntropy_brightfield_3_10_256,cells|Texture_SumEntropy_brightfield_3_06_256,cells|Texture_SumEntropy_brightfield_3_09_256,cells|Texture_SumEntropy_brightfield_3_11_256,cells|Texture_SumEntropy_brightfield_3_12_256,cells|Texture_SumEntropy_brightfield_3_00_256,cells|Texture_SumEntropy_brightfield_3_03_256,cells|Texture_SumEntropy_brightfield_3_05_256,cells|Texture_SumEntropy_brightfield_3_08_256,cells|Texture_SumEntropy_brightfield_3_02_256,cells|Texture_SumEntropy_brightfield_3_04_256,cells|Texture_SumEntropy_mito_3_07_256,cells|Texture_SumEntropy_mito_3_08_256,cells|Texture_SumEntropy_mito_3_05_256,cells|Texture_SumEntropy_mito_3_11_256,cells|Texture_SumEntropy_mito_3_04_256,cells|Texture_SumEntropy_mito_3_01_256,cells|Texture_SumEntropy_mito_3_12_256,cells|Texture_SumEntropy_mito_3_03_256,cells|Texture_SumEntropy_mito_3_06_256,cells|Texture_SumEntropy_mito_3_09_256,cells|Texture_SumEntropy_mito_3_00_256,cells|Texture_SumEntropy_mito_3_02_256,cells|Texture_SumEntropy_mito_3_10_256,cells|Texture_InfoMeas2_mito_3_00_256,cells|Texture_InfoMeas2_mito_3_04_256,cells|Texture_InfoMeas2_mito_3_10_256,cells|Texture_InfoMeas2_mito_3_08_256,cells|Texture_InfoMeas2_mito_3_02_256,cells|Texture_InfoMeas2_mito_3_12_256,cells|Texture_InfoMeas2_mito_3_07_256,cells|Texture_InfoMeas2_mito_3_05_256,cells|Texture_InfoMeas2_mito_3_06_256,cells|Texture_InfoMeas2_mito_3_03_256,cells|Texture_InfoMeas2_mito_3_11_256,cells|Texture_InfoMeas2_mito_3_09_256,cells|Texture_InfoMeas2_mito_3_01_256,cells|Texture_InfoMeas2_cd25_3_01_256,cells|Texture_InfoMeas2_cd25_3_08_256,cells|Texture_InfoMeas2_cd25_3_04_256,cells|Texture_InfoMeas2_cd25_3_07_256,cells|Texture_InfoMeas2_cd25_3_09_256,cells|Texture_InfoMeas2_cd25_3_02_256,cells|Texture_InfoMeas2_cd25_3_11_256,cells|Texture_InfoMeas2_cd25_3_06_256,cells|Texture_InfoMeas2_cd25_3_05_256,cells|Texture_InfoMeas2_cd25_3_12_256,cells|Texture_InfoMeas2_cd25_3_00_256,cells|Texture_InfoMeas2_cd25_3_10_256,cells|Texture_InfoMeas2_cd25_3_03_256,cells|Texture_InfoMeas2_brightfield_3_08_256,cells|Texture_InfoMeas2_brightfield_3_03_256,cells|Texture_InfoMeas2_brightfield_3_05_256,cells|Texture_InfoMeas2_brightfield_3_06_256,cells|Texture_InfoMeas2_brightfield_3_02_256,cells|Texture_InfoMeas2_brightfield_3_01_256,cells|Texture_InfoMeas2_brightfield_3_12_256,cells|Texture_InfoMeas2_brightfield_3_10_256,cells|Texture_InfoMeas2_brightfield_3_00_256,cells|Texture_InfoMeas2_brightfield_3_09_256,cells|Texture_InfoMeas2_brightfield_3_07_256,cells|Texture_InfoMeas2_brightfield_3_11_256,cells|Texture_InfoMeas2_brightfield_3_04_256,cells|Intensity_MaxIntensityEdge_dna,cells|Intensity_MaxIntensityEdge_mito,cells|Intensity_MaxIntensityEdge_actin,cells|Intensity_MaxIntensityEdge_cd25,cells|Intensity_MeanIntensity_actin,cells|Intensity_MeanIntensity_cd25,cells|Intensity_MeanIntensity_mito,cells|Intensity_MeanIntensity_dna,cells|Intensity_IntegratedIntensityEdge_cd25,cells|Intensity_IntegratedIntensityEdge_mito,cells|Intensity_IntegratedIntensityEdge_dna,cells|Intensity_IntegratedIntensityEdge_actin,cells|Intensity_StdIntensity_actin,cells|Intensity_StdIntensity_cd25,cells|Intensity_StdIntensity_mito,cells|Intensity_StdIntensity_dna,cells|Intensity_MADIntensity_mito,cells|Intensity_MADIntensity_dna,cells|Intensity_MADIntensity_cd25,cells|Intensity_MADIntensity_actin,cells|Intensity_MaxIntensity_mito,cells|Intensity_MaxIntensity_cd25,cells|Intensity_MaxIntensity_dna,cells|Intensity_MaxIntensity_actin,cells|Intensity_MassDisplacement_actin,cells|Intensity_MassDisplacement_cd25,cells|Intensity_MassDisplacement_dna,cells|Intensity_MassDisplacement_mito,cells|Intensity_LowerQuartileIntensity_actin,cells|Intensity_LowerQuartileIntensity_dna,cells|Intensity_LowerQuartileIntensity_cd25,cells|Intensity_LowerQuartileIntensity_mito,cells|Intensity_UpperQuartileIntensity_mito,cells|Intensity_UpperQuartileIntensity_cd25,cells|Intensity_UpperQuartileIntensity_dna,cells|Intensity_UpperQuartileIntensity_actin,cells|Intensity_MeanIntensityEdge_cd25,cells|Intensity_MeanIntensityEdge_dna,cells|Intensity_MeanIntensityEdge_mito,cells|Intensity_MeanIntensityEdge_actin,cells|Intensity_MedianIntensity_cd25,cells|Intensity_MedianIntensity_mito,cells|Intensity_MedianIntensity_actin,cells|Intensity_MedianIntensity_dna,cells|Intensity_MinIntensity_dna,cells|Intensity_MinIntensity_mito,cells|Intensity_MinIntensity_cd25,cells|Intensity_MinIntensity_actin,cells|Intensity_StdIntensityEdge_dna,cells|Intensity_StdIntensityEdge_actin,cells|Intensity_StdIntensityEdge_mito,cells|Intensity_StdIntensityEdge_cd25,cells|Intensity_IntegratedIntensity_actin,cells|Intensity_IntegratedIntensity_mito,cells|Intensity_IntegratedIntensity_dna,cells|Intensity_IntegratedIntensity_cd25,cells|Intensity_MinIntensityEdge_mito,cells|Intensity_MinIntensityEdge_dna,cells|Intensity_MinIntensityEdge_cd25,cells|Intensity_MinIntensityEdge_actin,cells|AreaShape_EquivalentDiameter,cells|AreaShape_BoundingBoxMaximum_Y,cells|AreaShape_BoundingBoxMaximum_Z,cells|AreaShape_BoundingBoxMaximum_X,cells|AreaShape_Volume,cells|AreaShape_BoundingBoxMinimum_X,cells|AreaShape_BoundingBoxMinimum_Y,cells|AreaShape_BoundingBoxMinimum_Z,cells|AreaShape_Center_Y,cells|AreaShape_Center_Z,cells|AreaShape_Center_X,cells|AreaShape_Extent,cells|AreaShape_BoundingBoxVolume,cells|AreaShape_EulerNumber,cells|AreaShape_MinorAxisLength,cells|AreaShape_SurfaceArea,cells|AreaShape_MajorAxisLength,cells|Location_MaxIntensity_Z_actin,cells|Location_MaxIntensity_Z_mito,cells|Location_MaxIntensity_Z_cd25,cells|Location_MaxIntensity_Z_dna,cells|Location_MaxIntensity_Y_cd25,cells|Location_MaxIntensity_Y_actin,cells|Location_MaxIntensity_Y_dna,cells|Location_MaxIntensity_Y_mito,cells|Location_MaxIntensity_X_mito,cells|Location_MaxIntensity_X_dna,cells|Location_MaxIntensity_X_actin,cells|Location_MaxIntensity_X_cd25,cells|Location_CenterMassIntensity_X_cd25,cells|Location_CenterMassIntensity_X_dna,cells|Location_CenterMassIntensity_X_mito,cells|Location_CenterMassIntensity_X_actin,cells|Location_CenterMassIntensity_Y_cd25,cells|Location_CenterMassIntensity_Y_dna,cells|Location_CenterMassIntensity_Y_mito,cells|Location_CenterMassIntensity_Y_actin,cells|Location_CenterMassIntensity_Z_cd25,cells|Location_CenterMassIntensity_Z_mito,cells|Location_CenterMassIntensity_Z_dna,cells|Location_CenterMassIntensity_Z_actin,cells|Location_Center_Y,cells|Location_Center_X,cells|Location_Center_Z,cells|Granularity_9_mito,cells|Granularity_9_cd25,cells|Granularity_5_mito,cells|Granularity_5_cd25,cells|Granularity_3_mito,cells|Granularity_3_cd25,cells|Granularity_11_cd25,cells|Granularity_11_mito,cells|Granularity_8_mito,cells|Granularity_8_cd25,cells|Granularity_1_mito,cells|Granularity_1_cd25,cells|Granularity_2_cd25,cells|Granularity_2_mito,cells|Granularity_4_cd25,cells|Granularity_4_mito,cells|Granularity_10_cd25,cells|Granularity_10_mito,cells|Granularity_6_mito,cells|Granularity_6_cd25,cells|Granularity_7_mito,cells|Granularity_7_cd25,cells|Granularity_12_cd25,cells|Granularity_12_mito,cells|Neighbors_NumberOfNeighbors_Adjacent,cells|Neighbors_FirstClosestDistance_Adjacent,cells|Neighbors_SecondClosestObjectNumber_Adjacent,cells|Neighbors_SecondClosestDistance_Adjacent,cells|Neighbors_FirstClosestObjectNumber_Adjacent,cells|Neighbors_PercentTouching_Adjacent,cells|Neighbors_AngleBetweenNeighbors_Adjacent,cells|Children_cyto_Count,cells|Children_nucleus_Count,cells|Parent_cells_filled_2x,cells|Number_Object_Number,nucleus|Texture_InverseDifferenceMoment_dna_3_07_256,nucleus|Texture_InverseDifferenceMoment_dna_3_05_256,nucleus|Texture_InverseDifferenceMoment_dna_3_10_256,nucleus|Texture_InverseDifferenceMoment_dna_3_12_256,nucleus|Texture_InverseDifferenceMoment_dna_3_02_256,nucleus|Texture_InverseDifferenceMoment_dna_3_01_256,nucleus|Texture_InverseDifferenceMoment_dna_3_03_256,nucleus|Texture_InverseDifferenceMoment_dna_3_04_256,nucleus|Texture_InverseDifferenceMoment_dna_3_09_256,nucleus|Texture_InverseDifferenceMoment_dna_3_00_256,nucleus|Texture_InverseDifferenceMoment_dna_3_08_256,nucleus|Texture_InverseDifferenceMoment_dna_3_06_256,nucleus|Texture_InverseDifferenceMoment_dna_3_11_256,nucleus|Texture_InverseDifferenceMoment_ki67_3_00_256,nucleus|Texture_InverseDifferenceMoment_ki67_3_01_256,nucleus|Texture_InverseDifferenceMoment_ki67_3_08_256,nucleus|Texture_InverseDifferenceMoment_ki67_3_11_256,nucleus|Texture_InverseDifferenceMoment_ki67_3_02_256,nucleus|Texture_InverseDifferenceMoment_ki67_3_03_256,nucleus|Texture_InverseDifferenceMoment_ki67_3_07_256,nucleus|Texture_InverseDifferenceMoment_ki67_3_09_256,nucleus|Texture_InverseDifferenceMoment_ki67_3_05_256,nucleus|Texture_InverseDifferenceMoment_ki67_3_10_256,nucleus|Texture_InverseDifferenceMoment_ki67_3_12_256,nucleus|Texture_InverseDifferenceMoment_ki67_3_06_256,nucleus|Texture_InverseDifferenceMoment_ki67_3_04_256,nucleus|Texture_SumAverage_dna_3_10_256,nucleus|Texture_SumAverage_dna_3_06_256,nucleus|Texture_SumAverage_dna_3_02_256,nucleus|Texture_SumAverage_dna_3_00_256,nucleus|Texture_SumAverage_dna_3_07_256,nucleus|Texture_SumAverage_dna_3_04_256,nucleus|Texture_SumAverage_dna_3_12_256,nucleus|Texture_SumAverage_dna_3_08_256,nucleus|Texture_SumAverage_dna_3_03_256,nucleus|Texture_SumAverage_dna_3_01_256,nucleus|Texture_SumAverage_dna_3_05_256,nucleus|Texture_SumAverage_dna_3_09_256,nucleus|Texture_SumAverage_dna_3_11_256,nucleus|Texture_SumAverage_ki67_3_04_256,nucleus|Texture_SumAverage_ki67_3_01_256,nucleus|Texture_SumAverage_ki67_3_02_256,nucleus|Texture_SumAverage_ki67_3_08_256,nucleus|Texture_SumAverage_ki67_3_07_256,nucleus|Texture_SumAverage_ki67_3_03_256,nucleus|Texture_SumAverage_ki67_3_06_256,nucleus|Texture_SumAverage_ki67_3_12_256,nucleus|Texture_SumAverage_ki67_3_00_256,nucleus|Texture_SumAverage_ki67_3_05_256,nucleus|Texture_SumAverage_ki67_3_10_256,nucleus|Texture_SumAverage_ki67_3_09_256,nucleus|Texture_SumAverage_ki67_3_11_256,nucleus|Texture_Correlation_dna_3_01_256,nucleus|Texture_Correlation_dna_3_00_256,nucleus|Texture_Correlation_dna_3_06_256,nucleus|Texture_Correlation_dna_3_05_256,nucleus|Texture_Correlation_dna_3_08_256,nucleus|Texture_Correlation_dna_3_03_256,nucleus|Texture_Correlation_dna_3_10_256,nucleus|Texture_Correlation_dna_3_12_256,nucleus|Texture_Correlation_dna_3_04_256,nucleus|Texture_Correlation_dna_3_11_256,nucleus|Texture_Correlation_dna_3_02_256,nucleus|Texture_Correlation_dna_3_07_256,nucleus|Texture_Correlation_dna_3_09_256,nucleus|Texture_Correlation_ki67_3_04_256,nucleus|Texture_Correlation_ki67_3_12_256,nucleus|Texture_Correlation_ki67_3_11_256,nucleus|Texture_Correlation_ki67_3_08_256,nucleus|Texture_Correlation_ki67_3_10_256,nucleus|Texture_Correlation_ki67_3_02_256,nucleus|Texture_Correlation_ki67_3_05_256,nucleus|Texture_Correlation_ki67_3_00_256,nucleus|Texture_Correlation_ki67_3_09_256,nucleus|Texture_Correlation_ki67_3_01_256,nucleus|Texture_Correlation_ki67_3_03_256,nucleus|Texture_Correlation_ki67_3_07_256,nucleus|Texture_Correlation_ki67_3_06_256,nucleus|Texture_AngularSecondMoment_ki67_3_00_256,nucleus|Texture_AngularSecondMoment_ki67_3_02_256,nucleus|Texture_AngularSecondMoment_ki67_3_03_256,nucleus|Texture_AngularSecondMoment_ki67_3_10_256,nucleus|Texture_AngularSecondMoment_ki67_3_11_256,nucleus|Texture_AngularSecondMoment_ki67_3_08_256,nucleus|Texture_AngularSecondMoment_ki67_3_01_256,nucleus|Texture_AngularSecondMoment_ki67_3_09_256,nucleus|Texture_AngularSecondMoment_ki67_3_07_256,nucleus|Texture_AngularSecondMoment_ki67_3_04_256,nucleus|Texture_AngularSecondMoment_ki67_3_12_256,nucleus|Texture_AngularSecondMoment_ki67_3_06_256,nucleus|Texture_AngularSecondMoment_ki67_3_05_256,nucleus|Texture_AngularSecondMoment_dna_3_01_256,nucleus|Texture_AngularSecondMoment_dna_3_08_256,nucleus|Texture_AngularSecondMoment_dna_3_11_256,nucleus|Texture_AngularSecondMoment_dna_3_05_256,nucleus|Texture_AngularSecondMoment_dna_3_04_256,nucleus|Texture_AngularSecondMoment_dna_3_10_256,nucleus|Texture_AngularSecondMoment_dna_3_06_256,nucleus|Texture_AngularSecondMoment_dna_3_03_256,nucleus|Texture_AngularSecondMoment_dna_3_09_256,nucleus|Texture_AngularSecondMoment_dna_3_00_256,nucleus|Texture_AngularSecondMoment_dna_3_12_256,nucleus|Texture_AngularSecondMoment_dna_3_02_256,nucleus|Texture_AngularSecondMoment_dna_3_07_256,nucleus|Texture_InfoMeas1_dna_3_01_256,nucleus|Texture_InfoMeas1_dna_3_10_256,nucleus|Texture_InfoMeas1_dna_3_12_256,nucleus|Texture_InfoMeas1_dna_3_00_256,nucleus|Texture_InfoMeas1_dna_3_02_256,nucleus|Texture_InfoMeas1_dna_3_07_256,nucleus|Texture_InfoMeas1_dna_3_09_256,nucleus|Texture_InfoMeas1_dna_3_11_256,nucleus|Texture_InfoMeas1_dna_3_08_256,nucleus|Texture_InfoMeas1_dna_3_04_256,nucleus|Texture_InfoMeas1_dna_3_03_256,nucleus|Texture_InfoMeas1_dna_3_06_256,nucleus|Texture_InfoMeas1_dna_3_05_256,nucleus|Texture_InfoMeas1_ki67_3_12_256,nucleus|Texture_InfoMeas1_ki67_3_11_256,nucleus|Texture_InfoMeas1_ki67_3_06_256,nucleus|Texture_InfoMeas1_ki67_3_10_256,nucleus|Texture_InfoMeas1_ki67_3_03_256,nucleus|Texture_InfoMeas1_ki67_3_04_256,nucleus|Texture_InfoMeas1_ki67_3_07_256,nucleus|Texture_InfoMeas1_ki67_3_00_256,nucleus|Texture_InfoMeas1_ki67_3_02_256,nucleus|Texture_InfoMeas1_ki67_3_09_256,nucleus|Texture_InfoMeas1_ki67_3_05_256,nucleus|Texture_InfoMeas1_ki67_3_01_256,nucleus|Texture_InfoMeas1_ki67_3_08_256,nucleus|Texture_SumEntropy_dna_3_01_256,nucleus|Texture_SumEntropy_dna_3_00_256,nucleus|Texture_SumEntropy_dna_3_05_256,nucleus|Texture_SumEntropy_dna_3_02_256,nucleus|Texture_SumEntropy_dna_3_06_256,nucleus|Texture_SumEntropy_dna_3_11_256,nucleus|Texture_SumEntropy_dna_3_10_256,nucleus|Texture_SumEntropy_dna_3_09_256,nucleus|Texture_SumEntropy_dna_3_07_256,nucleus|Texture_SumEntropy_dna_3_03_256,nucleus|Texture_SumEntropy_dna_3_12_256,nucleus|Texture_SumEntropy_dna_3_04_256,nucleus|Texture_SumEntropy_dna_3_08_256,nucleus|Texture_SumEntropy_ki67_3_00_256,nucleus|Texture_SumEntropy_ki67_3_04_256,nucleus|Texture_SumEntropy_ki67_3_01_256,nucleus|Texture_SumEntropy_ki67_3_03_256,nucleus|Texture_SumEntropy_ki67_3_11_256,nucleus|Texture_SumEntropy_ki67_3_07_256,nucleus|Texture_SumEntropy_ki67_3_08_256,nucleus|Texture_SumEntropy_ki67_3_10_256,nucleus|Texture_SumEntropy_ki67_3_12_256,nucleus|Texture_SumEntropy_ki67_3_02_256,nucleus|Texture_SumEntropy_ki67_3_06_256,nucleus|Texture_SumEntropy_ki67_3_09_256,nucleus|Texture_SumEntropy_ki67_3_05_256,nucleus|Texture_Variance_ki67_3_02_256,nucleus|Texture_Variance_ki67_3_11_256,nucleus|Texture_Variance_ki67_3_05_256,nucleus|Texture_Variance_ki67_3_00_256,nucleus|Texture_Variance_ki67_3_12_256,nucleus|Texture_Variance_ki67_3_10_256,nucleus|Texture_Variance_ki67_3_07_256,nucleus|Texture_Variance_ki67_3_04_256,nucleus|Texture_Variance_ki67_3_03_256,nucleus|Texture_Variance_ki67_3_09_256,nucleus|Texture_Variance_ki67_3_08_256,nucleus|Texture_Variance_ki67_3_06_256,nucleus|Texture_Variance_ki67_3_01_256,nucleus|Texture_Variance_dna_3_08_256,nucleus|Texture_Variance_dna_3_05_256,nucleus|Texture_Variance_dna_3_00_256,nucleus|Texture_Variance_dna_3_04_256,nucleus|Texture_Variance_dna_3_06_256,nucleus|Texture_Variance_dna_3_12_256,nucleus|Texture_Variance_dna_3_11_256,nucleus|Texture_Variance_dna_3_10_256,nucleus|Texture_Variance_dna_3_01_256,nucleus|Texture_Variance_dna_3_02_256,nucleus|Texture_Variance_dna_3_03_256,nucleus|Texture_Variance_dna_3_07_256,nucleus|Texture_Variance_dna_3_09_256,nucleus|Texture_SumVariance_ki67_3_00_256,nucleus|Texture_SumVariance_ki67_3_11_256,nucleus|Texture_SumVariance_ki67_3_01_256,nucleus|Texture_SumVariance_ki67_3_06_256,nucleus|Texture_SumVariance_ki67_3_07_256,nucleus|Texture_SumVariance_ki67_3_04_256,nucleus|Texture_SumVariance_ki67_3_03_256,nucleus|Texture_SumVariance_ki67_3_08_256,nucleus|Texture_SumVariance_ki67_3_02_256,nucleus|Texture_SumVariance_ki67_3_10_256,nucleus|Texture_SumVariance_ki67_3_05_256,nucleus|Texture_SumVariance_ki67_3_09_256,nucleus|Texture_SumVariance_ki67_3_12_256,nucleus|Texture_SumVariance_dna_3_01_256,nucleus|Texture_SumVariance_dna_3_10_256,nucleus|Texture_SumVariance_dna_3_06_256,nucleus|Texture_SumVariance_dna_3_09_256,nucleus|Texture_SumVariance_dna_3_08_256,nucleus|Texture_SumVariance_dna_3_00_256,nucleus|Texture_SumVariance_dna_3_11_256,nucleus|Texture_SumVariance_dna_3_04_256,nucleus|Texture_SumVariance_dna_3_05_256,nucleus|Texture_SumVariance_dna_3_03_256,nucleus|Texture_SumVariance_dna_3_12_256,nucleus|Texture_SumVariance_dna_3_07_256,nucleus|Texture_SumVariance_dna_3_02_256,nucleus|Texture_Entropy_ki67_3_01_256,nucleus|Texture_Entropy_ki67_3_06_256,nucleus|Texture_Entropy_ki67_3_08_256,nucleus|Texture_Entropy_ki67_3_04_256,nucleus|Texture_Entropy_ki67_3_07_256,nucleus|Texture_Entropy_ki67_3_12_256,nucleus|Texture_Entropy_ki67_3_05_256,nucleus|Texture_Entropy_ki67_3_10_256,nucleus|Texture_Entropy_ki67_3_03_256,nucleus|Texture_Entropy_ki67_3_11_256,nucleus|Texture_Entropy_ki67_3_02_256,nucleus|Texture_Entropy_ki67_3_09_256,nucleus|Texture_Entropy_ki67_3_00_256,nucleus|Texture_Entropy_dna_3_00_256,nucleus|Texture_Entropy_dna_3_10_256,nucleus|Texture_Entropy_dna_3_08_256,nucleus|Texture_Entropy_dna_3_12_256,nucleus|Texture_Entropy_dna_3_07_256,nucleus|Texture_Entropy_dna_3_03_256,nucleus|Texture_Entropy_dna_3_05_256,nucleus|Texture_Entropy_dna_3_11_256,nucleus|Texture_Entropy_dna_3_06_256,nucleus|Texture_Entropy_dna_3_09_256,nucleus|Texture_Entropy_dna_3_04_256,nucleus|Texture_Entropy_dna_3_02_256,nucleus|Texture_Entropy_dna_3_01_256,nucleus|Texture_Contrast_dna_3_06_256,nucleus|Texture_Contrast_dna_3_02_256,nucleus|Texture_Contrast_dna_3_00_256,nucleus|Texture_Contrast_dna_3_11_256,nucleus|Texture_Contrast_dna_3_10_256,nucleus|Texture_Contrast_dna_3_05_256,nucleus|Texture_Contrast_dna_3_09_256,nucleus|Texture_Contrast_dna_3_08_256,nucleus|Texture_Contrast_dna_3_01_256,nucleus|Texture_Contrast_dna_3_03_256,nucleus|Texture_Contrast_dna_3_07_256,nucleus|Texture_Contrast_dna_3_04_256,nucleus|Texture_Contrast_dna_3_12_256,nucleus|Texture_Contrast_ki67_3_04_256,nucleus|Texture_Contrast_ki67_3_06_256,nucleus|Texture_Contrast_ki67_3_07_256,nucleus|Texture_Contrast_ki67_3_08_256,nucleus|Texture_Contrast_ki67_3_03_256,nucleus|Texture_Contrast_ki67_3_05_256,nucleus|Texture_Contrast_ki67_3_02_256,nucleus|Texture_Contrast_ki67_3_00_256,nucleus|Texture_Contrast_ki67_3_11_256,nucleus|Texture_Contrast_ki67_3_09_256,nucleus|Texture_Contrast_ki67_3_01_256,nucleus|Texture_Contrast_ki67_3_10_256,nucleus|Texture_Contrast_ki67_3_12_256,nucleus|Texture_InfoMeas2_dna_3_01_256,nucleus|Texture_InfoMeas2_dna_3_09_256,nucleus|Texture_InfoMeas2_dna_3_02_256,nucleus|Texture_InfoMeas2_dna_3_08_256,nucleus|Texture_InfoMeas2_dna_3_06_256,nucleus|Texture_InfoMeas2_dna_3_04_256,nucleus|Texture_InfoMeas2_dna_3_10_256,nucleus|Texture_InfoMeas2_dna_3_05_256,nucleus|Texture_InfoMeas2_dna_3_12_256,nucleus|Texture_InfoMeas2_dna_3_07_256,nucleus|Texture_InfoMeas2_dna_3_00_256,nucleus|Texture_InfoMeas2_dna_3_03_256,nucleus|Texture_InfoMeas2_dna_3_11_256,nucleus|Texture_InfoMeas2_ki67_3_06_256,nucleus|Texture_InfoMeas2_ki67_3_02_256,nucleus|Texture_InfoMeas2_ki67_3_05_256,nucleus|Texture_InfoMeas2_ki67_3_04_256,nucleus|Texture_InfoMeas2_ki67_3_00_256,nucleus|Texture_InfoMeas2_ki67_3_03_256,nucleus|Texture_InfoMeas2_ki67_3_08_256,nucleus|Texture_InfoMeas2_ki67_3_11_256,nucleus|Texture_InfoMeas2_ki67_3_07_256,nucleus|Texture_InfoMeas2_ki67_3_10_256,nucleus|Texture_InfoMeas2_ki67_3_09_256,nucleus|Texture_InfoMeas2_ki67_3_12_256,nucleus|Texture_InfoMeas2_ki67_3_01_256,nucleus|Texture_DifferenceVariance_ki67_3_03_256,nucleus|Texture_DifferenceVariance_ki67_3_06_256,nucleus|Texture_DifferenceVariance_ki67_3_00_256,nucleus|Texture_DifferenceVariance_ki67_3_01_256,nucleus|Texture_DifferenceVariance_ki67_3_10_256,nucleus|Texture_DifferenceVariance_ki67_3_05_256,nucleus|Texture_DifferenceVariance_ki67_3_12_256,nucleus|Texture_DifferenceVariance_ki67_3_09_256,nucleus|Texture_DifferenceVariance_ki67_3_02_256,nucleus|Texture_DifferenceVariance_ki67_3_04_256,nucleus|Texture_DifferenceVariance_ki67_3_07_256,nucleus|Texture_DifferenceVariance_ki67_3_08_256,nucleus|Texture_DifferenceVariance_ki67_3_11_256,nucleus|Texture_DifferenceVariance_dna_3_07_256,nucleus|Texture_DifferenceVariance_dna_3_02_256,nucleus|Texture_DifferenceVariance_dna_3_12_256,nucleus|Texture_DifferenceVariance_dna_3_04_256,nucleus|Texture_DifferenceVariance_dna_3_11_256,nucleus|Texture_DifferenceVariance_dna_3_05_256,nucleus|Texture_DifferenceVariance_dna_3_09_256,nucleus|Texture_DifferenceVariance_dna_3_10_256,nucleus|Texture_DifferenceVariance_dna_3_00_256,nucleus|Texture_DifferenceVariance_dna_3_08_256,nucleus|Texture_DifferenceVariance_dna_3_06_256,nucleus|Texture_DifferenceVariance_dna_3_01_256,nucleus|Texture_DifferenceVariance_dna_3_03_256,nucleus|Texture_DifferenceEntropy_dna_3_10_256,nucleus|Texture_DifferenceEntropy_dna_3_00_256,nucleus|Texture_DifferenceEntropy_dna_3_12_256,nucleus|Texture_DifferenceEntropy_dna_3_11_256,nucleus|Texture_DifferenceEntropy_dna_3_08_256,nucleus|Texture_DifferenceEntropy_dna_3_06_256,nucleus|Texture_DifferenceEntropy_dna_3_01_256,nucleus|Texture_DifferenceEntropy_dna_3_04_256,nucleus|Texture_DifferenceEntropy_dna_3_05_256,nucleus|Texture_DifferenceEntropy_dna_3_02_256,nucleus|Texture_DifferenceEntropy_dna_3_09_256,nucleus|Texture_DifferenceEntropy_dna_3_03_256,nucleus|Texture_DifferenceEntropy_dna_3_07_256,nucleus|Texture_DifferenceEntropy_ki67_3_04_256,nucleus|Texture_DifferenceEntropy_ki67_3_08_256,nucleus|Texture_DifferenceEntropy_ki67_3_00_256,nucleus|Texture_DifferenceEntropy_ki67_3_07_256,nucleus|Texture_DifferenceEntropy_ki67_3_06_256,nucleus|Texture_DifferenceEntropy_ki67_3_02_256,nucleus|Texture_DifferenceEntropy_ki67_3_09_256,nucleus|Texture_DifferenceEntropy_ki67_3_11_256,nucleus|Texture_DifferenceEntropy_ki67_3_01_256,nucleus|Texture_DifferenceEntropy_ki67_3_12_256,nucleus|Texture_DifferenceEntropy_ki67_3_10_256,nucleus|Texture_DifferenceEntropy_ki67_3_05_256,nucleus|Texture_DifferenceEntropy_ki67_3_03_256,nucleus|Location_MaxIntensity_Z_ki67,nucleus|Location_MaxIntensity_Z_dna,nucleus|Location_MaxIntensity_Y_ki67,nucleus|Location_MaxIntensity_Y_dna,nucleus|Location_MaxIntensity_X_dna,nucleus|Location_MaxIntensity_X_ki67,nucleus|Location_CenterMassIntensity_Z_dna,nucleus|Location_CenterMassIntensity_Z_ki67,nucleus|Location_CenterMassIntensity_X_ki67,nucleus|Location_CenterMassIntensity_X_dna,nucleus|Location_CenterMassIntensity_Y_dna,nucleus|Location_CenterMassIntensity_Y_ki67,nucleus|Location_Center_Y,nucleus|Location_Center_Z,nucleus|Location_Center_X,nucleus|AreaShape_Center_X,nucleus|AreaShape_Center_Y,nucleus|AreaShape_Center_Z,nucleus|AreaShape_BoundingBoxMaximum_Z,nucleus|AreaShape_BoundingBoxMaximum_Y,nucleus|AreaShape_BoundingBoxMaximum_X,nucleus|AreaShape_Volume,nucleus|AreaShape_BoundingBoxMinimum_Y,nucleus|AreaShape_BoundingBoxMinimum_Z,nucleus|AreaShape_BoundingBoxMinimum_X,nucleus|AreaShape_EquivalentDiameter,nucleus|AreaShape_Extent,nucleus|AreaShape_EulerNumber,nucleus|AreaShape_BoundingBoxVolume,nucleus|AreaShape_MajorAxisLength,nucleus|AreaShape_MinorAxisLength,nucleus|AreaShape_SurfaceArea,nucleus|Intensity_MinIntensity_ki67,nucleus|Intensity_MinIntensity_dna,nucleus|Intensity_MinIntensityEdge_dna,nucleus|Intensity_MinIntensityEdge_ki67,nucleus|Intensity_IntegratedIntensityEdge_dna,nucleus|Intensity_IntegratedIntensityEdge_ki67,nucleus|Intensity_StdIntensityEdge_dna,nucleus|Intensity_StdIntensityEdge_ki67,nucleus|Intensity_MaxIntensity_dna,nucleus|Intensity_MaxIntensity_ki67,nucleus|Intensity_MaxIntensityEdge_dna,nucleus|Intensity_MaxIntensityEdge_ki67,nucleus|Intensity_MADIntensity_ki67,nucleus|Intensity_MADIntensity_dna,nucleus|Intensity_UpperQuartileIntensity_dna,nucleus|Intensity_UpperQuartileIntensity_ki67,nucleus|Intensity_MassDisplacement_ki67,nucleus|Intensity_MassDisplacement_dna,nucleus|Intensity_MedianIntensity_ki67,nucleus|Intensity_MedianIntensity_dna,nucleus|Intensity_LowerQuartileIntensity_dna,nucleus|Intensity_LowerQuartileIntensity_ki67,nucleus|Intensity_StdIntensity_ki67,nucleus|Intensity_StdIntensity_dna,nucleus|Intensity_MeanIntensity_dna,nucleus|Intensity_MeanIntensity_ki67,nucleus|Intensity_MeanIntensityEdge_ki67,nucleus|Intensity_MeanIntensityEdge_dna,nucleus|Intensity_IntegratedIntensity_dna,nucleus|Intensity_IntegratedIntensity_ki67,nucleus|Parent_nucleus_2x_filled,nucleus|Parent_cells,nucleus|Children_nucleus_eroded_Count,nucleus|Number_Object_Number,Image|ImageQuality_ThresholdOtsu_dna_2W,Image|ImageQuality_ThresholdOtsu_mito_2W,Image|ImageQuality_ThresholdOtsu_brightfield_2W,Image|ImageQuality_ThresholdOtsu_actin_2W,Image|ImageQuality_ThresholdOtsu_cd25_ki67_2W,Image|ImageQuality_Scaling_mito,Image|ImageQuality_Scaling_dna,Image|ImageQuality_Scaling_actin,Image|ImageQuality_Scaling_cd25_ki67,Image|ImageQuality_Scaling_brightfield,Image|ImageQuality_MaxIntensity_cd25_ki67,Image|ImageQuality_MaxIntensity_actin,Image|ImageQuality_MaxIntensity_mito,Image|ImageQuality_MaxIntensity_dna,Image|ImageQuality_MaxIntensity_brightfield,Image|ImageQuality_MADIntensity_actin,Image|ImageQuality_MADIntensity_cd25_ki67,Image|ImageQuality_MADIntensity_dna,Image|ImageQuality_MADIntensity_brightfield,Image|ImageQuality_MADIntensity_mito,Image|ImageQuality_TotalVolume_brightfield,Image|ImageQuality_TotalVolume_mito,Image|ImageQuality_TotalVolume_cd25_ki67,Image|ImageQuality_TotalVolume_actin,Image|ImageQuality_TotalVolume_dna,Image|ImageQuality_MinIntensity_cd25_ki67,Image|ImageQuality_MinIntensity_actin,Image|ImageQuality_MinIntensity_dna,Image|ImageQuality_MinIntensity_mito,Image|ImageQuality_MinIntensity_brightfield,Image|ImageQuality_TotalIntensity_brightfield,Image|ImageQuality_TotalIntensity_actin,Image|ImageQuality_TotalIntensity_mito,Image|ImageQuality_TotalIntensity_dna,Image|ImageQuality_TotalIntensity_cd25_ki67,Image|ImageQuality_PercentMaximal_mito,Image|ImageQuality_PercentMaximal_actin,Image|ImageQuality_PercentMaximal_cd25_ki67,Image|ImageQuality_PercentMaximal_dna,Image|ImageQuality_PercentMaximal_brightfield,Image|ImageQuality_MeanIntensity_brightfield,Image|ImageQuality_MeanIntensity_mito,Image|ImageQuality_MeanIntensity_actin,Image|ImageQuality_MeanIntensity_dna,Image|ImageQuality_MeanIntensity_cd25_ki67,Image|ImageQuality_PercentMinimal_actin,Image|ImageQuality_PercentMinimal_mito,Image|ImageQuality_PercentMinimal_brightfield,Image|ImageQuality_PercentMinimal_cd25_ki67,Image|ImageQuality_PercentMinimal_dna,Image|ImageQuality_MedianIntensity_cd25_ki67,Image|ImageQuality_MedianIntensity_actin,Image|ImageQuality_MedianIntensity_mito,Image|ImageQuality_MedianIntensity_dna,Image|ImageQuality_MedianIntensity_brightfield,Image|ImageQuality_StdIntensity_cd25_ki67,Image|ImageQuality_StdIntensity_dna,Image|ImageQuality_StdIntensity_actin,Image|ImageQuality_StdIntensity_brightfield,Image|ImageQuality_StdIntensity_mito,Image|Granularity_3_cd25,Image|Granularity_3_mito,Image|Granularity_7_mito,Image|Granularity_7_cd25,Image|Granularity_10_mito,Image|Granularity_10_cd25,Image|Granularity_9_cd25,Image|Granularity_9_mito,Image|Granularity_5_mito,Image|Granularity_5_cd25,Image|Granularity_1_mito,Image|Granularity_1_cd25,Image|Granularity_6_cd25,Image|Granularity_6_mito,Image|Granularity_12_cd25,Image|Granularity_12_mito,Image|Granularity_4_cd25,Image|Granularity_4_mito,Image|Granularity_2_cd25,Image|Granularity_2_mito,Image|Granularity_11_cd25,Image|Granularity_11_mito,Image|Granularity_8_cd25,Image|Granularity_8_mito,Image|Metadata_field,Image|Metadata_group,Image|Metadata_timepoint,Image|Metadata_FileLocation,Image|Metadata_well,Image|Metadata_channel,Image|Metadata_Series,Image|Metadata_Frame,Image|PathName_brightfield,Image|PathName_actin,Image|PathName_cd25_ki67,Image|PathName_mito,Image|PathName_dna,Image|ModuleError_59MaskImage,Image|ModuleError_11FilterObjects,Image|ModuleError_68MeasureTexture,Image|ModuleError_45MeasureObjectSizeShape,Image|ModuleError_07MedianFilter,Image|ModuleError_54MaskImage,Image|ModuleError_20RescaleIntensity,Image|ModuleError_10Watershed,Image|ModuleError_47DilateObjects,Image|ModuleError_39MaskImage,Image|ModuleError_12MeasureObjectSizeShape,Image|ModuleError_51ImageMath,Image|ModuleError_34Closing,Image|ModuleError_43Watershed,Image|ModuleError_17ResizeObjects,Image|ModuleError_23RescaleIntensity,Image|ModuleError_02Metadata,Image|ModuleError_30Threshold,Image|ModuleError_61RelateObjects,Image|ModuleError_32Threshold,Image|ModuleError_08Threshold,Image|ModuleError_66MeasureObjectNeighbors,Image|ModuleError_16FillObjects,Image|ModuleError_09RemoveHoles,Image|ModuleError_50ResizeObjects,Image|ModuleError_21RescaleIntensity,Image|ModuleError_71SaveImages,Image|ModuleError_56ConvertImageToObjects,Image|ModuleError_38RescaleIntensity,Image|ModuleError_70MeasureGranularity,Image|ModuleError_13FilterObjects,Image|ModuleError_15CombineObjects,Image|ModuleError_27MedianFilter,Image|ModuleError_06Resize,Image|ModuleError_69MeasureTexture,Image|ModuleError_19ImageMath,Image|ModuleError_28MedianFilter,Image|ModuleError_01Images,Image|ModuleError_55ErodeImage,Image|ModuleError_52OverlayOutlines,Image|ModuleError_36ConvertObjectsToImage,Image|ModuleError_05RescaleIntensity,Image|ModuleError_24Resize,Image|ModuleError_48CombineObjects,Image|ModuleError_03NamesAndTypes,Image|ModuleError_40ImageMath,Image|ModuleError_46FilterObjects,Image|ModuleError_67MeasureImageAreaOccupied,Image|ModuleError_31Threshold,Image|ModuleError_33ImageMath,Image|ModuleError_63MeasureObjectIntensity,Image|ModuleError_60RelateObjects,Image|ModuleError_26Resize,Image|ModuleError_14DilateObjects,Image|ModuleError_41GaussianFilter,Image|ModuleError_42RescaleIntensity,Image|ModuleError_49FillObjects,Image|ModuleError_58MaskImage,Image|ModuleError_65MeasureObjectSizeShape,Image|ModuleError_64MeasureObjectIntensity,Image|ModuleError_25Resize,Image|ModuleError_37ImageMath,Image|ModuleError_57ErodeObjects,Image|ModuleError_04Groups,Image|ModuleError_62MeasureImageQuality,Image|ModuleError_29MedianFilter,Image|ModuleError_53ConvertObjectsToImage,Image|ModuleError_22ImageMath,Image|ModuleError_35RemoveHoles,Image|ExecutionTime_67MeasureImageAreaOccupied,Image|ExecutionTime_32Threshold,Image|ExecutionTime_27MedianFilter,Image|ExecutionTime_71SaveImages,Image|ExecutionTime_01Images,Image|ExecutionTime_66MeasureObjectNeighbors,Image|ExecutionTime_14DilateObjects,Image|ExecutionTime_56ConvertImageToObjects,Image|ExecutionTime_47DilateObjects,Image|ExecutionTime_30Threshold,Image|ExecutionTime_08Threshold,Image|ExecutionTime_13FilterObjects,Image|ExecutionTime_10Watershed,Image|ExecutionTime_70MeasureGranularity,Image|ExecutionTime_63MeasureObjectIntensity,Image|ExecutionTime_62MeasureImageQuality,Image|ExecutionTime_03NamesAndTypes,Image|ExecutionTime_54MaskImage,Image|ExecutionTime_20RescaleIntensity,Image|ExecutionTime_55ErodeImage,Image|ExecutionTime_17ResizeObjects,Image|ExecutionTime_64MeasureObjectIntensity,Image|ExecutionTime_46FilterObjects,Image|ExecutionTime_49FillObjects,Image|ExecutionTime_22ImageMath,Image|ExecutionTime_24Resize,Image|ExecutionTime_21RescaleIntensity,Image|ExecutionTime_42RescaleIntensity,Image|ExecutionTime_05RescaleIntensity,Image|ExecutionTime_33ImageMath,Image|ExecutionTime_04Groups,Image|ExecutionTime_09RemoveHoles,Image|ExecutionTime_45MeasureObjectSizeShape,Image|ExecutionTime_31Threshold,Image|ExecutionTime_11FilterObjects,Image|ExecutionTime_02Metadata,Image|ExecutionTime_40ImageMath,Image|ExecutionTime_58MaskImage,Image|ExecutionTime_23RescaleIntensity,Image|ExecutionTime_50ResizeObjects,Image|ExecutionTime_52OverlayOutlines,Image|ExecutionTime_59MaskImage,Image|ExecutionTime_53ConvertObjectsToImage,Image|ExecutionTime_39MaskImage,Image|ExecutionTime_60RelateObjects,Image|ExecutionTime_16FillObjects,Image|ExecutionTime_51ImageMath,Image|ExecutionTime_69MeasureTexture,Image|ExecutionTime_48CombineObjects,Image|ExecutionTime_43Watershed,Image|ExecutionTime_34Closing,Image|ExecutionTime_68MeasureTexture,Image|ExecutionTime_65MeasureObjectSizeShape,Image|ExecutionTime_28MedianFilter,Image|ExecutionTime_61RelateObjects,Image|ExecutionTime_38RescaleIntensity,Image|ExecutionTime_12MeasureObjectSizeShape,Image|ExecutionTime_26Resize,Image|ExecutionTime_07MedianFilter,Image|ExecutionTime_25Resize,Image|ExecutionTime_41GaussianFilter,Image|ExecutionTime_19ImageMath,Image|ExecutionTime_15CombineObjects,Image|ExecutionTime_57ErodeObjects,Image|ExecutionTime_35RemoveHoles,Image|ExecutionTime_29MedianFilter,Image|ExecutionTime_36ConvertObjectsToImage,Image|ExecutionTime_37ImageMath,Image|ExecutionTime_06Resize,Image|Count_nucleus,Image|Count_nucleus_2x,Image|Count_nucleus_2x_filled,Image|Count_nucleus_2x_raw,Image|Count_nucleus_2x_raw_no_border,Image|Count_nucleus_2x_large,Image|Count_nucleus_2x_small,Image|Count_nucleus_eroded,Image|Count_cells,Image|Count_cells_2x,Image|Count_cells_2x_small,Image|Count_cells_2x_small_dilated,Image|Count_cells_2x_large,Image|Count_cells_2x_raw,Image|Count_cells_filled_2x,Image|Count_nulceus_2x_small_dilated,Image|Count_cyto,Image|Series_actin,Image|Series_dna,Image|Series_cd25_ki67,Image|Series_mito,Image|Series_brightfield,Image|Threshold_FinalThreshold_mito_thresh_2x,Image|Threshold_FinalThreshold_cd25_ki67_tresh_2x,Image|Threshold_FinalThreshold_dna_tresh_2x,Image|Threshold_FinalThreshold_actin_thresh_2x,Image|Threshold_OrigThreshold_cd25_ki67_tresh_2x,Image|Threshold_OrigThreshold_actin_thresh_2x,Image|Threshold_OrigThreshold_mito_thresh_2x,Image|Threshold_OrigThreshold_dna_tresh_2x,Image|Threshold_WeightedVariance_actin_thresh_2x,Image|Threshold_WeightedVariance_mito_thresh_2x,Image|Threshold_WeightedVariance_dna_tresh_2x,Image|Threshold_WeightedVariance_cd25_ki67_tresh_2x,Image|Threshold_SumOfEntropies_actin_thresh_2x,Image|Threshold_SumOfEntropies_cd25_ki67_tresh_2x,Image|Threshold_SumOfEntropies_mito_thresh_2x,Image|Threshold_SumOfEntropies_dna_tresh_2x,Image|Threshold_GuideThreshold_dna_tresh_2x,Image|URL_cd25_ki67,Image|URL_actin,Image|URL_brightfield,Image|URL_mito,Image|URL_dna,Image|MD5Digest_dna,Image|MD5Digest_mito,Image|MD5Digest_brightfield,Image|MD5Digest_cd25_ki67,Image|MD5Digest_actin,Image|Frame_brightfield,Image|Frame_cd25_ki67,Image|Frame_mito,Image|Frame_actin,Image|Frame_dna,Image|Height_actin,Image|Height_brightfield,Image|Height_dna,Image|Height_mito,Image|Height_cd25_ki67,Image|Scaling_mito,Image|Scaling_brightfield,Image|Scaling_actin,Image|Scaling_cd25_ki67,Image|Scaling_dna,Image|Width_dna,Image|Width_brightfield,Image|Width_actin,Image|Width_mito,Image|Width_cd25_ki67,Image|Group_Number,Image|Group_Index,Image|Group_Length,Image|AreaOccupied_SurfaceArea_cell_hrm_2x,Image|AreaOccupied_VolumeOccupied_cell_hrm_2x,Image|AreaOccupied_TotalVolume_cell_hrm_2x,Image|FileName_dna,Image|FileName_actin,Image|FileName_mito,Image|FileName_cd25_ki67,Image|FileName_brightfield,cyto|Texture_SumEntropy_brightfield_3_04_256,cyto|Texture_SumEntropy_brightfield_3_12_256,cyto|Texture_SumEntropy_brightfield_3_02_256,cyto|Texture_SumEntropy_brightfield_3_01_256,cyto|Texture_SumEntropy_brightfield_3_09_256,cyto|Texture_SumEntropy_brightfield_3_05_256,cyto|Texture_SumEntropy_brightfield_3_00_256,cyto|Texture_SumEntropy_brightfield_3_08_256,cyto|Texture_SumEntropy_brightfield_3_03_256,cyto|Texture_SumEntropy_brightfield_3_10_256,cyto|Texture_SumEntropy_brightfield_3_06_256,cyto|Texture_SumEntropy_brightfield_3_07_256,cyto|Texture_SumEntropy_brightfield_3_11_256,cyto|Texture_SumEntropy_mito_3_11_256,cyto|Texture_SumEntropy_mito_3_07_256,cyto|Texture_SumEntropy_mito_3_02_256,cyto|Texture_SumEntropy_mito_3_03_256,cyto|Texture_SumEntropy_mito_3_00_256,cyto|Texture_SumEntropy_mito_3_04_256,cyto|Texture_SumEntropy_mito_3_10_256,cyto|Texture_SumEntropy_mito_3_01_256,cyto|Texture_SumEntropy_mito_3_09_256,cyto|Texture_SumEntropy_mito_3_12_256,cyto|Texture_SumEntropy_mito_3_06_256,cyto|Texture_SumEntropy_mito_3_08_256,cyto|Texture_SumEntropy_mito_3_05_256,cyto|Texture_SumEntropy_cd25_3_05_256,cyto|Texture_SumEntropy_cd25_3_06_256,cyto|Texture_SumEntropy_cd25_3_03_256,cyto|Texture_SumEntropy_cd25_3_11_256,cyto|Texture_SumEntropy_cd25_3_12_256,cyto|Texture_SumEntropy_cd25_3_08_256,cyto|Texture_SumEntropy_cd25_3_09_256,cyto|Texture_SumEntropy_cd25_3_10_256,cyto|Texture_SumEntropy_cd25_3_04_256,cyto|Texture_SumEntropy_cd25_3_02_256,cyto|Texture_SumEntropy_cd25_3_00_256,cyto|Texture_SumEntropy_cd25_3_07_256,cyto|Texture_SumEntropy_cd25_3_01_256,cyto|Texture_AngularSecondMoment_cd25_3_02_256,cyto|Texture_AngularSecondMoment_cd25_3_07_256,cyto|Texture_AngularSecondMoment_cd25_3_05_256,cyto|Texture_AngularSecondMoment_cd25_3_00_256,cyto|Texture_AngularSecondMoment_cd25_3_01_256,cyto|Texture_AngularSecondMoment_cd25_3_08_256,cyto|Texture_AngularSecondMoment_cd25_3_09_256,cyto|Texture_AngularSecondMoment_cd25_3_03_256,cyto|Texture_AngularSecondMoment_cd25_3_10_256,cyto|Texture_AngularSecondMoment_cd25_3_12_256,cyto|Texture_AngularSecondMoment_cd25_3_06_256,cyto|Texture_AngularSecondMoment_cd25_3_04_256,cyto|Texture_AngularSecondMoment_cd25_3_11_256,cyto|Texture_AngularSecondMoment_brightfield_3_10_256,cyto|Texture_AngularSecondMoment_brightfield_3_04_256,cyto|Texture_AngularSecondMoment_brightfield_3_00_256,cyto|Texture_AngularSecondMoment_brightfield_3_06_256,cyto|Texture_AngularSecondMoment_brightfield_3_03_256,cyto|Texture_AngularSecondMoment_brightfield_3_11_256,cyto|Texture_AngularSecondMoment_brightfield_3_02_256,cyto|Texture_AngularSecondMoment_brightfield_3_01_256,cyto|Texture_AngularSecondMoment_brightfield_3_09_256,cyto|Texture_AngularSecondMoment_brightfield_3_08_256,cyto|Texture_AngularSecondMoment_brightfield_3_12_256,cyto|Texture_AngularSecondMoment_brightfield_3_07_256,cyto|Texture_AngularSecondMoment_brightfield_3_05_256,cyto|Texture_AngularSecondMoment_mito_3_11_256,cyto|Texture_AngularSecondMoment_mito_3_09_256,cyto|Texture_AngularSecondMoment_mito_3_02_256,cyto|Texture_AngularSecondMoment_mito_3_00_256,cyto|Texture_AngularSecondMoment_mito_3_08_256,cyto|Texture_AngularSecondMoment_mito_3_10_256,cyto|Texture_AngularSecondMoment_mito_3_12_256,cyto|Texture_AngularSecondMoment_mito_3_04_256,cyto|Texture_AngularSecondMoment_mito_3_03_256,cyto|Texture_AngularSecondMoment_mito_3_07_256,cyto|Texture_AngularSecondMoment_mito_3_05_256,cyto|Texture_AngularSecondMoment_mito_3_01_256,cyto|Texture_AngularSecondMoment_mito_3_06_256,cyto|Texture_Correlation_brightfield_3_12_256,cyto|Texture_Correlation_brightfield_3_09_256,cyto|Texture_Correlation_brightfield_3_10_256,cyto|Texture_Correlation_brightfield_3_07_256,cyto|Texture_Correlation_brightfield_3_03_256,cyto|Texture_Correlation_brightfield_3_11_256,cyto|Texture_Correlation_brightfield_3_00_256,cyto|Texture_Correlation_brightfield_3_01_256,cyto|Texture_Correlation_brightfield_3_04_256,cyto|Texture_Correlation_brightfield_3_06_256,cyto|Texture_Correlation_brightfield_3_08_256,cyto|Texture_Correlation_brightfield_3_02_256,cyto|Texture_Correlation_brightfield_3_05_256,cyto|Texture_Correlation_cd25_3_07_256,cyto|Texture_Correlation_cd25_3_04_256,cyto|Texture_Correlation_cd25_3_05_256,cyto|Texture_Correlation_cd25_3_12_256,cyto|Texture_Correlation_cd25_3_11_256,cyto|Texture_Correlation_cd25_3_10_256,cyto|Texture_Correlation_cd25_3_09_256,cyto|Texture_Correlation_cd25_3_08_256,cyto|Texture_Correlation_cd25_3_03_256,cyto|Texture_Correlation_cd25_3_06_256,cyto|Texture_Correlation_cd25_3_02_256,cyto|Texture_Correlation_cd25_3_01_256,cyto|Texture_Correlation_cd25_3_00_256,cyto|Texture_Correlation_mito_3_11_256,cyto|Texture_Correlation_mito_3_02_256,cyto|Texture_Correlation_mito_3_03_256,cyto|Texture_Correlation_mito_3_00_256,cyto|Texture_Correlation_mito_3_07_256,cyto|Texture_Correlation_mito_3_09_256,cyto|Texture_Correlation_mito_3_01_256,cyto|Texture_Correlation_mito_3_05_256,cyto|Texture_Correlation_mito_3_06_256,cyto|Texture_Correlation_mito_3_12_256,cyto|Texture_Correlation_mito_3_10_256,cyto|Texture_Correlation_mito_3_04_256,cyto|Texture_Correlation_mito_3_08_256,cyto|Texture_InfoMeas2_cd25_3_07_256,cyto|Texture_InfoMeas2_cd25_3_03_256,cyto|Texture_InfoMeas2_cd25_3_06_256,cyto|Texture_InfoMeas2_cd25_3_01_256,cyto|Texture_InfoMeas2_cd25_3_09_256,cyto|Texture_InfoMeas2_cd25_3_10_256,cyto|Texture_InfoMeas2_cd25_3_12_256,cyto|Texture_InfoMeas2_cd25_3_05_256,cyto|Texture_InfoMeas2_cd25_3_04_256,cyto|Texture_InfoMeas2_cd25_3_02_256,cyto|Texture_InfoMeas2_cd25_3_11_256,cyto|Texture_InfoMeas2_cd25_3_00_256,cyto|Texture_InfoMeas2_cd25_3_08_256,cyto|Texture_InfoMeas2_brightfield_3_07_256,cyto|Texture_InfoMeas2_brightfield_3_05_256,cyto|Texture_InfoMeas2_brightfield_3_03_256,cyto|Texture_InfoMeas2_brightfield_3_06_256,cyto|Texture_InfoMeas2_brightfield_3_08_256,cyto|Texture_InfoMeas2_brightfield_3_00_256,cyto|Texture_InfoMeas2_brightfield_3_01_256,cyto|Texture_InfoMeas2_brightfield_3_04_256,cyto|Texture_InfoMeas2_brightfield_3_02_256,cyto|Texture_InfoMeas2_brightfield_3_10_256,cyto|Texture_InfoMeas2_brightfield_3_11_256,cyto|Texture_InfoMeas2_brightfield_3_09_256,cyto|Texture_InfoMeas2_brightfield_3_12_256,cyto|Texture_InfoMeas2_mito_3_01_256,cyto|Texture_InfoMeas2_mito_3_08_256,cyto|Texture_InfoMeas2_mito_3_04_256,cyto|Texture_InfoMeas2_mito_3_11_256,cyto|Texture_InfoMeas2_mito_3_10_256,cyto|Texture_InfoMeas2_mito_3_12_256,cyto|Texture_InfoMeas2_mito_3_09_256,cyto|Texture_InfoMeas2_mito_3_02_256,cyto|Texture_InfoMeas2_mito_3_03_256,cyto|Texture_InfoMeas2_mito_3_07_256,cyto|Texture_InfoMeas2_mito_3_06_256,cyto|Texture_InfoMeas2_mito_3_00_256,cyto|Texture_InfoMeas2_mito_3_05_256,cyto|Texture_SumAverage_brightfield_3_02_256,cyto|Texture_SumAverage_brightfield_3_11_256,cyto|Texture_SumAverage_brightfield_3_08_256,cyto|Texture_SumAverage_brightfield_3_06_256,cyto|Texture_SumAverage_brightfield_3_09_256,cyto|Texture_SumAverage_brightfield_3_00_256,cyto|Texture_SumAverage_brightfield_3_01_256,cyto|Texture_SumAverage_brightfield_3_05_256,cyto|Texture_SumAverage_brightfield_3_04_256,cyto|Texture_SumAverage_brightfield_3_12_256,cyto|Texture_SumAverage_brightfield_3_07_256,cyto|Texture_SumAverage_brightfield_3_03_256,cyto|Texture_SumAverage_brightfield_3_10_256,cyto|Texture_SumAverage_cd25_3_05_256,cyto|Texture_SumAverage_cd25_3_11_256,cyto|Texture_SumAverage_cd25_3_07_256,cyto|Texture_SumAverage_cd25_3_09_256,cyto|Texture_SumAverage_cd25_3_04_256,cyto|Texture_SumAverage_cd25_3_03_256,cyto|Texture_SumAverage_cd25_3_08_256,cyto|Texture_SumAverage_cd25_3_10_256,cyto|Texture_SumAverage_cd25_3_12_256,cyto|Texture_SumAverage_cd25_3_00_256,cyto|Texture_SumAverage_cd25_3_02_256,cyto|Texture_SumAverage_cd25_3_06_256,cyto|Texture_SumAverage_cd25_3_01_256,cyto|Texture_SumAverage_mito_3_11_256,cyto|Texture_SumAverage_mito_3_10_256,cyto|Texture_SumAverage_mito_3_04_256,cyto|Texture_SumAverage_mito_3_00_256,cyto|Texture_SumAverage_mito_3_01_256,cyto|Texture_SumAverage_mito_3_06_256,cyto|Texture_SumAverage_mito_3_08_256,cyto|Texture_SumAverage_mito_3_12_256,cyto|Texture_SumAverage_mito_3_09_256,cyto|Texture_SumAverage_mito_3_03_256,cyto|Texture_SumAverage_mito_3_05_256,cyto|Texture_SumAverage_mito_3_02_256,cyto|Texture_SumAverage_mito_3_07_256,cyto|Texture_Variance_mito_3_10_256,cyto|Texture_Variance_mito_3_02_256,cyto|Texture_Variance_mito_3_12_256,cyto|Texture_Variance_mito_3_11_256,cyto|Texture_Variance_mito_3_08_256,cyto|Texture_Variance_mito_3_05_256,cyto|Texture_Variance_mito_3_01_256,cyto|Texture_Variance_mito_3_09_256,cyto|Texture_Variance_mito_3_03_256,cyto|Texture_Variance_mito_3_04_256,cyto|Texture_Variance_mito_3_07_256,cyto|Texture_Variance_mito_3_00_256,cyto|Texture_Variance_mito_3_06_256,cyto|Texture_Variance_brightfield_3_04_256,cyto|Texture_Variance_brightfield_3_08_256,cyto|Texture_Variance_brightfield_3_12_256,cyto|Texture_Variance_brightfield_3_09_256,cyto|Texture_Variance_brightfield_3_11_256,cyto|Texture_Variance_brightfield_3_10_256,cyto|Texture_Variance_brightfield_3_07_256,cyto|Texture_Variance_brightfield_3_06_256,cyto|Texture_Variance_brightfield_3_05_256,cyto|Texture_Variance_brightfield_3_01_256,cyto|Texture_Variance_brightfield_3_00_256,cyto|Texture_Variance_brightfield_3_02_256,cyto|Texture_Variance_brightfield_3_03_256,cyto|Texture_Variance_cd25_3_01_256,cyto|Texture_Variance_cd25_3_00_256,cyto|Texture_Variance_cd25_3_03_256,cyto|Texture_Variance_cd25_3_09_256,cyto|Texture_Variance_cd25_3_07_256,cyto|Texture_Variance_cd25_3_04_256,cyto|Texture_Variance_cd25_3_02_256,cyto|Texture_Variance_cd25_3_06_256,cyto|Texture_Variance_cd25_3_05_256,cyto|Texture_Variance_cd25_3_10_256,cyto|Texture_Variance_cd25_3_12_256,cyto|Texture_Variance_cd25_3_11_256,cyto|Texture_Variance_cd25_3_08_256,cyto|Texture_SumVariance_mito_3_11_256,cyto|Texture_SumVariance_mito_3_10_256,cyto|Texture_SumVariance_mito_3_03_256,cyto|Texture_SumVariance_mito_3_08_256,cyto|Texture_SumVariance_mito_3_09_256,cyto|Texture_SumVariance_mito_3_02_256,cyto|Texture_SumVariance_mito_3_00_256,cyto|Texture_SumVariance_mito_3_05_256,cyto|Texture_SumVariance_mito_3_04_256,cyto|Texture_SumVariance_mito_3_06_256,cyto|Texture_SumVariance_mito_3_12_256,cyto|Texture_SumVariance_mito_3_07_256,cyto|Texture_SumVariance_mito_3_01_256,cyto|Texture_SumVariance_cd25_3_07_256,cyto|Texture_SumVariance_cd25_3_11_256,cyto|Texture_SumVariance_cd25_3_01_256,cyto|Texture_SumVariance_cd25_3_09_256,cyto|Texture_SumVariance_cd25_3_10_256,cyto|Texture_SumVariance_cd25_3_06_256,cyto|Texture_SumVariance_cd25_3_02_256,cyto|Texture_SumVariance_cd25_3_12_256,cyto|Texture_SumVariance_cd25_3_00_256,cyto|Texture_SumVariance_cd25_3_05_256,cyto|Texture_SumVariance_cd25_3_03_256,cyto|Texture_SumVariance_cd25_3_04_256,cyto|Texture_SumVariance_cd25_3_08_256,cyto|Texture_SumVariance_brightfield_3_00_256,cyto|Texture_SumVariance_brightfield_3_06_256,cyto|Texture_SumVariance_brightfield_3_10_256,cyto|Texture_SumVariance_brightfield_3_05_256,cyto|Texture_SumVariance_brightfield_3_03_256,cyto|Texture_SumVariance_brightfield_3_01_256,cyto|Texture_SumVariance_brightfield_3_02_256,cyto|Texture_SumVariance_brightfield_3_04_256,cyto|Texture_SumVariance_brightfield_3_11_256,cyto|Texture_SumVariance_brightfield_3_07_256,cyto|Texture_SumVariance_brightfield_3_09_256,cyto|Texture_SumVariance_brightfield_3_08_256,cyto|Texture_SumVariance_brightfield_3_12_256,cyto|Texture_InverseDifferenceMoment_brightfield_3_11_256,cyto|Texture_InverseDifferenceMoment_brightfield_3_06_256,cyto|Texture_InverseDifferenceMoment_brightfield_3_00_256,cyto|Texture_InverseDifferenceMoment_brightfield_3_09_256,cyto|Texture_InverseDifferenceMoment_brightfield_3_04_256,cyto|Texture_InverseDifferenceMoment_brightfield_3_08_256,cyto|Texture_InverseDifferenceMoment_brightfield_3_10_256,cyto|Texture_InverseDifferenceMoment_brightfield_3_02_256,cyto|Texture_InverseDifferenceMoment_brightfield_3_07_256,cyto|Texture_InverseDifferenceMoment_brightfield_3_05_256,cyto|Texture_InverseDifferenceMoment_brightfield_3_12_256,cyto|Texture_InverseDifferenceMoment_brightfield_3_01_256,cyto|Texture_InverseDifferenceMoment_brightfield_3_03_256,cyto|Texture_InverseDifferenceMoment_mito_3_04_256,cyto|Texture_InverseDifferenceMoment_mito_3_07_256,cyto|Texture_InverseDifferenceMoment_mito_3_12_256,cyto|Texture_InverseDifferenceMoment_mito_3_11_256,cyto|Texture_InverseDifferenceMoment_mito_3_09_256,cyto|Texture_InverseDifferenceMoment_mito_3_05_256,cyto|Texture_InverseDifferenceMoment_mito_3_06_256,cyto|Texture_InverseDifferenceMoment_mito_3_10_256,cyto|Texture_InverseDifferenceMoment_mito_3_08_256,cyto|Texture_InverseDifferenceMoment_mito_3_03_256,cyto|Texture_InverseDifferenceMoment_mito_3_00_256,cyto|Texture_InverseDifferenceMoment_mito_3_01_256,cyto|Texture_InverseDifferenceMoment_mito_3_02_256,cyto|Texture_InverseDifferenceMoment_cd25_3_08_256,cyto|Texture_InverseDifferenceMoment_cd25_3_12_256,cyto|Texture_InverseDifferenceMoment_cd25_3_02_256,cyto|Texture_InverseDifferenceMoment_cd25_3_07_256,cyto|Texture_InverseDifferenceMoment_cd25_3_09_256,cyto|Texture_InverseDifferenceMoment_cd25_3_05_256,cyto|Texture_InverseDifferenceMoment_cd25_3_03_256,cyto|Texture_InverseDifferenceMoment_cd25_3_00_256,cyto|Texture_InverseDifferenceMoment_cd25_3_04_256,cyto|Texture_InverseDifferenceMoment_cd25_3_10_256,cyto|Texture_InverseDifferenceMoment_cd25_3_11_256,cyto|Texture_InverseDifferenceMoment_cd25_3_06_256,cyto|Texture_InverseDifferenceMoment_cd25_3_01_256,cyto|Texture_DifferenceVariance_cd25_3_02_256,cyto|Texture_DifferenceVariance_cd25_3_11_256,cyto|Texture_DifferenceVariance_cd25_3_09_256,cyto|Texture_DifferenceVariance_cd25_3_05_256,cyto|Texture_DifferenceVariance_cd25_3_12_256,cyto|Texture_DifferenceVariance_cd25_3_00_256,cyto|Texture_DifferenceVariance_cd25_3_10_256,cyto|Texture_DifferenceVariance_cd25_3_04_256,cyto|Texture_DifferenceVariance_cd25_3_08_256,cyto|Texture_DifferenceVariance_cd25_3_07_256,cyto|Texture_DifferenceVariance_cd25_3_03_256,cyto|Texture_DifferenceVariance_cd25_3_06_256,cyto|Texture_DifferenceVariance_cd25_3_01_256,cyto|Texture_DifferenceVariance_brightfield_3_06_256,cyto|Texture_DifferenceVariance_brightfield_3_12_256,cyto|Texture_DifferenceVariance_brightfield_3_00_256,cyto|Texture_DifferenceVariance_brightfield_3_11_256,cyto|Texture_DifferenceVariance_brightfield_3_02_256,cyto|Texture_DifferenceVariance_brightfield_3_10_256,cyto|Texture_DifferenceVariance_brightfield_3_08_256,cyto|Texture_DifferenceVariance_brightfield_3_04_256,cyto|Texture_DifferenceVariance_brightfield_3_03_256,cyto|Texture_DifferenceVariance_brightfield_3_09_256,cyto|Texture_DifferenceVariance_brightfield_3_01_256,cyto|Texture_DifferenceVariance_brightfield_3_05_256,cyto|Texture_DifferenceVariance_brightfield_3_07_256,cyto|Texture_DifferenceVariance_mito_3_03_256,cyto|Texture_DifferenceVariance_mito_3_12_256,cyto|Texture_DifferenceVariance_mito_3_07_256,cyto|Texture_DifferenceVariance_mito_3_05_256,cyto|Texture_DifferenceVariance_mito_3_08_256,cyto|Texture_DifferenceVariance_mito_3_09_256,cyto|Texture_DifferenceVariance_mito_3_02_256,cyto|Texture_DifferenceVariance_mito_3_11_256,cyto|Texture_DifferenceVariance_mito_3_00_256,cyto|Texture_DifferenceVariance_mito_3_10_256,cyto|Texture_DifferenceVariance_mito_3_04_256,cyto|Texture_DifferenceVariance_mito_3_06_256,cyto|Texture_DifferenceVariance_mito_3_01_256,cyto|Texture_DifferenceEntropy_brightfield_3_12_256,cyto|Texture_DifferenceEntropy_brightfield_3_07_256,cyto|Texture_DifferenceEntropy_brightfield_3_11_256,cyto|Texture_DifferenceEntropy_brightfield_3_02_256,cyto|Texture_DifferenceEntropy_brightfield_3_09_256,cyto|Texture_DifferenceEntropy_brightfield_3_03_256,cyto|Texture_DifferenceEntropy_brightfield_3_01_256,cyto|Texture_DifferenceEntropy_brightfield_3_06_256,cyto|Texture_DifferenceEntropy_brightfield_3_00_256,cyto|Texture_DifferenceEntropy_brightfield_3_05_256,cyto|Texture_DifferenceEntropy_brightfield_3_10_256,cyto|Texture_DifferenceEntropy_brightfield_3_04_256,cyto|Texture_DifferenceEntropy_brightfield_3_08_256,cyto|Texture_DifferenceEntropy_cd25_3_00_256,cyto|Texture_DifferenceEntropy_cd25_3_02_256,cyto|Texture_DifferenceEntropy_cd25_3_09_256,cyto|Texture_DifferenceEntropy_cd25_3_01_256,cyto|Texture_DifferenceEntropy_cd25_3_05_256,cyto|Texture_DifferenceEntropy_cd25_3_07_256,cyto|Texture_DifferenceEntropy_cd25_3_10_256,cyto|Texture_DifferenceEntropy_cd25_3_11_256,cyto|Texture_DifferenceEntropy_cd25_3_08_256,cyto|Texture_DifferenceEntropy_cd25_3_06_256,cyto|Texture_DifferenceEntropy_cd25_3_12_256,cyto|Texture_DifferenceEntropy_cd25_3_03_256,cyto|Texture_DifferenceEntropy_cd25_3_04_256,cyto|Texture_DifferenceEntropy_mito_3_11_256,cyto|Texture_DifferenceEntropy_mito_3_08_256,cyto|Texture_DifferenceEntropy_mito_3_10_256,cyto|Texture_DifferenceEntropy_mito_3_00_256,cyto|Texture_DifferenceEntropy_mito_3_02_256,cyto|Texture_DifferenceEntropy_mito_3_01_256,cyto|Texture_DifferenceEntropy_mito_3_06_256,cyto|Texture_DifferenceEntropy_mito_3_05_256,cyto|Texture_DifferenceEntropy_mito_3_03_256,cyto|Texture_DifferenceEntropy_mito_3_07_256,cyto|Texture_DifferenceEntropy_mito_3_12_256,cyto|Texture_DifferenceEntropy_mito_3_09_256,cyto|Texture_DifferenceEntropy_mito_3_04_256,cyto|Texture_InfoMeas1_mito_3_03_256,cyto|Texture_InfoMeas1_mito_3_11_256,cyto|Texture_InfoMeas1_mito_3_01_256,cyto|Texture_InfoMeas1_mito_3_09_256,cyto|Texture_InfoMeas1_mito_3_02_256,cyto|Texture_InfoMeas1_mito_3_05_256,cyto|Texture_InfoMeas1_mito_3_08_256,cyto|Texture_InfoMeas1_mito_3_00_256,cyto|Texture_InfoMeas1_mito_3_06_256,cyto|Texture_InfoMeas1_mito_3_04_256,cyto|Texture_InfoMeas1_mito_3_12_256,cyto|Texture_InfoMeas1_mito_3_10_256,cyto|Texture_InfoMeas1_mito_3_07_256,cyto|Texture_InfoMeas1_brightfield_3_08_256,cyto|Texture_InfoMeas1_brightfield_3_11_256,cyto|Texture_InfoMeas1_brightfield_3_12_256,cyto|Texture_InfoMeas1_brightfield_3_01_256,cyto|Texture_InfoMeas1_brightfield_3_02_256,cyto|Texture_InfoMeas1_brightfield_3_05_256,cyto|Texture_InfoMeas1_brightfield_3_10_256,cyto|Texture_InfoMeas1_brightfield_3_06_256,cyto|Texture_InfoMeas1_brightfield_3_04_256,cyto|Texture_InfoMeas1_brightfield_3_00_256,cyto|Texture_InfoMeas1_brightfield_3_09_256,cyto|Texture_InfoMeas1_brightfield_3_07_256,cyto|Texture_InfoMeas1_brightfield_3_03_256,cyto|Texture_InfoMeas1_cd25_3_05_256,cyto|Texture_InfoMeas1_cd25_3_00_256,cyto|Texture_InfoMeas1_cd25_3_09_256,cyto|Texture_InfoMeas1_cd25_3_01_256,cyto|Texture_InfoMeas1_cd25_3_02_256,cyto|Texture_InfoMeas1_cd25_3_12_256,cyto|Texture_InfoMeas1_cd25_3_06_256,cyto|Texture_InfoMeas1_cd25_3_04_256,cyto|Texture_InfoMeas1_cd25_3_07_256,cyto|Texture_InfoMeas1_cd25_3_08_256,cyto|Texture_InfoMeas1_cd25_3_03_256,cyto|Texture_InfoMeas1_cd25_3_11_256,cyto|Texture_InfoMeas1_cd25_3_10_256,cyto|Texture_Entropy_brightfield_3_11_256,cyto|Texture_Entropy_brightfield_3_09_256,cyto|Texture_Entropy_brightfield_3_01_256,cyto|Texture_Entropy_brightfield_3_08_256,cyto|Texture_Entropy_brightfield_3_04_256,cyto|Texture_Entropy_brightfield_3_07_256,cyto|Texture_Entropy_brightfield_3_06_256,cyto|Texture_Entropy_brightfield_3_10_256,cyto|Texture_Entropy_brightfield_3_00_256,cyto|Texture_Entropy_brightfield_3_12_256,cyto|Texture_Entropy_brightfield_3_05_256,cyto|Texture_Entropy_brightfield_3_02_256,cyto|Texture_Entropy_brightfield_3_03_256,cyto|Texture_Entropy_mito_3_06_256,cyto|Texture_Entropy_mito_3_03_256,cyto|Texture_Entropy_mito_3_05_256,cyto|Texture_Entropy_mito_3_11_256,cyto|Texture_Entropy_mito_3_12_256,cyto|Texture_Entropy_mito_3_09_256,cyto|Texture_Entropy_mito_3_02_256,cyto|Texture_Entropy_mito_3_10_256,cyto|Texture_Entropy_mito_3_01_256,cyto|Texture_Entropy_mito_3_07_256,cyto|Texture_Entropy_mito_3_08_256,cyto|Texture_Entropy_mito_3_00_256,cyto|Texture_Entropy_mito_3_04_256,cyto|Texture_Entropy_cd25_3_01_256,cyto|Texture_Entropy_cd25_3_00_256,cyto|Texture_Entropy_cd25_3_02_256,cyto|Texture_Entropy_cd25_3_05_256,cyto|Texture_Entropy_cd25_3_12_256,cyto|Texture_Entropy_cd25_3_09_256,cyto|Texture_Entropy_cd25_3_10_256,cyto|Texture_Entropy_cd25_3_08_256,cyto|Texture_Entropy_cd25_3_04_256,cyto|Texture_Entropy_cd25_3_11_256,cyto|Texture_Entropy_cd25_3_07_256,cyto|Texture_Entropy_cd25_3_03_256,cyto|Texture_Entropy_cd25_3_06_256,cyto|Texture_Contrast_cd25_3_06_256,cyto|Texture_Contrast_cd25_3_08_256,cyto|Texture_Contrast_cd25_3_12_256,cyto|Texture_Contrast_cd25_3_00_256,cyto|Texture_Contrast_cd25_3_05_256,cyto|Texture_Contrast_cd25_3_10_256,cyto|Texture_Contrast_cd25_3_02_256,cyto|Texture_Contrast_cd25_3_03_256,cyto|Texture_Contrast_cd25_3_01_256,cyto|Texture_Contrast_cd25_3_07_256,cyto|Texture_Contrast_cd25_3_11_256,cyto|Texture_Contrast_cd25_3_04_256,cyto|Texture_Contrast_cd25_3_09_256,cyto|Texture_Contrast_mito_3_03_256,cyto|Texture_Contrast_mito_3_05_256,cyto|Texture_Contrast_mito_3_09_256,cyto|Texture_Contrast_mito_3_06_256,cyto|Texture_Contrast_mito_3_02_256,cyto|Texture_Contrast_mito_3_11_256,cyto|Texture_Contrast_mito_3_08_256,cyto|Texture_Contrast_mito_3_00_256,cyto|Texture_Contrast_mito_3_07_256,cyto|Texture_Contrast_mito_3_12_256,cyto|Texture_Contrast_mito_3_10_256,cyto|Texture_Contrast_mito_3_01_256,cyto|Texture_Contrast_mito_3_04_256,cyto|Texture_Contrast_brightfield_3_03_256,cyto|Texture_Contrast_brightfield_3_05_256,cyto|Texture_Contrast_brightfield_3_11_256,cyto|Texture_Contrast_brightfield_3_10_256,cyto|Texture_Contrast_brightfield_3_04_256,cyto|Texture_Contrast_brightfield_3_01_256,cyto|Texture_Contrast_brightfield_3_12_256,cyto|Texture_Contrast_brightfield_3_02_256,cyto|Texture_Contrast_brightfield_3_09_256,cyto|Texture_Contrast_brightfield_3_08_256,cyto|Texture_Contrast_brightfield_3_06_256,cyto|Texture_Contrast_brightfield_3_07_256,cyto|Texture_Contrast_brightfield_3_00_256,cyto|Location_MaxIntensity_X_actin,cyto|Location_MaxIntensity_X_mito,cyto|Location_MaxIntensity_X_dna,cyto|Location_MaxIntensity_X_cd25,cyto|Location_MaxIntensity_Y_actin,cyto|Location_MaxIntensity_Y_cd25,cyto|Location_MaxIntensity_Y_dna,cyto|Location_MaxIntensity_Y_mito,cyto|Location_MaxIntensity_Z_mito,cyto|Location_MaxIntensity_Z_actin,cyto|Location_MaxIntensity_Z_dna,cyto|Location_MaxIntensity_Z_cd25,cyto|Location_CenterMassIntensity_Z_mito,cyto|Location_CenterMassIntensity_Z_dna,cyto|Location_CenterMassIntensity_Z_actin,cyto|Location_CenterMassIntensity_Z_cd25,cyto|Location_CenterMassIntensity_Y_mito,cyto|Location_CenterMassIntensity_Y_cd25,cyto|Location_CenterMassIntensity_Y_dna,cyto|Location_CenterMassIntensity_Y_actin,cyto|Location_CenterMassIntensity_X_actin,cyto|Location_CenterMassIntensity_X_cd25,cyto|Location_CenterMassIntensity_X_mito,cyto|Location_CenterMassIntensity_X_dna,cyto|Location_Center_Z,cyto|Location_Center_X,cyto|Location_Center_Y,cyto|AreaShape_BoundingBoxMaximum_X,cyto|AreaShape_BoundingBoxMaximum_Z,cyto|AreaShape_BoundingBoxMaximum_Y,cyto|AreaShape_BoundingBoxMinimum_Z,cyto|AreaShape_BoundingBoxMinimum_Y,cyto|AreaShape_BoundingBoxMinimum_X,cyto|AreaShape_Center_Z,cyto|AreaShape_Center_Y,cyto|AreaShape_Center_X,cyto|AreaShape_Extent,cyto|AreaShape_EulerNumber,cyto|AreaShape_SurfaceArea,cyto|AreaShape_MinorAxisLength,cyto|AreaShape_MajorAxisLength,cyto|AreaShape_BoundingBoxVolume,cyto|AreaShape_EquivalentDiameter,cyto|AreaShape_Volume,cyto|Intensity_LowerQuartileIntensity_mito,cyto|Intensity_LowerQuartileIntensity_cd25,cyto|Intensity_LowerQuartileIntensity_actin,cyto|Intensity_LowerQuartileIntensity_dna,cyto|Intensity_MassDisplacement_dna,cyto|Intensity_MassDisplacement_mito,cyto|Intensity_MassDisplacement_actin,cyto|Intensity_MassDisplacement_cd25,cyto|Intensity_MinIntensity_dna,cyto|Intensity_MinIntensity_cd25,cyto|Intensity_MinIntensity_mito,cyto|Intensity_MinIntensity_actin,cyto|Intensity_StdIntensityEdge_cd25,cyto|Intensity_StdIntensityEdge_dna,cyto|Intensity_StdIntensityEdge_actin,cyto|Intensity_StdIntensityEdge_mito,cyto|Intensity_MaxIntensity_actin,cyto|Intensity_MaxIntensity_dna,cyto|Intensity_MaxIntensity_mito,cyto|Intensity_MaxIntensity_cd25,cyto|Intensity_MeanIntensity_cd25,cyto|Intensity_MeanIntensity_mito,cyto|Intensity_MeanIntensity_dna,cyto|Intensity_MeanIntensity_actin,cyto|Intensity_UpperQuartileIntensity_cd25,cyto|Intensity_UpperQuartileIntensity_mito,cyto|Intensity_UpperQuartileIntensity_actin,cyto|Intensity_UpperQuartileIntensity_dna,cyto|Intensity_IntegratedIntensity_mito,cyto|Intensity_IntegratedIntensity_dna,cyto|Intensity_IntegratedIntensity_actin,cyto|Intensity_IntegratedIntensity_cd25,cyto|Intensity_MeanIntensityEdge_cd25,cyto|Intensity_MeanIntensityEdge_actin,cyto|Intensity_MeanIntensityEdge_dna,cyto|Intensity_MeanIntensityEdge_mito,cyto|Intensity_MinIntensityEdge_dna,cyto|Intensity_MinIntensityEdge_actin,cyto|Intensity_MinIntensityEdge_mito,cyto|Intensity_MinIntensityEdge_cd25,cyto|Intensity_StdIntensity_dna,cyto|Intensity_StdIntensity_mito,cyto|Intensity_StdIntensity_actin,cyto|Intensity_StdIntensity_cd25,cyto|Intensity_MaxIntensityEdge_actin,cyto|Intensity_MaxIntensityEdge_dna,cyto|Intensity_MaxIntensityEdge_cd25,cyto|Intensity_MaxIntensityEdge_mito,cyto|Intensity_IntegratedIntensityEdge_cd25,cyto|Intensity_IntegratedIntensityEdge_mito,cyto|Intensity_IntegratedIntensityEdge_dna,cyto|Intensity_IntegratedIntensityEdge_actin,cyto|Intensity_MADIntensity_actin,cyto|Intensity_MADIntensity_dna,cyto|Intensity_MADIntensity_cd25,cyto|Intensity_MADIntensity_mito,cyto|Intensity_MedianIntensity_dna,cyto|Intensity_MedianIntensity_mito,cyto|Intensity_MedianIntensity_cd25,cyto|Intensity_MedianIntensity_actin,cyto|Number_Object_Number,cyto|Parent_cells,Experiment|Run_Timestamp,Experiment|ImageQuality_ThresholdMedianOtsu_actin_2W,Experiment|ImageQuality_ThresholdMedianOtsu_mito_2W,Experiment|ImageQuality_ThresholdMedianOtsu_cd25_ki67_2W,Experiment|ImageQuality_ThresholdMedianOtsu_brightfield_2W,Experiment|ImageQuality_ThresholdMedianOtsu_dna_2W,Experiment|ImageQuality_ThresholdStdOtsu_actin_2W,Experiment|ImageQuality_ThresholdStdOtsu_dna_2W,Experiment|ImageQuality_ThresholdStdOtsu_cd25_ki67_2W,Experiment|ImageQuality_ThresholdStdOtsu_brightfield_2W,Experiment|ImageQuality_ThresholdStdOtsu_mito_2W,Experiment|ImageQuality_ThresholdMeanOtsu_brightfield_2W,Experiment|ImageQuality_ThresholdMeanOtsu_dna_2W,Experiment|ImageQuality_ThresholdMeanOtsu_cd25_ki67_2W,Experiment|ImageQuality_ThresholdMeanOtsu_mito_2W,Experiment|ImageQuality_ThresholdMeanOtsu_actin_2W,Experiment|Pipeline_Pipeline,Experiment|CellProfiler_Version,Experiment|Modification_Timestamp
+    Representation of Nan/Inf:NaN
+    Add a prefix to file names?:Yes
+    Filename prefix:tglow_3d_pipeline_v1_
+    Overwrite existing files without warning?:Yes
+    Data to export:Experiment
+    Combine these object measurements with those of the previous object?:No
+    File name:\g<timepoint>_\g<well>_experiment.tsv
+    Use the object name for the file name?:No
+    Data to export:Image
+    Combine these object measurements with those of the previous object?:No
+    File name:\g<timepoint>_\g<well>_image.tsv
+    Use the object name for the file name?:No
+    Data to export:cells
+    Combine these object measurements with those of the previous object?:No
+    File name:\g<timepoint>_\g<well>_cells.tsv
+    Use the object name for the file name?:No
+    Data to export:nucleus
+    Combine these object measurements with those of the previous object?:Yes
+    File name:DATA.csv
+    Use the object name for the file name?:Yes
+    Data to export:cyto
+    Combine these object measurements with those of the previous object?:Yes
+    File name:DATA.csv
+    Use the object name for the file name?:Yes
+    Data to export:Object relationships
+    Combine these object measurements with those of the previous object?:No
+    File name:\g<timepoint>_\g<well>_objectRelation.ships.tsv
+    Use the object name for the file name?:No
