@@ -1,3 +1,5 @@
+#!/usr/bin/env python 
+
 from cellpose import models, io
 import numpy as np
 import time

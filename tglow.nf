@@ -14,7 +14,7 @@ process prepare_manifest {
     script:
         cmd =
         """
-        python $params.tg_core_dir/parse_xml.py \
+        python parse_xml.py \
         --input_file '$index_xml' \
         --output_path ./ \
         --to_manifest
@@ -62,7 +62,8 @@ process fetch_raw {
         path "$plate/$row/$col"
     script:
         """
-        python $params.tg_core_dir/convert_pe_raw.py \
+        #python convert_pe_raw.py \
+        python convert_pe_raw.py \
         --input_file '$index_xml' \
         --output_path ./ \
         --well $well
@@ -87,7 +88,7 @@ process basicpy {
     script:
         cmd =
         """
-        python $params.tg_core_dir/run_basicpy.py \
+        python run_basicpy.py \
         --input $params.rn_image_dir \
         --output ./ \
         --output_prefix $plate \
@@ -151,7 +152,7 @@ process cellpose {
     script:
         cmd =
         """
-        python $params.tg_core_dir/run_cellpose.py \
+        python run_cellpose.py \
         --output ./ \
         --plate $plate \
         --well $well \
@@ -237,7 +238,7 @@ process register {
     script:
         cmd =
         """
-        python $params.tg_core_dir/run_registration.py \
+        python run_registration.py \
         --input $params.rn_image_dir \
         --output ./ \
         --well $well \
@@ -278,7 +279,7 @@ process deconvolute {
     script:
         cmd =
         """
-        python $params.tg_core_dir/run_richardson_lucy.py \
+        python run_richardson_lucy.py \
         --input $params.rn_image_dir \
         --plate $plate \
         --well $well \
@@ -316,10 +317,10 @@ process deconvolute {
 process cellprofiler {
     label params.cpr_label
     conda params.cpr_conda_env
-    //publishDir "$params.rn_publish_dir/cellprofiler", mode: 'move'
     storeDir "$params.rn_publish_dir/cellprofiler"
     scratch params.rn_scratch
     //errorStrategy { task.attempt <= 2 ? "retry" : "ignore" }
+    //publishDir "$params.rn_publish_dir/cellprofiler", mode: 'move'
 
     input:
         tuple val(plate), val(key), val(well), val(row), val(col), path(cell_masks), path(nucl_masks), val(merge_plates), path(registration, stageAs:"registration/*"), val(basicpy_string), val(mask_channels)
@@ -340,7 +341,7 @@ process cellprofiler {
         cmd += 
         """
         # Stage files
-        python ${params.tg_core_dir}/stage_cellprofiler.py \
+        python stage_cellprofiler.py \
         --output ./images \
         --well $well \
         --plate $plate\
@@ -378,7 +379,7 @@ process cellprofiler {
         if (params.rn_hybrid) {
             cmd += 
             """
-            python ${params.tg_core_dir}/max_project.py \
+            python max_project.py \
             --input ./masks \
             --output ./images \
             --well $well \
@@ -390,7 +391,7 @@ process cellprofiler {
             if (!nucl_masks[0].fileName.name.startsWith("NO_NUCL_MASK")) {
                 cmd += 
                 """
-                python ${params.tg_core_dir}/max_project.py \
+                python max_project.py \
                 --input ./masks \
                 --output ./images \
                 --well $well \

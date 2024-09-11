@@ -1,5 +1,5 @@
 #!/usr/bin/env python 
-#
+
 # Adapted from Martin Prete's scripts
 # Works with both Opera Phenix and Operetta indices
 ####################################################################

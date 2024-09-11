@@ -1,3 +1,5 @@
+#!/usr/bin/env python 
+
 from math import sqrt
 from skimage import data, transform, io, exposure
 from skimage.feature import blob_log
