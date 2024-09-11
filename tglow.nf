@@ -1,3 +1,6 @@
+#!/usr/bin/env nextflow
+
+include { '*' } from './lib/utils.nf'
 
 // Prepare a manfiest
 process prepare_manifest {
@@ -10,7 +13,6 @@ process prepare_manifest {
     output:
         path "manifest.tsv", emit: manifest
         tuple path("Index.*xml"), path("Index.json"), path("acquisition_info.txt"), emit: metadata
-        //path('AssayLayout', optional: true), emit assay_layout
     script:
         cmd =
         """
@@ -51,7 +53,6 @@ process fetch_raw {
     scratch params.rn_scratch
     label 'small_img'
     conda params.tg_conda_env
-    //storeDir "$params.rn_image_dir/$plate/$row/$col", mode: 'move'
     storeDir "${params.rn_image_dir}"
 
     input:
@@ -62,7 +63,6 @@ process fetch_raw {
         path "$plate/$row/$col"
     script:
         """
-        #python convert_pe_raw.py \
         python convert_pe_raw.py \
         --input_file '$index_xml' \
         --output_path ./ \
@@ -129,8 +129,7 @@ process basicpy {
         if (params.rn_blacklist) {
             cmd += " --blacklist $blacklist"
         }
-        
-            
+          
         cmd
 }
 
@@ -144,9 +143,6 @@ process cellpose {
     input:
         tuple val(plate), val(well), val(row), val(col), val(nucl_channel), val(cell_channel)
     output:
-        //path "${plate}/${row}/${col}/*_cell_mask*.tif", emit: cell_masks
-        //path("${plate}/${row}/${col}/*_nucl_mask*.tif"), emit: nucl_masks, optional: true
-                //tuple val(plate), val(well), val(row), val(col), val("dave"), val("john"), emit: cellpose_out
         tuple val(plate), val(well), val(row), val(col), path("${plate}/${row}/${col}/*_cell_mask*_ch${cell_channel}*.*"), path("${plate}/${row}/${col}/*_nucl_mask*_ch${nucl_channel}*.*"), emit: cellpose_out //, path("${plate}/${row}/${col}/*_nucl_mask*.tif"), emit: cellpose_out
         
     script:
@@ -229,12 +225,11 @@ process cellpose {
 process register {
     label 'normal'
     conda params.tg_conda_env
-    //publishDir "${params.rn_publish_dir}/registration/", mode: "copy"
     storeDir "${params.rn_publish_dir}/registration/"
     input:
         tuple val(plate), val(well), val(row), val(col), val(reference_channel), val(query_plates), val(query_channels)
     output:
-        tuple val(plate), val(well), val(row), val(col), val(query_plates), path("${plate}")//, path("${plate}/${row}/${col}/*")
+        tuple val(plate), val(well), val(row), val(col), val(query_plates), path("${plate}")
     script:
         cmd =
         """
@@ -319,14 +314,10 @@ process cellprofiler {
     conda params.cpr_conda_env
     storeDir "$params.rn_publish_dir/cellprofiler"
     scratch params.rn_scratch
-    //errorStrategy { task.attempt <= 2 ? "retry" : "ignore" }
-    //publishDir "$params.rn_publish_dir/cellprofiler", mode: 'move'
 
     input:
         tuple val(plate), val(key), val(well), val(row), val(col), path(cell_masks), path(nucl_masks), val(merge_plates), path(registration, stageAs:"registration/*"), val(basicpy_string), val(mask_channels)
     output:
-        //path "features/$plate/$row/$col/*.tsv"
-        //path "features/$plate/$row/$col/*.txt"
         path "features/$plate/$row/$col/*"
     script:
     
@@ -466,7 +457,7 @@ workflow stage {
             error "rn_manifest file parameter is required: --rn_manifest"
         }
 
-        // Set runtime defaults
+        // Set runtime defaults, these are overidden when specified on commandline
         params.rn_image_dir = params.rn_publish_dir + "/images"
         params.rn_decon_dir = params.rn_publish_dir + "/decon"
     
@@ -522,14 +513,6 @@ workflow stage {
         
 }
 
-def convertChannelType(String input) {
-    if (input.isInteger()) {
-        return (input.toInteger() - 1)
-    } else {
-        return -9
-    }        
-}
-
 // Main workflow
 workflow run_pipeline {
 
@@ -543,7 +526,7 @@ workflow run_pipeline {
             error "rn_manifest file parameter is required: --rn_manifest"
         }
 
-        // Set runtime defaults
+        // Set runtime defaults, these are overidden when specified on commandline
         params.rn_image_dir = params.rn_publish_dir + "/images"
         params.rn_decon_dir = params.rn_publish_dir + "/decon"
 

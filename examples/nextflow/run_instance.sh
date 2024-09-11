@@ -38,8 +38,6 @@ CMD="nextflow run ${NF_FILE} \
 -resume \
 -entry ${WORKFLOW}"
 
-#-c /software/teamtrynka/installs/tglow-core/nextflow/lsf_config.conf \
-
 # Pipeline specific arguments go behind here
 CMD="${CMD}  \
 --rn_manifest ${MANIFEST} \
