@@ -1,6 +1,6 @@
 #!/usr/bin/env nextflow
 
-include { '*' } from './lib/utils.nf'
+include { convertChannelType } from './lib/utils.nf'
 
 // Prepare a manfiest
 process prepare_manifest {
@@ -16,7 +16,7 @@ process prepare_manifest {
     script:
         cmd =
         """
-        python parse_xml.py \
+        parse_xml.py \
         --input_file '$index_xml' \
         --output_path ./ \
         --to_manifest
@@ -63,7 +63,7 @@ process fetch_raw {
         path "$plate/$row/$col"
     script:
         """
-        python convert_pe_raw.py \
+        convert_pe_raw.py \
         --input_file '$index_xml' \
         --output_path ./ \
         --well $well
@@ -88,7 +88,7 @@ process basicpy {
     script:
         cmd =
         """
-        python run_basicpy.py \
+        run_basicpy.py \
         --input $params.rn_image_dir \
         --output ./ \
         --output_prefix $plate \
@@ -148,7 +148,7 @@ process cellpose {
     script:
         cmd =
         """
-        python run_cellpose.py \
+        run_cellpose.py \
         --output ./ \
         --plate $plate \
         --well $well \
@@ -233,7 +233,7 @@ process register {
     script:
         cmd =
         """
-        python run_registration.py \
+        run_registration.py \
         --input $params.rn_image_dir \
         --output ./ \
         --well $well \
@@ -274,7 +274,7 @@ process deconvolute {
     script:
         cmd =
         """
-        python run_richardson_lucy.py \
+        run_richardson_lucy.py \
         --input $params.rn_image_dir \
         --plate $plate \
         --well $well \
@@ -332,7 +332,7 @@ process cellprofiler {
         cmd += 
         """
         # Stage files
-        python stage_cellprofiler.py \
+        stage_cellprofiler.py \
         --output ./images \
         --well $well \
         --plate $plate\
@@ -370,7 +370,7 @@ process cellprofiler {
         if (params.rn_hybrid) {
             cmd += 
             """
-            python max_project.py \
+            max_project.py \
             --input ./masks \
             --output ./images \
             --well $well \
@@ -382,7 +382,7 @@ process cellprofiler {
             if (!nucl_masks[0].fileName.name.startsWith("NO_NUCL_MASK")) {
                 cmd += 
                 """
-                python max_project.py \
+                max_project.py \
                 --input ./masks \
                 --output ./images \
                 --well $well \
