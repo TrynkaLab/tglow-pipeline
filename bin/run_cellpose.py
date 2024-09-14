@@ -40,8 +40,9 @@ def close_per_object(label_image, disk):
 class CellposeRunner():
     
     def __init__(self, path, plate, output, model, model_nucl, nucl_channel, other_channel, diameter, diameter_nucl,
-                do_3d, anisotropy=None, min_cell_area=None, min_nucl_area=None, fields=None, plot=False, flow_thresh=0.4,
-                prob_thresh=0, use_nucl_for_declump=True, nucl_power=None, cell_power=None, post_process=True, downsample=None):
+                do_3d, anisotropy=None, min_cell_area=None, min_nucl_area=None, fields=None, plot=False, cell_flow_thresh=0.4,
+                cell_prob_thresh=0, use_nucl_for_declump=True, nucl_power=None, cell_power=None, post_process=True, downsample=None,
+                nucl_flow_thresh=0.4, nucl_prob_thresh=0):
         
         self.path=path
         self.plate=plate
@@ -59,8 +60,10 @@ class CellposeRunner():
         self.diameter=diameter
         self.diameter_nucl=diameter_nucl
         
-        self.flow_thresh=flow_thresh
-        self.prob_thresh=prob_thresh
+        self.cell_flow_thresh=cell_flow_thresh
+        self.cell_prob_thresh=cell_prob_thresh
+        self.nucl_flow_thresh=nucl_flow_thresh
+        self.nucl_prob_thresh=nucl_prob_thresh
         
         self.downsample=downsample
 
@@ -176,7 +179,7 @@ class CellposeRunner():
         log.debug(f"Model nucl: {self.model_nucl[0]}")
         
         # Optionally pre-process the data
-        cellprob_thresh = self.prob_thresh
+        cellprob_thresh = self.cell_prob_thresh
         if self.cell_power is not None:
             img = img.astype(np.float32)
             img = img / np.iinfo(np.uint16).max#np.max(nucl)
@@ -207,7 +210,7 @@ class CellposeRunner():
                                                 do_3D=self.do_3d,
                                                 min_size=self.min_size,
                                                 anisotropy=self.anisotropy,
-                                                flow_threshold=self.flow_thresh,
+                                                flow_threshold=self.cell_flow_thresh,
                                                 cellprob_threshold=cellprob_thresh,
                                                 normalize=False)
         log.info("Cell mask running time %s seconds" % round(time.time() - start_time))
@@ -238,7 +241,7 @@ class CellposeRunner():
             masks_bin = (masks > 0).astype(np.uint16)
             
             # Optionally pre process
-            cellprob_thresh = self.prob_thresh
+            cellprob_thresh = self.nucl_prob_thresh
             if self.nucl_power is not None:
                 nucl = nucl.astype(np.float32)
                 nucl = nucl / np.iinfo(np.uint16).max#np.max(nucl)
@@ -248,7 +251,7 @@ class CellposeRunner():
                 tmp = nucl * masks_bin
                 nucl = nucl / np.max(tmp)
                 nucl = float_to_16bit_unint(nucl * np.iinfo(np.uint16).max)
-                cellprob_thresh = self.cellprob_thresh-self.nucl_power
+                cellprob_thresh = self.nucl_prob_thresh-self.nucl_power
 
             # Optiionally downsample
             image_dims = nucl.shape
@@ -267,7 +270,7 @@ class CellposeRunner():
                                                     do_3D=self.do_3d,
                                                     anisotropy=self.anisotropy,
                                                     min_size=self.min_size_nucl,
-                                                    flow_threshold=self.flow_thresh,
+                                                    flow_threshold=self.nucl_flow_thresh,
                                                     cellprob_threshold=cellprob_thresh,
                                                     normalize=False)
             log.info("Nucleus running time %s seconds" % round(time.time() - start_time))
@@ -323,8 +326,10 @@ if __name__ == "__main__":
     parser.add_argument('--no_3d', help="Don't run in 3d mode", action='store_true', default=False)
     parser.add_argument('--fields', help='Fields to use. <field #1> | [<field #1> <field #2> <field #n>]', nargs='+', default=None)
     parser.add_argument('--plot', help="Plot overlay masks", action='store_true', default=False)
-    parser.add_argument('--flow_threshold', help="Cellpose flow threshold", default=0.4)
-    parser.add_argument('--prob_threshold', help="Cellpose cell probability threshold", default=0)
+    parser.add_argument('--cell_flow_threshold', help="Cellpose flow threshold for cells", default=0.4)
+    parser.add_argument('--nucl_flow_threshold', help="Cellpose flow threshold for nuclei", default=0.4)
+    parser.add_argument('--cell_prob_threshold', help="Cellpose cell probability threshold for cells", default=0)
+    parser.add_argument('--nucl_prob_threshold', help="Cellpose cell probability threshold for nuclei", default=0)
     parser.add_argument('--nucl_power', help="Raises the nucleus image to this power as a form of soft thresholding. Sets cellprob threshold to -6.", default=None)
     parser.add_argument('--cell_power', help="Raises the cell image to this power as a form of soft thresholding. Sets cellprob threshold to -6.", default=None)
     parser.add_argument('--dont_use_nucl_for_declump', help="Fit nucleus masks, but do not supply as a 2nd channel to model.", action='store_true', default=False)
@@ -367,13 +372,15 @@ if __name__ == "__main__":
                             args.min_nucl_area,
                             args.fields,
                             args.plot,
-                            float(args.flow_threshold),
-                            float(args.prob_threshold),
+                            float(args.cell_flow_threshold),
+                            float(args.cell_prob_threshold),
                             not args.dont_use_nucl_for_declump,
                             float(args.nucl_power) if args.nucl_power is not None else args.nucl_power,
                             float(args.cell_power) if args.cell_power is not None else args.cell_power,
                             not args.dont_post_process,
-                            int(args.downsample) if args.downsample is not None else args.downsample
+                            int(args.downsample) if args.downsample is not None else args.downsample,
+                            float(args.nucl_flow_threshold),
+                            float(args.nucl_prob_threshold),
 )
     
     # Loop, ideally one plate and well at the time is supplied, but can run all

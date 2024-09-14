@@ -180,6 +180,22 @@ process cellpose {
             cmd += " --min_nucl_area $params.cp_min_nucl_area"
         }
         
+        if (params.cp_cell_flow_thresh) {
+            cmd += " --cell_flow_thresh $params.cp_cell_flow_thresh"
+        }
+        
+        if (params.cp_nucl_flow_thresh) {
+            cmd += " --nucl_flow_thresh $params.cp_nucl_flow_thresh"
+        }
+        
+        if (params.cp_cell_prob_threshold) {
+            cmd += " --cell_prob_threshold $params.cp_cell_prob_threshold"
+        }
+        
+        if (params.cp_nucl_prob_threshold) {
+            cmd += " --nucl_prob_threshold $params.cp_nucl_prob_threshold"
+        }
+        
         if (params.rn_max_project & !params.rn_hybrid) {
             cmd += " --no_3d"
         }

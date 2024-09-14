@@ -86,6 +86,7 @@ class MergeAndAlign:
             self.fields=args.fields
             
         # Mask settings
+        self.mask_channels=None
         if args.mask_channels is not None:
             self.mask_channels = [int(c) for c in args.mask_channels]
         
