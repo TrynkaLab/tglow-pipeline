@@ -2,7 +2,7 @@ CellProfiler Pipeline: http://www.cellprofiler.org
 Version:5
 DateRevision:426
 GitHash:
-ModuleCount:42
+ModuleCount:43
 HasImagePlaneDetails:False
 
 Images:[module_num:1|svn_version:'Unknown'|variable_revision_number:2|show_window:False|notes:['To begin creating your project, use the Images module to compile a list of files and/or folders that you want to analyze. You can also specify a set of rules to include only the desired files in your selected folders.']|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
@@ -110,7 +110,27 @@ ConvertImageToObjects:[module_num:6|svn_version:'Unknown'|variable_revision_numb
     Background label:0
     Connectivity:0
 
-RelateObjects:[module_num:7|svn_version:'Unknown'|variable_revision_number:5|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+FlagImage:[module_num:7|svn_version:'Unknown'|variable_revision_number:5|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Hidden:1
+    Hidden:1
+    Name the flag's category:Metadata
+    Name the flag:less_then_three_cells
+    How should measurements be linked?:Flag if any fail
+    Skip image set if flagged?:Yes
+    Flag is based on:Whole-image measurement
+    Select the object to be used for flagging:cell_raw
+    Which measurement?:Count_cell_raw
+    Flag images based on low values?:Yes
+    Minimum value:3
+    Flag images based on high values?:No
+    Maximum value:1.0
+    Rules file location:Elsewhere...|
+    Rules file name:rules.txt
+    Class number:
+    Allow fuzzy feature matching?:No
+    Ignore flag skips on last cycle?:No
+
+RelateObjects:[module_num:8|svn_version:'Unknown'|variable_revision_number:5|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
     Parent objects:cell_raw
     Child objects:nucl_raw_unmerged
     Calculate child-parent distances?:None
@@ -120,7 +140,7 @@ RelateObjects:[module_num:7|svn_version:'Unknown'|variable_revision_number:5|sho
     Name the output object:RelateObjects
     Parent name:None
 
-SplitOrMergeObjects:[module_num:8|svn_version:'Unknown'|variable_revision_number:6|show_window:False|notes:['Merge nuclei with the same parent']|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+SplitOrMergeObjects:[module_num:9|svn_version:'Unknown'|variable_revision_number:6|show_window:False|notes:['Merge nuclei with the same parent']|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
     Select the input objects:nucl_raw_unmerged
     Name the new objects:nucl
     Operation:Merge
@@ -133,7 +153,7 @@ SplitOrMergeObjects:[module_num:8|svn_version:'Unknown'|variable_revision_number
     Select the parent object:cell_raw
     Output object type:Disconnected
 
-ExpandOrShrinkObjects:[module_num:9|svn_version:'Unknown'|variable_revision_number:2|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+ExpandOrShrinkObjects:[module_num:10|svn_version:'Unknown'|variable_revision_number:2|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
     Select the input objects:cell_raw
     Name the output objects:cell_shrunk
     Select the operation:Shrink objects by a specified number of pixels
@@ -141,7 +161,7 @@ ExpandOrShrinkObjects:[module_num:9|svn_version:'Unknown'|variable_revision_numb
     Fill holes in objects so that all objects shrink to a single point?:No
     Expand or shrink measurement:None
 
-MaskObjects:[module_num:10|svn_version:'Unknown'|variable_revision_number:3|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+MaskObjects:[module_num:11|svn_version:'Unknown'|variable_revision_number:3|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
     Select objects to be masked:cell_raw
     Name the masked objects:memb_tmp
     Mask using a region defined by other objects or by binary image?:Objects
@@ -152,7 +172,7 @@ MaskObjects:[module_num:10|svn_version:'Unknown'|variable_revision_number:3|show
     Numbering of resulting objects:Retain
     Invert the mask?:Yes
 
-MaskObjects:[module_num:11|svn_version:'Unknown'|variable_revision_number:3|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+MaskObjects:[module_num:12|svn_version:'Unknown'|variable_revision_number:3|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
     Select objects to be masked:memb_tmp
     Name the masked objects:memb
     Mask using a region defined by other objects or by binary image?:Objects
@@ -163,7 +183,7 @@ MaskObjects:[module_num:11|svn_version:'Unknown'|variable_revision_number:3|show
     Numbering of resulting objects:Renumber
     Invert the mask?:Yes
 
-MaskObjects:[module_num:12|svn_version:'Unknown'|variable_revision_number:3|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+MaskObjects:[module_num:13|svn_version:'Unknown'|variable_revision_number:3|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
     Select objects to be masked:cell_raw
     Name the masked objects:cyto
     Mask using a region defined by other objects or by binary image?:Objects
@@ -174,7 +194,7 @@ MaskObjects:[module_num:12|svn_version:'Unknown'|variable_revision_number:3|show
     Numbering of resulting objects:Retain
     Invert the mask?:Yes
 
-MaskImage:[module_num:13|svn_version:'Unknown'|variable_revision_number:3|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+MaskImage:[module_num:14|svn_version:'Unknown'|variable_revision_number:3|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
     Select the input image:cd25_ki67
     Name the output image:cd25_old
     Use objects or an image as a mask?:Objects
@@ -182,7 +202,7 @@ MaskImage:[module_num:13|svn_version:'Unknown'|variable_revision_number:3|show_w
     Select image for mask:None
     Invert the mask?:No
 
-MaskImage:[module_num:14|svn_version:'Unknown'|variable_revision_number:3|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+MaskImage:[module_num:15|svn_version:'Unknown'|variable_revision_number:3|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
     Select the input image:cd25_ki67
     Name the output image:ki67_old
     Use objects or an image as a mask?:Objects
@@ -190,7 +210,7 @@ MaskImage:[module_num:14|svn_version:'Unknown'|variable_revision_number:3|show_w
     Select image for mask:None
     Invert the mask?:No
 
-Threshold:[module_num:15|svn_version:'Unknown'|variable_revision_number:12|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+Threshold:[module_num:16|svn_version:'Unknown'|variable_revision_number:12|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
     Select the input image:mito
     Name the output image:mito_thresh
     Threshold strategy:Adaptive
@@ -211,7 +231,7 @@ Threshold:[module_num:15|svn_version:'Unknown'|variable_revision_number:12|show_
     # of deviations:2.0
     Thresholding method:Otsu
 
-Threshold:[module_num:16|svn_version:'Unknown'|variable_revision_number:12|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:True]
+Threshold:[module_num:17|svn_version:'Unknown'|variable_revision_number:12|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:True]
     Select the input image:ki67_old
     Name the output image:ki67_thresh
     Threshold strategy:Adaptive
@@ -232,7 +252,7 @@ Threshold:[module_num:16|svn_version:'Unknown'|variable_revision_number:12|show_
     # of deviations:2.0
     Thresholding method:Otsu
 
-ConvertImageToObjects:[module_num:17|svn_version:'Unknown'|variable_revision_number:1|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+ConvertImageToObjects:[module_num:18|svn_version:'Unknown'|variable_revision_number:1|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
     Select the input image:ki67_thresh
     Name the output object:ki67
     Convert to boolean image:Yes
@@ -240,7 +260,7 @@ ConvertImageToObjects:[module_num:17|svn_version:'Unknown'|variable_revision_num
     Background label:0
     Connectivity:0
 
-ConvertImageToObjects:[module_num:18|svn_version:'Unknown'|variable_revision_number:1|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+ConvertImageToObjects:[module_num:19|svn_version:'Unknown'|variable_revision_number:1|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
     Select the input image:mito_thresh
     Name the output object:mito
     Convert to boolean image:No
@@ -248,7 +268,7 @@ ConvertImageToObjects:[module_num:18|svn_version:'Unknown'|variable_revision_num
     Background label:0
     Connectivity:0
 
-FilterObjects:[module_num:19|svn_version:'Unknown'|variable_revision_number:10|show_window:False|notes:['Exclude nuclei 5% arround the image borders']|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+FilterObjects:[module_num:20|svn_version:'Unknown'|variable_revision_number:10|show_window:False|notes:['Exclude nuclei 5% arround the image borders']|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
     Select the objects to filter:cell_raw
     Name the output objects:cell
     Select the filtering mode:Measurements
@@ -274,7 +294,7 @@ FilterObjects:[module_num:19|svn_version:'Unknown'|variable_revision_number:10|s
     Maximum value:2052
     Allow fuzzy feature matching?:No
 
-RelateObjects:[module_num:20|svn_version:'Unknown'|variable_revision_number:5|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+RelateObjects:[module_num:21|svn_version:'Unknown'|variable_revision_number:5|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
     Parent objects:cell
     Child objects:nucl
     Calculate child-parent distances?:None
@@ -284,7 +304,7 @@ RelateObjects:[module_num:20|svn_version:'Unknown'|variable_revision_number:5|sh
     Name the output object:RelateObjects
     Parent name:None
 
-RelateObjects:[module_num:21|svn_version:'Unknown'|variable_revision_number:5|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+RelateObjects:[module_num:22|svn_version:'Unknown'|variable_revision_number:5|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
     Parent objects:cell
     Child objects:memb
     Calculate child-parent distances?:None
@@ -294,7 +314,7 @@ RelateObjects:[module_num:21|svn_version:'Unknown'|variable_revision_number:5|sh
     Name the output object:RelateObjects
     Parent name:None
 
-RelateObjects:[module_num:22|svn_version:'Unknown'|variable_revision_number:5|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+RelateObjects:[module_num:23|svn_version:'Unknown'|variable_revision_number:5|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
     Parent objects:cell
     Child objects:cyto
     Calculate child-parent distances?:None
@@ -304,7 +324,7 @@ RelateObjects:[module_num:22|svn_version:'Unknown'|variable_revision_number:5|sh
     Name the output object:RelateObjects
     Parent name:None
 
-RelateObjects:[module_num:23|svn_version:'Unknown'|variable_revision_number:5|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+RelateObjects:[module_num:24|svn_version:'Unknown'|variable_revision_number:5|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
     Parent objects:cell
     Child objects:mito
     Calculate child-parent distances?:None
@@ -314,7 +334,7 @@ RelateObjects:[module_num:23|svn_version:'Unknown'|variable_revision_number:5|sh
     Name the output object:RelateObjects
     Parent name:None
 
-RelateObjects:[module_num:24|svn_version:'Unknown'|variable_revision_number:5|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+RelateObjects:[module_num:25|svn_version:'Unknown'|variable_revision_number:5|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
     Parent objects:cell
     Child objects:ki67
     Calculate child-parent distances?:None
@@ -324,7 +344,7 @@ RelateObjects:[module_num:24|svn_version:'Unknown'|variable_revision_number:5|sh
     Name the output object:RelateObjects
     Parent name:None
 
-MeasureImageQuality:[module_num:25|svn_version:'Unknown'|variable_revision_number:6|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+MeasureImageQuality:[module_num:26|svn_version:'Unknown'|variable_revision_number:6|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
     Calculate metrics for which images?:Select...
     Image count:1
     Scale count:1
@@ -343,17 +363,17 @@ MeasureImageQuality:[module_num:25|svn_version:'Unknown'|variable_revision_numbe
     Minimize the weighted variance or the entropy?:Weighted variance
     Assign pixels in the middle intensity class to the foreground or the background?:Foreground
 
-MeasureObjectSizeShape:[module_num:26|svn_version:'Unknown'|variable_revision_number:3|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+MeasureObjectSizeShape:[module_num:27|svn_version:'Unknown'|variable_revision_number:3|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
     Select object sets to measure:cell, nucl
     Calculate the Zernike features?:Yes
     Calculate the advanced features?:Yes
 
-MeasureObjectSizeShape:[module_num:27|svn_version:'Unknown'|variable_revision_number:3|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+MeasureObjectSizeShape:[module_num:28|svn_version:'Unknown'|variable_revision_number:3|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
     Select object sets to measure:ki67, mito
     Calculate the Zernike features?:No
     Calculate the advanced features?:No
 
-MeasureObjectNeighbors:[module_num:28|svn_version:'Unknown'|variable_revision_number:3|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+MeasureObjectNeighbors:[module_num:29|svn_version:'Unknown'|variable_revision_number:3|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
     Select objects to measure:cell
     Select neighboring objects to measure:cell
     Method to determine neighbors:Adjacent
@@ -366,7 +386,7 @@ MeasureObjectNeighbors:[module_num:28|svn_version:'Unknown'|variable_revision_nu
     Name the output image:PercentTouching
     Select colormap:Oranges
 
-MeasureObjectNeighbors:[module_num:29|svn_version:'Unknown'|variable_revision_number:3|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+MeasureObjectNeighbors:[module_num:30|svn_version:'Unknown'|variable_revision_number:3|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
     Select objects to measure:mito
     Select neighboring objects to measure:mito
     Method to determine neighbors:Within a specified distance
@@ -379,24 +399,24 @@ MeasureObjectNeighbors:[module_num:29|svn_version:'Unknown'|variable_revision_nu
     Name the output image:PercentTouching
     Select colormap:Oranges
 
-MeasureObjectIntensity:[module_num:30|svn_version:'Unknown'|variable_revision_number:4|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+MeasureObjectIntensity:[module_num:31|svn_version:'Unknown'|variable_revision_number:4|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
     Select images to measure:actin, cd25_ki67, cd25_old, mito
     Select objects to measure:cell
 
-MeasureObjectIntensity:[module_num:31|svn_version:'Unknown'|variable_revision_number:4|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+MeasureObjectIntensity:[module_num:32|svn_version:'Unknown'|variable_revision_number:4|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
     Select images to measure:actin, cd25_ki67, cd25_old, mito
     Select objects to measure:cyto, memb
 
-MeasureObjectIntensity:[module_num:32|svn_version:'Unknown'|variable_revision_number:4|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+MeasureObjectIntensity:[module_num:33|svn_version:'Unknown'|variable_revision_number:4|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
     Select images to measure:dna, ki67_old
     Select objects to measure:nucl
 
-MeasureImageAreaOccupied:[module_num:33|svn_version:'Unknown'|variable_revision_number:5|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+MeasureImageAreaOccupied:[module_num:34|svn_version:'Unknown'|variable_revision_number:5|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
     Measure the area occupied by:Objects
     Select binary images to measure:cells_img
     Select object sets to measure:cell
 
-MeasureObjectIntensityDistribution:[module_num:34|svn_version:'Unknown'|variable_revision_number:6|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+MeasureObjectIntensityDistribution:[module_num:35|svn_version:'Unknown'|variable_revision_number:6|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
     Select images to measure:cd25_ki67, cd25_old, mito
     Hidden:1
     Hidden:1
@@ -410,7 +430,7 @@ MeasureObjectIntensityDistribution:[module_num:34|svn_version:'Unknown'|variable
     Number of bins:6
     Maximum radius:100
 
-MeasureObjectIntensityDistribution:[module_num:35|svn_version:'Unknown'|variable_revision_number:6|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+MeasureObjectIntensityDistribution:[module_num:36|svn_version:'Unknown'|variable_revision_number:6|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
     Select images to measure:cd25_ki67, dna, ki67_old
     Hidden:1
     Hidden:1
@@ -424,7 +444,7 @@ MeasureObjectIntensityDistribution:[module_num:35|svn_version:'Unknown'|variable
     Number of bins:4
     Maximum radius:100
 
-MeasureGranularity:[module_num:36|svn_version:'Unknown'|variable_revision_number:4|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+MeasureGranularity:[module_num:37|svn_version:'Unknown'|variable_revision_number:4|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
     Select images to measure:actin, cd25_ki67, cd25_old, mito
     Measure within objects?:Yes
     Select objects to measure:cell
@@ -433,7 +453,7 @@ MeasureGranularity:[module_num:36|svn_version:'Unknown'|variable_revision_number
     Radius of structuring element:2
     Range of the granular spectrum:12
 
-MeasureGranularity:[module_num:37|svn_version:'Unknown'|variable_revision_number:4|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+MeasureGranularity:[module_num:38|svn_version:'Unknown'|variable_revision_number:4|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
     Select images to measure:cd25_ki67, dna, ki67_old
     Measure within objects?:Yes
     Select objects to measure:nucl
@@ -442,7 +462,7 @@ MeasureGranularity:[module_num:37|svn_version:'Unknown'|variable_revision_number
     Radius of structuring element:2
     Range of the granular spectrum:12
 
-MeasureColocalization:[module_num:38|svn_version:'Unknown'|variable_revision_number:5|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+MeasureColocalization:[module_num:39|svn_version:'Unknown'|variable_revision_number:5|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
     Select images to measure:actin, cd25_ki67
     Set threshold as percentage of maximum intensity for the images:15.0
     Select where to measure correlation:Within objects
@@ -455,7 +475,7 @@ MeasureColocalization:[module_num:38|svn_version:'Unknown'|variable_revision_num
     Calculate the Manders coefficients using Costes auto threshold?:No
     Method for Costes thresholding:Faster
 
-MeasureTexture:[module_num:39|svn_version:'Unknown'|variable_revision_number:7|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+MeasureTexture:[module_num:40|svn_version:'Unknown'|variable_revision_number:7|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
     Select images to measure:actin, mito
     Select objects to measure:cell
     Enter how many gray levels to measure the texture at:256
@@ -464,7 +484,7 @@ MeasureTexture:[module_num:39|svn_version:'Unknown'|variable_revision_number:7|s
     Texture scale to measure:3
     Texture scale to measure:12
 
-MeasureTexture:[module_num:40|svn_version:'Unknown'|variable_revision_number:7|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+MeasureTexture:[module_num:41|svn_version:'Unknown'|variable_revision_number:7|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
     Select images to measure:cd25_ki67, cd25_old
     Select objects to measure:cyto
     Enter how many gray levels to measure the texture at:256
@@ -473,7 +493,7 @@ MeasureTexture:[module_num:40|svn_version:'Unknown'|variable_revision_number:7|s
     Texture scale to measure:3
     Texture scale to measure:12
 
-MeasureTexture:[module_num:41|svn_version:'Unknown'|variable_revision_number:7|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+MeasureTexture:[module_num:42|svn_version:'Unknown'|variable_revision_number:7|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
     Select images to measure:dna, ki67_old
     Select objects to measure:nucl
     Enter how many gray levels to measure the texture at:256
@@ -482,7 +502,7 @@ MeasureTexture:[module_num:41|svn_version:'Unknown'|variable_revision_number:7|s
     Texture scale to measure:3
     Texture scale to measure:12
 
-ExportToSpreadsheet:[module_num:42|svn_version:'Unknown'|variable_revision_number:13|show_window:True|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+ExportToSpreadsheet:[module_num:43|svn_version:'Unknown'|variable_revision_number:13|show_window:True|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
     Select the column delimiter:Tab
     Add image metadata columns to your object data file?:No
     Add image file and folder names to your object data file?:No
