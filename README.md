@@ -1,4 +1,4 @@
-# Tglow: Nextflow pipeline for analyzing HCI tglow data
+# Tglow: Nextflow pipeline for analyzing HCI data
 
 
 This repo contains the nextflow pipeline and binaries and scripts to run a tglow-pipeline instance for the analysis of high content imaging data.
