@@ -376,12 +376,11 @@ process cellprofiler {
             cmd += " --max_project --no_zstack"
         }
         
-        if (params.rn_hybrid) {
+        if (params.rn_hybrid & mask_channels != "none") {
             cmd += " --mask_dir ./masks"
             cmd += " --mask_pattern *_nucl_mask_*_cp_masks.tiff"
             cmd += " --mask_channels $mask_channels"
         }
-        
         
         if (params.rn_hybrid) {
             cmd += 
@@ -792,8 +791,6 @@ workflow run_pipeline {
                 // merge
                 cellprofiler_in = cellpose_out.join(registration_out, by: 0)
                 
-                
-                
             } else {
                 cellprofiler_in = cellpose_out.map{row -> tuple(
                     row[0], // key
@@ -897,7 +894,7 @@ workflow run_pipeline {
                     row[7], // merge plates
                     row[8], // registration path
                     row[9], // basicpy models   
-                    row[17].split(",").collect{it -> (it.toInteger() -1).toString()}.join(" ") // mask channels   
+                    (row[17] == "none") ? "none" : row[17].split(",").collect{it -> (it.toInteger() -1).toString()}.join(" ") // mask channels   
                 )}
             } else {
                 cellprofiler_in = cellprofiler_in.map{row -> tuple(
@@ -914,12 +911,6 @@ workflow run_pipeline {
                     null // mask channels   
                 )}
             }
-            //cellprofiler_in.view()
-            
-            //if (params.rn_testmode) {
-            //    cellprofiler_in = cellprofiler_in.take(3)
-            //    cellprofiler_in.view()
-            //}
             
             cellprofiler_out = cellprofiler(cellprofiler_in)
         
