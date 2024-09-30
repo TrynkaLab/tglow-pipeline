@@ -178,15 +178,16 @@ class CellposeRunner():
         log.debug(f"Model: {self.model}")
         log.debug(f"Model nucl: {self.model_nucl[0]}")
         
+        img = img.astype(np.float32)
+
         # Optionally pre-process the data
         cellprob_thresh = self.cell_prob_thresh
         if self.cell_power is not None:
-            img = img.astype(np.float32)
             img = img / np.iinfo(np.uint16).max#np.max(nucl)
             img = img**self.cell_power
-            img = img / np.max(img)
+            #img = img / np.max(img)
             #img = img / np.percentile(img, 99)
-            img = float_to_16bit_unint(img * np.iinfo(np.uint16).max)
+            #img = float_to_16bit_unint(img * np.iinfo(np.uint16).max)
             cellprob_thresh = self.cellprob_thresh-self.cell_power
         
         # Optionally downsample
@@ -214,6 +215,7 @@ class CellposeRunner():
                                                 cellprob_threshold=cellprob_thresh,
                                                 normalize=False)
         log.info("Cell mask running time %s seconds" % round(time.time() - start_time))
+        log.info(f"Identfied {np.max(masks)} cells")
         masks = masks if self.do_3d else masks[np.newaxis,:,:]
 
         # Scale back up
@@ -236,21 +238,21 @@ class CellposeRunner():
         
         if self.nucl_channel is not None:
             nucl = data_nucl
-            
+            nucl = nucl.astype(np.float32)
+
             # Binarize cell masks
             masks_bin = (masks > 0).astype(np.uint16)
             
             # Optionally pre process
             cellprob_thresh = self.nucl_prob_thresh
             if self.nucl_power is not None:
-                nucl = nucl.astype(np.float32)
                 nucl = nucl / np.iinfo(np.uint16).max#np.max(nucl)
                 nucl = nucl**self.nucl_power
                 # Normalize against the max percentile inside cell objects
                 # to avoid normalizing against very overexposed areas.
                 tmp = nucl * masks_bin
                 nucl = nucl / np.max(tmp)
-                nucl = float_to_16bit_unint(nucl * np.iinfo(np.uint16).max)
+               # nucl = float_to_16bit_unint(nucl * np.iinfo(np.uint16).max)
                 cellprob_thresh = self.nucl_prob_thresh-self.nucl_power
 
             # Optiionally downsample
@@ -274,6 +276,8 @@ class CellposeRunner():
                                                     cellprob_threshold=cellprob_thresh,
                                                     normalize=False)
             log.info("Nucleus running time %s seconds" % round(time.time() - start_time))
+            log.info(f"Identfied {np.max(masks)} nuclei")
+            
             nucl_masks = nucl_masks if self.do_3d else nucl_masks[np.newaxis,:,:]
 
             # Close up small gaps when raising to a power
