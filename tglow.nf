@@ -332,7 +332,7 @@ process cellprofiler {
     scratch params.rn_scratch
 
     input:
-        tuple val(plate), val(key), val(well), val(row), val(col), path(cell_masks), path(nucl_masks), val(merge_plates), path(registration, stageAs:"registration/*"), val(basicpy_string), val(mask_channels)
+        tuple val(plate), val(key), val(well), val(row), val(col), path(cell_masks), path(nucl_masks), val(merge_plates), path(registration, stageAs:"registration/*"), val(basicpy_string), val(mask_channels), val(scaling_string)
     output:
         path "features/$plate/$row/$col/*"
     script:
@@ -370,6 +370,10 @@ process cellprofiler {
                 
         if (basicpy_string) {
             cmd += " --basicpy_model $basicpy_string"
+        }
+        
+        if (params.rn_scale & scaling_string != "none")  {
+            cmd += " --scaling_factors $scaling_string"
         }
         
         if (params.rn_max_project | params.rn_hybrid) {
@@ -460,6 +464,38 @@ process cellprofiler {
         cmd
 }
 
+// Determine scaling factors
+process calculate_scaling_factors {
+    label 'normal'
+    conda params.tg_conda_env
+    //storeDir "$params.rn_publish_dir/"
+    publishDir "$params.rn_publish_dir/", mode: 'copy'
+
+    input:
+        val x
+    output:
+        path "scaling_factors.txt", emit: scaling_factors
+        path "intensity_summary.tsv"
+    script:
+        cmd = 
+        """
+        calculate_scaling_factors.py \
+        --q1 $params.rn_autoscale_q1 \
+        --q2 $params.rn_autoscale_q2      
+        """
+        
+        if (params.dc_run) {
+            cmd += " --input $params.rn_decon_dir --scale_max $params.dc_clip_max"
+        } else {
+            cmd += " --input $params.rn_image_dir --scale_max 65535"
+        }
+        
+        // TMP dummy variable
+        //cmd = "echo test > scaling_factors.txt"   
+        //cmd
+}
+
+
 // Workflow to stage the data from NFS to lustre
 workflow stage {
     main:
@@ -544,6 +580,11 @@ workflow run_pipeline {
         // Set runtime defaults, these are overidden when specified on commandline
         params.rn_image_dir = params.rn_publish_dir + "/images"
         params.rn_decon_dir = params.rn_publish_dir + "/decon"
+        
+        // If autoscaling, automatically set rn_scale to true
+        if (params.rn_autoscale) {
+            params.rn_scale = true
+        }
 
         //------------------------------------------------------------
         // Read manifest
@@ -558,9 +599,36 @@ workflow run_pipeline {
             row.cp_cell_channel,
             row.dc_channels,
             row.dc_psfs,
-            row.mask_channels)}
+            row.mask_channels,
+            row.scaling_factors)}
         //manifest.view()
 
+        // Build the string of scaling factors
+        if (params.rn_scale & !params.rn_autoscale) {
+            def csvFile = new File(params.rn_manifest)
+            def csvData = csvFile.readLines()
+            def scaling_string = null
+
+            def plate_scale = []
+            for (int i = 1; i < csvData.size(); i++) {
+                def curLine = csvData[i].split('\t')
+                
+                if ((curLine[9] != "none") & (curLine[9] != null)) {
+                    def curChannels = curLine[2].split(',')
+                    for (channel in curChannels) {
+                        curChannel = channel.toInteger()-1
+                        plate_scale << curLine[0] + "_ch" + curChannel + "=" + curLine[9].split(",")[curChannel]
+                    }
+                }
+            }   
+            
+            scaling_string = plate_scale.join(" ")
+            log.info("Read scaling factors from manifest: " + scaling_string)
+            
+            scaling_channel = Channel.value(scaling_string)
+        } else {
+            scaling_channel = Channel.value("none")
+        }
         // Blacklist channel, if missing just an empty channel
         if (params.rn_blacklist == null) {
             log.info("No blacklist provided")
@@ -624,7 +692,6 @@ workflow run_pipeline {
             
             log.info("Considering plate level manifests: " + manifest_paths)
             manifests_in = Channel.from(manifest_paths)
-            
         } else {
             manifests_in = Channel.from(params.rn_manifest_well.split(','))
         }
@@ -681,7 +748,7 @@ workflow run_pipeline {
                 row[3], // col
                 convertChannelType(row[7]), // nucl_channel
                 convertChannelType(row[8]), // cell_channel
-                row[9].split(',').collect{it -> (it.toInteger() -1).toString() + "=" + new File(row[10].split(',')[it.toInteger() -1]).getName()}.join(" "),  // query_channels
+                row[9].split(',').collect{it -> (it.toInteger() -1).toString() + "=" + new File(row[10].split(',')[it.toInteger() -1]).getName()}.join(" "),  // dc_channels
                 row[10].split(',').collect(it -> (file(it))) //dc_psfs
             )}      
             
@@ -708,6 +775,16 @@ workflow run_pipeline {
                 convertChannelType(row[7]), // nucl_channel
                 convertChannelType(row[8]) // cell_channel
             )}
+        }
+        
+        // Get scaling string
+        // When all deconvelution is done, or all data is staged, calculate the scaling factors
+        // which map the images onto the full dynamic range of the 16 bit uint
+        if (params.rn_autoscale) {
+            scaling_channel = calculate_scaling_factors(cellpose_in.last()).scaling_factors.map { file -> 
+                file.text 
+            }
+            scaling_channel.view()
         }
 
         //------------------------------------------------------------
@@ -764,9 +841,8 @@ workflow run_pipeline {
         // Cellprofiler / get_features
         // TODO: BUG! Need to make sure the merge plate is done as well BEFORE adding into channel
         if (params.cpr_run) {
-    
+                        
             // Start with cellpose output
-            
             // re-key channels
             cellpose_out = cellpose_out.map{row -> tuple(
                     row[0] + ":" + row[1], // key
@@ -894,7 +970,9 @@ workflow run_pipeline {
                     row[7], // merge plates
                     row[8], // registration path
                     row[9], // basicpy models   
-                    (row[17] == "none") ? "none" : row[17].split(",").collect{it -> (it.toInteger() -1).toString()}.join(" ") // mask channels   
+                    (row[17] == "none") ? "none" : row[17].split(",").collect{it -> (it.toInteger() -1).toString()}.join(" "), // mask channels   
+                    scaling_channel
+                    //(row[18] == "none") ? null : row[11].collect{it -> (it.toInteger() -1).toString() + "=" + new File(row[18].split(',')[it.toInteger() -1]).getName()}.join(" ") // scaling factors        
                 )}
             } else {
                 cellprofiler_in = cellprofiler_in.map{row -> tuple(
@@ -908,7 +986,9 @@ workflow run_pipeline {
                     row[7], // merge plates
                     row[8], // registration path
                     row[9], // basicpy models   
-                    null // mask channels   
+                    null,
+                    scaling_channel // mask channels
+                    //null // scaling factors   
                 )}
             }
             

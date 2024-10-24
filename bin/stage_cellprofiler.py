@@ -68,10 +68,20 @@ class MergeAndAlign:
             self.flatfields={}
             for val in args.basicpy_model:
                 keypair = val.split("=")
-                log.info(f"{keypair}")
+                log.info(f"Adding basicpy model: {keypair}")
                 self.flatfields[keypair[0]] = BaSiC.load_model(keypair[1])
                 # Hack arround missing baseline (this should've been fixed in the dev version)
                 #self.flatfields[keypair[0]].baseline=""     
+                
+        # Build dict with scaling factors
+        if args.scaling_factors == None:
+            self.scaling_factors=None
+        else:
+            self.scaling_factors={}
+            for val in args.scaling_factors:
+                keypair = val.split("=")
+                log.info(f"Adding scaling factors: {keypair}")
+                self.scaling_factors[keypair[0]] = float(keypair[1])
             
         if (not (self.write_max_projection | self.write_zstack)):
             raise RuntimeError("No output option specified")
@@ -197,6 +207,31 @@ class MergeAndAlign:
                                 
                     log.info(f"Applied flatfieds to stack of shape {stack.shape}")
 
+                # Apply scaling factors
+                if self.scaling_factors is not None:
+                    for channel in channels:
+                        # If flatfields are specified, apply them here
+                        if f"{plate}_ch{channel}" in channel_index.keys():
+                            scale_key=channel_index[f"{plate}_ch{channel}"]
+                        else:
+                            continue
+                        
+                        if str(scale_key) in self.scaling_factors.keys():
+                            factor = self.scaling_factors[scale_key]
+                            log.debug(f"Scaling {scale_key} by factor {factor} for {plate}, ch{channel}")
+                            
+                            # Convert to float
+                            stack[channel,:,:,:] = stack[channel,:,:,:].astype(np.float32)
+                            # Divide
+                            stack[channel,:,:,:] = stack[channel,:,:,:] / factor
+                            
+                            if self.uint32:
+                                stack[channel,:,:,:]=float_to_32bit_unint(stack[channel,:,:,:])
+                            else:
+                                stack[channel,:,:,:]=float_to_16bit_unint(stack[channel,:,:,:])
+                        else:
+                            log.warning(f"Scale key {scale_key} not found! NOT APPLYING SCALING FOR: {plate}, ch{channel}")
+
                 #-------------------------------------------------
                 # Apply masks to the image to demultiplex
                 if self.mask_channels is not None:
@@ -260,6 +295,7 @@ class MergeAndAlign:
                     
                     max_merged = np.array(max_projection)
                     tifffile.imwrite(cur_out, max_merged, shape=max_merged.shape, imagej=True, metadata={'axes': 'CYX'})
+
 
     # Fetch the registration matrices for a well as a dict
     def fetch_registration(self, iq) -> dict:
@@ -390,7 +426,8 @@ class MergeAndAlign:
         log.info(f"Output:\t\t{self.output}")    
         log.info(f"Basicpy models:\t{dict_to_str(self.flatfields)}")    
         log.info(f"Output 32bit:\t{str(self.uint32)}")    
-        
+        log.info(f"Output 32bit:\t{dict_to_str(self.scaling_factors)}")    
+
         log.info(f"----------------------------")    
         log.info(f"Merge plates:\t{str(self.plates_merge)}")     
         #log.info(f"Merge channels:\t{str(self.channels_merge)}")  
@@ -428,8 +465,9 @@ if __name__ == "__main__":
     #parser.add_argument('--channels_merge', help='Channels to for merging from second plate. <channel #1> | [<channel #1> <channel #2> <channel #n>]', nargs='+', default=None)
     #parser.add_argument('-r','--ref_channel', help='Reference channel for registration (nucleus)', nargs=1, default=None)
     #parser.add_argument('-q','--qry_channel', help='Query channel for registration (nucleus)', nargs=1, default=None)
-    parser.add_argument('--basicpy_model', help='Basicpy model dir for a channel. If merging channels ids are assigned seqeuntially for extra channels <channel #1>=/path/to/model | [<channel #1>=/path/to/model <channel #n>=/path/to/model]', nargs='+', default=None)
+    parser.add_argument('--basicpy_model', help='Basicpy model dir for a channel. If merging channels ids are assigned seqeuntially for extra channels <plate>_ch<channel>=/path/to/model ', nargs='+', default=None)
     parser.add_argument('--uint32', help="Write as 32 bit unsigned integer instead of clipping to 16 bit uint after applying basicpy model", action='store_true', default=False)
+    parser.add_argument('--scaling_factors', help='Divide each channel by this constant factor. Apply this if images are using a small portion of the 16/32 bit space <plate>_ch<channel>=<factor>', nargs='+', default=None)
     args = parser.parse_args()
   
     log.info("-----------------------------------------------------------")

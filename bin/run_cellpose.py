@@ -120,7 +120,6 @@ class CellposeRunner():
             log.info("Estimating anisotropy based on first image")
             
             img1 = self.reader.images[self.plate[0]][0]
-            
             meta = self.reader.get_img(img1)            
             
             if meta.physical_pixel_sizes is not None:
@@ -169,8 +168,9 @@ class CellposeRunner():
             channels = [1,2]
             # channels = [cytoplasm, nucleus]
         else:
-            # In the case there is no nucleus channel
-            img = data_cell
+            # In the case there is no nucleus channel, make sure there is a channel axis,
+            #  so it is always the same shape
+            img = data_cell[:,:,:, np.newaxis]
             channels = [0,0]
             channel_axis=None
             
@@ -313,7 +313,7 @@ class CellposeRunner():
 if __name__ == "__main__":
     
     # CLI 
-    parser = argparse.ArgumentParser(description="Train a basicpy model on raw HCI images orgnaized into <plate>/<row>/<col>/<field>.ome.tiff stacks with CZYX")
+    parser = argparse.ArgumentParser(description="Run cellpose on images organized into <plate>/<row>/<col>/<field>.ome.tiff stacks with CZYX")
     parser.add_argument('-i','--input', help='Base dir to input organized <plate>/<row>/<col>/<field>.ome.tiff', required=True)
     parser.add_argument('-p','--plate', help='Plates to process (at least one)', nargs='+', required=True)
     parser.add_argument('-w','--well', help='Wells to process (at least one)', nargs='+', required=True)

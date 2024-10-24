@@ -80,8 +80,9 @@ def main(input_file, output_path, wells):
             stack = pe_reader.read_stack(q)
                         
             writer.write_stack(stack, q)
-            
-            
+    
+        # Write intensity statistics        
+        writer.write_image_stats( ImageQuery(pe_reader.pe_index.plate["name"], row, col, 1))
         
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Copy raw tiles from Perkin Elmer export to /plate/row/col/field.ome.tiff where field.ome.tiff')

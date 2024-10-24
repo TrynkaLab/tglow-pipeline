@@ -131,8 +131,11 @@ class RunDecon:
         for field in self.fields:
             self.run_decon(field)
     
+        row, col = ImageQuery.well_id_to_index(self.well)
+        self.writer.write_image_stats( ImageQuery(self.plate, row, col, 1))
+
+    
     def run_decon(self, field):
-        
         row, col = ImageQuery.well_id_to_index(self.well)
         iq = ImageQuery(self.plate, row, col, field)
         image = self.reader.read_image(iq)
@@ -181,7 +184,7 @@ class RunDecon:
 
         log.info(f"Writing stack of dims {decon.shape}")
         self.writer.write_stack(decon, iq, img.channel_names, img.physical_pixel_sizes)
-        
+    
         
     def deconvolute_clij2(self, image, channel):
     
