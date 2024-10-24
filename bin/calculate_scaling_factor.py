@@ -33,10 +33,11 @@ if __name__ == "__main__":
     main_df = None
     
     for file in files:
+        log.debug(f"Reading: {file}")
         cur_df = pd.read_csv(file, sep="\t")
         
         if main_df is not None:
-            main_df = pd.concat(main_df, cur_df)
+            main_df = pd.concat((main_df, cur_df))
         else:
             main_df = cur_df
 
