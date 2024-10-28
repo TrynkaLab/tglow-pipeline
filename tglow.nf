@@ -372,7 +372,7 @@ process cellprofiler {
             cmd += " --basicpy_model $basicpy_string"
         }
         
-        if (params.rn_scale & scaling_string != "none")  {
+        if ((params.rn_manualscale | params.rn_autoscale) & scaling_string != "none")  {
             cmd += " --scaling_factors $scaling_string"
         }
         
@@ -473,6 +473,7 @@ process calculate_scaling_factors {
 
     input:
         val x
+        path blacklist
     output:
         path "scaling_factors.txt", emit: scaling_factors
         path "intensity_summary.tsv"
@@ -481,7 +482,7 @@ process calculate_scaling_factors {
         """
         calculate_scaling_factors.py \
         --q1 $params.rn_autoscale_q1 \
-        --q2 $params.rn_autoscale_q2      
+        --q2 $params.rn_autoscale_q2\
         """
         
         if (params.dc_run) {
@@ -491,6 +492,11 @@ process calculate_scaling_factors {
             cmd += " --input $params.rn_decon_dir --scale_max 65535"
         } else {
             cmd += " --input $params.rn_image_dir --scale_max 65535"
+        }
+        
+        // Add optional blacklist
+        if (params.rn_blacklist) {
+            cmd += " --blacklist $blacklist"
         }
         
         // TMP dummy variable
@@ -584,11 +590,6 @@ workflow run_pipeline {
         params.rn_image_dir = params.rn_publish_dir + "/images"
         params.rn_decon_dir = params.rn_publish_dir + "/decon"
         
-        // If autoscaling, automatically set rn_scale to true
-        if (params.rn_autoscale) {
-            params.rn_scale = true
-        }
-
         //------------------------------------------------------------
         // Read manifest
         manifest = Channel.fromPath(params.rn_manifest)
@@ -607,7 +608,7 @@ workflow run_pipeline {
         //manifest.view()
 
         // Build the string of scaling factors
-        if (params.rn_scale & !params.rn_autoscale) {
+        if (params.rn_manualscale & !params.rn_autoscale) {
             def csvFile = new File(params.rn_manifest)
             def csvData = csvFile.readLines()
             def scaling_string = null
@@ -632,6 +633,7 @@ workflow run_pipeline {
         } else {
             scaling_channel = Channel.value("none")
         }
+        
         // Blacklist channel, if missing just an empty channel
         if (params.rn_blacklist == null) {
             log.info("No blacklist provided")
@@ -784,7 +786,7 @@ workflow run_pipeline {
         // When all deconvelution is done, or all data is staged, calculate the scaling factors
         // which map the images onto the full dynamic range of the 16 bit uint
         if (params.rn_autoscale) {
-            scaling_channel = calculate_scaling_factors(cellpose_in.last()).scaling_factors.map { file -> 
+            scaling_channel = calculate_scaling_factors(cellpose_in.last(), blacklist_channel).scaling_factors.map { file -> 
                 file.text 
             }
             scaling_channel.view()
@@ -975,7 +977,6 @@ workflow run_pipeline {
                     row[9], // basicpy models   
                     (row[17] == "none") ? "none" : row[17].split(",").collect{it -> (it.toInteger() -1).toString()}.join(" "), // mask channels   
                     scaling_channel
-                    //(row[18] == "none") ? null : row[11].collect{it -> (it.toInteger() -1).toString() + "=" + new File(row[18].split(',')[it.toInteger() -1]).getName()}.join(" ") // scaling factors        
                 )}
             } else {
                 cellprofiler_in = cellprofiler_in.map{row -> tuple(
@@ -991,7 +992,6 @@ workflow run_pipeline {
                     row[9], // basicpy models   
                     null,
                     scaling_channel // mask channels
-                    //null // scaling factors   
                 )}
             }
             

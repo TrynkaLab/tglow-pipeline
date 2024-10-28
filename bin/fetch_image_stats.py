@@ -36,6 +36,7 @@ if __name__ == "__main__":
             for col in cur_row.keys():
                 cur_col = cur_row[col]
                 
+                log.info(f"Processing  plate {plate} row {ImageQuery.ID_TO_ROW[row]} col {col} ")
                 for iq in cur_col.values():
                     cur_stack = reader.read_stack(iq)
                     writer.write_stack(cur_stack, iq, stats_only=True)

@@ -7,6 +7,7 @@ import argparse
 import pandas as pd
 import glob
 import os
+from tglow.io.tglow_io import BlacklistReader
 
 # Logging
 logging.basicConfig(format='%(asctime)s %(message)s')
@@ -19,6 +20,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Calculate per channel scaling factors based on previously calculated intensity_stats.tsv")
     parser.add_argument('-i','--input', help='Base dir to input organized <plate>/<row>/<col>/<field>.ome.tiff', required=True)
     parser.add_argument('-o','--output', help='Output folder', default="./")
+    parser.add_argument('--blacklist', help='TSV file with "<plate>  <well>" on each row descrbing what to ignore', default=None)
     parser.add_argument('--q1', help='Quantile 1, the quantile in an image', default="q99.9")
     parser.add_argument('--q2', help='Quantile 2, the quantile over all images in input 0-100', default="99")
     parser.add_argument('--pattern', help='File pattern of sumstats tsv', default="intensity_stats.tsv")
@@ -30,8 +32,22 @@ if __name__ == "__main__":
     args.q2 = float(args.q2)
     args.scale_max = float(args.scale_max)
 
+    # Build list of files
     files = glob.glob(f"{path}/**/{args.pattern}", recursive=True)
     
+    log.info(f"Indexed {len(files)} files")
+    # Read the placklist
+    if args.blacklist is not None:
+        bl_reader = BlacklistReader(args.blacklist)
+        bl = bl_reader.read_blacklist_as_prc()
+        log.info(f"Read blacklist with {len(bl)} patterns")
+        log.info(f"Blacklist consists of patterns: {bl}")
+
+        #files = [file for file in files if not reg]  
+        files = [file for file in files if not any(pattern in file for pattern in bl)]
+        log.info(f"Filtered using blacklist to {len(files)} files")
+
+
     main_df = None
     
     for file in files:
