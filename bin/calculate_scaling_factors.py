@@ -20,6 +20,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Calculate per channel scaling factors based on previously calculated intensity_stats.tsv")
     parser.add_argument('-i','--input', help='Base dir to input organized <plate>/<row>/<col>/<field>.ome.tiff', required=True)
     parser.add_argument('-o','--output', help='Output folder', default="./")
+    parser.add_argument('-p','--plate', help='Subfolders to process', nargs='+', default=None)
     parser.add_argument('--blacklist', help='TSV file with "<plate>  <well>" on each row descrbing what to ignore', default=None)
     parser.add_argument('--q1', help='Quantile 1, the quantile in an image', default="q99.9")
     parser.add_argument('--q2', help='Quantile 2, the quantile over all images in input 0-100', default="99")
@@ -36,7 +37,7 @@ if __name__ == "__main__":
     files = glob.glob(f"{path}/**/{args.pattern}", recursive=True)
     
     log.info(f"Indexed {len(files)} files")
-    # Read the placklist
+    # Read the blacklist
     if args.blacklist is not None:
         bl_reader = BlacklistReader(args.blacklist)
         bl = bl_reader.read_blacklist_as_prc()
@@ -46,6 +47,11 @@ if __name__ == "__main__":
         #files = [file for file in files if not reg]  
         files = [file for file in files if not any(pattern in file for pattern in bl)]
         log.info(f"Filtered using blacklist to {len(files)} files")
+
+    if args.plate is not None:
+        log.info(f"Platelist consists of patterns: {args.plate}")
+        files = [file for file in files if any(pattern in file for pattern in args.plate)]
+        log.info(f"Filtered using platelist to {len(files)} files")
 
 
     main_df = None

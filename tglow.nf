@@ -468,12 +468,13 @@ process cellprofiler {
 process calculate_scaling_factors {
     label 'normal'
     conda params.tg_conda_env
-    //storeDir "$params.rn_publish_dir/"
-    publishDir "$params.rn_publish_dir/", mode: 'copy'
+    storeDir "$params.rn_publish_dir/"
+   // publishDir "$params.rn_publish_dir/", mode: 'copy'
 
     input:
         val x
         path blacklist
+        val plates
     output:
         path "scaling_factors.txt", emit: scaling_factors
         path "intensity_summary.tsv"
@@ -481,6 +482,7 @@ process calculate_scaling_factors {
         cmd = 
         """
         calculate_scaling_factors.py \
+        --plate $plates \
         --q1 $params.rn_autoscale_q1 \
         --q2 $params.rn_autoscale_q2\
         """
@@ -606,6 +608,12 @@ workflow run_pipeline {
             row.mask_channels,
             row.scaling_factors)}
         //manifest.view()
+        
+        // Build a channel for the plates
+        plates_channel = manifest
+        .map{row -> row[0]}
+        .collect()
+        .map { it.join(' ') }
 
         // Build the string of scaling factors
         if (params.rn_manualscale & !params.rn_autoscale) {
@@ -786,7 +794,9 @@ workflow run_pipeline {
         // When all deconvelution is done, or all data is staged, calculate the scaling factors
         // which map the images onto the full dynamic range of the 16 bit uint
         if (params.rn_autoscale) {
-            scaling_channel = calculate_scaling_factors(cellpose_in.last(), blacklist_channel).scaling_factors.map { file -> 
+            scaling_channel = calculate_scaling_factors(cellpose_in.last(),
+            blacklist_channel,
+            plates_channel).scaling_factors.map { file -> 
                 file.text 
             }
             scaling_channel.view()
