@@ -485,7 +485,10 @@ process calculate_scaling_factors {
         """
         
         if (params.dc_run) {
-            cmd += " --input $params.rn_decon_dir --scale_max $params.dc_clip_max"
+            // Not sure why I thought the scale_max was needed. The intensity files match the 16 bit already, so this
+            // is not needed.
+            //cmd += " --input $params.rn_decon_dir --scale_max $params.dc_clip_max"
+            cmd += " --input $params.rn_decon_dir --scale_max 65535"
         } else {
             cmd += " --input $params.rn_image_dir --scale_max 65535"
         }

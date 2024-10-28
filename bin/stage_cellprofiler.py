@@ -209,6 +209,9 @@ class MergeAndAlign:
 
                 # Apply scaling factors
                 if self.scaling_factors is not None:
+                    # Convert stack to 32 bit float
+                    stack = stack.astype(np.float32)
+                    
                     for channel in channels:
                         # If flatfields are specified, apply them here
                         if f"{plate}_ch{channel}" in channel_index.keys():
@@ -221,17 +224,26 @@ class MergeAndAlign:
                             log.debug(f"Scaling {scale_key} by factor {factor} for {plate}, ch{channel}")
                             
                             # Convert to float
-                            stack[channel,:,:,:] = stack[channel,:,:,:].astype(np.float32)
+                            #stack[channel,:,:,:] = stack[channel,:,:,:].astype(np.float32)
+                            
+                            log.debug(f"Pre-scale min/max {np.min(stack[channel,:,:,:])}/{np.max(stack[channel,:,:,:])} dtype:{stack[channel,:,:,:].dtype}")
                             # Divide
                             stack[channel,:,:,:] = stack[channel,:,:,:] / factor
-                            
-                            if self.uint32:
-                                stack[channel,:,:,:]=float_to_32bit_unint(stack[channel,:,:,:])
-                            else:
-                                stack[channel,:,:,:]=float_to_16bit_unint(stack[channel,:,:,:])
+                            log.debug(f"Post-scale min/max {np.min(stack[channel,:,:,:])}/{np.max(stack[channel,:,:,:])} dtype:{stack[channel,:,:,:].dtype}")
                         else:
                             log.warning(f"Scale key {scale_key} not found! NOT APPLYING SCALING FOR: {plate}, ch{channel}")
-
+                    
+                    # Scale back to uint
+                    if self.uint32:
+                        stack=float_to_32bit_unint(stack)
+                        for channel in channels:
+                            log.debug(f"Post clip min/max channel {channel} {np.min(stack[channel,:,:,:])}/{np.max(stack[channel,:,:,:])} dtype:{stack[channel,:,:,:].dtype}")
+                    else:
+                        stack=float_to_16bit_unint(stack)
+                        for channel in channels:
+                            log.debug(f"Post clip min/max channel {channel} {np.min(stack[channel,:,:,:])}/{np.max(stack[channel,:,:,:])} dtype:{stack[channel,:,:,:].dtype}")
+                            
+                    
                 #-------------------------------------------------
                 # Apply masks to the image to demultiplex
                 if self.mask_channels is not None:
@@ -271,7 +283,10 @@ class MergeAndAlign:
 
                     # Write out the final tiff file, saves as ZYX
                     if self.write_zstack:
-                        tifffile.imwrite(cur_out, merged, shape=merged.shape, imagej=True, photometric='MINISBLACK', metadata={'axes': 'ZYX'})
+                        if self.uint32:
+                            tifffile.imwrite(cur_out, merged, shape=merged.shape, photometric='MINISBLACK', metadata={'axes': 'ZYX'})
+                        else:
+                            tifffile.imwrite(cur_out, merged, shape=merged.shape, imagej=True, photometric='MINISBLACK', metadata={'axes': 'ZYX'})
                         
                     # Store max projection accross the first axis (Z) for current channel 
                     if (self.write_max_projection | self.write_max_projection_onefile):
@@ -282,7 +297,12 @@ class MergeAndAlign:
                         
                             # Final output filename for channel
                             cur_out = f"{out_dir_final}/{field}_{plate}_{well}_ch{str(channel)}.tiff"
-                            tifffile.imwrite(cur_out, mp, shape=mp.shape, imagej=True, metadata={'axes': 'YX'})        
+                            
+                            if self.uint32:
+                                tifffile.imwrite(cur_out, mp, shape=mp.shape, metadata={'axes': 'YX'})        
+                            else:
+                                tifffile.imwrite(cur_out, mp, shape=mp.shape, imagej=True, metadata={'axes': 'YX'})        
+
                                 
                         else:
                             max_projection.append(mp)
@@ -294,7 +314,11 @@ class MergeAndAlign:
                     cur_out = f"{out_dir_final}/{plate}_{well}_{field}_max_projection.tiff"
                     
                     max_merged = np.array(max_projection)
-                    tifffile.imwrite(cur_out, max_merged, shape=max_merged.shape, imagej=True, metadata={'axes': 'CYX'})
+                    
+                    if self.uint32:
+                        tifffile.imwrite(cur_out, max_merged, shape=max_merged.shape, metadata={'axes': 'CYX'})
+                    else:
+                        tifffile.imwrite(cur_out, max_merged, shape=max_merged.shape, imagej=True, metadata={'axes': 'CYX'})
 
 
     # Fetch the registration matrices for a well as a dict
