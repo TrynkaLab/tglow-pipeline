@@ -372,8 +372,8 @@ process cellprofiler {
             cmd += " --basicpy_model $basicpy_string"
         }
         
-        if ((params.rn_manualscale | params.rn_autoscale) & scaling_string != "none")  {
-            cmd += " --scaling_factors $scaling_string"
+        if ((params.rn_manualscale | params.rn_autoscale) & scaling_string.val != "none")  {
+            cmd += " --scaling_factors $scaling_string.val"
         }
         
         if (params.rn_max_project | params.rn_hybrid) {
