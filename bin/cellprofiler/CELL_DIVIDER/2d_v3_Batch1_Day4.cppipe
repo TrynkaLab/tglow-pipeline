@@ -59,7 +59,7 @@ NamesAndTypes:[module_num:3|svn_version:'Unknown'|variable_revision_number:8|sho
     Set intensity range from:Image metadata
     Maximum intensity:255.0
     Select the rule criteria:and (metadata does channel "1")
-    Name to assign these images:brightfield
+    Name to assign these images:mito
     Name to assign these objects:Nucleus
     Select the image type:Grayscale image
     Set intensity range from:Image metadata
@@ -77,7 +77,7 @@ NamesAndTypes:[module_num:3|svn_version:'Unknown'|variable_revision_number:8|sho
     Set intensity range from:Image metadata
     Maximum intensity:255.0
     Select the rule criteria:and (metadata does channel "4")
-    Name to assign these images:mito
+    Name to assign these images:brightfield
     Name to assign these objects:Object1
     Select the image type:Grayscale image
     Set intensity range from:Image metadata

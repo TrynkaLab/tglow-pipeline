@@ -332,7 +332,8 @@ process cellprofiler {
     scratch params.rn_scratch
 
     input:
-        tuple val(plate), val(key), val(well), val(row), val(col), path(cell_masks), path(nucl_masks), val(merge_plates), path(registration, stageAs:"registration/*"), val(basicpy_string), val(mask_channels), val(scaling_string)
+        tuple val(plate), val(key), val(well), val(row), val(col), path(cell_masks), path(nucl_masks), val(merge_plates), path(registration, stageAs:"registration/*"), val(basicpy_string), val(mask_channels)
+        val scaling_string
     output:
         path "features/$plate/$row/$col/*"
     script:
@@ -372,8 +373,8 @@ process cellprofiler {
             cmd += " --basicpy_model $basicpy_string"
         }
         
-        if ((params.rn_manualscale | params.rn_autoscale) & scaling_string.val != "none")  {
-            cmd += " --scaling_factors $scaling_string.val"
+        if ((params.rn_manualscale | params.rn_autoscale) & scaling_string != "none")  {
+            cmd += " --scaling_factors $scaling_string"
         }
         
         if (params.rn_max_project | params.rn_hybrid) {
@@ -797,8 +798,8 @@ workflow run_pipeline {
             scaling_channel = calculate_scaling_factors(cellpose_in.last(),
             blacklist_channel,
             plates_channel).scaling_factors.map { file -> 
-                file.text 
-            }
+                file.text
+            }.first()
             scaling_channel.view()
         }
 
@@ -985,8 +986,7 @@ workflow run_pipeline {
                     row[7], // merge plates
                     row[8], // registration path
                     row[9], // basicpy models   
-                    (row[17] == "none") ? "none" : row[17].split(",").collect{it -> (it.toInteger() -1).toString()}.join(" "), // mask channels   
-                    scaling_channel
+                    (row[17] == "none") ? "none" : row[17].split(",").collect{it -> (it.toInteger() -1).toString()}.join(" ") // mask channels   
                 )}
             } else {
                 cellprofiler_in = cellprofiler_in.map{row -> tuple(
@@ -1000,12 +1000,11 @@ workflow run_pipeline {
                     row[7], // merge plates
                     row[8], // registration path
                     row[9], // basicpy models   
-                    null,
-                    scaling_channel // mask channels
+                    null
                 )}
             }
             
-            cellprofiler_out = cellprofiler(cellprofiler_in)
+            cellprofiler_out = cellprofiler(cellprofiler_in, scaling_channel)
         
         }
         
