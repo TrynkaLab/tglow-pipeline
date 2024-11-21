@@ -610,13 +610,17 @@ workflow run_pipeline {
             row.scaling_factors)}
         //manifest.view()
         
-        // Build a channel for the plates
+        // Build a value channel for the plates in the manifest
+        // '<plate_1> <plate_2> <plate_N>'
         plates_channel = manifest
         .map{row -> row[0]}
         .collect()
         .map { it.join(' ') }
 
-        // Build the string of scaling factors
+
+        // Build the value vhannel of manual scaling factors
+        // '<plate_1>=<scale_1> <plate_2>=<scale_2> <plate_N>=<scale_N>'
+        // TODO: nextflowify this by remaping this from manifest channel
         if (params.rn_manualscale & !params.rn_autoscale) {
             def csvFile = new File(params.rn_manifest)
             def csvData = csvFile.readLines()
@@ -655,12 +659,12 @@ workflow run_pipeline {
         // Run basicpy
         
         // If there is no global overide on basicpy channels, get them from manifest
+        // TODO: nextflowify this by remaping this from manifest channel
         if (params.bp_channels == null) {
             def csvFile = new File(params.rn_manifest)
             def csvData = csvFile.readLines()
 
             def plate_channel = []
-            // TODO: Can this be changed out by remapping the manifest channel?
             // Skip header
             // Substract one from the channel is python is 0 indexed
             for (int i = 1; i < csvData.size(); i++) {
@@ -684,11 +688,11 @@ workflow run_pipeline {
         
         //------------------------------------------------------------
         // Loop over previously generated manifests assuming stage has been run
+        // TODO: nextflowify this by remaping this from manifest channel
         if (params.rn_manifest_well == null) {
             // code that reads paths available manfiests from previous stage
             //manifests_in = Channel.fromPath("${params.rn_image_dir}/*/manifest.tsv")
             
-            // TODO: can this be remapped from manifest channel?
             // Read which plates should be run, in the case the manifest has been edited
             // after running stage to run not all plates
             plates = []
