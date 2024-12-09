@@ -75,7 +75,8 @@ process fetch_raw {
 // Basicpy
 // normal queue
 process basicpy {
-    label 'himem'
+    //label 'himem'
+    label params.bp_label
     conda params.tg_conda_env
     storeDir "${params.rn_publish_dir}/basicpy/${plate}" //, mode: 'copy'
 
@@ -135,7 +136,7 @@ process basicpy {
 
 // Cellpose
 process cellpose {
-    label 'gpu_midmem'
+    label params.cp_label
     conda params.tg_conda_env
     storeDir "${params.rn_publish_dir}/masks/"
     scratch params.rn_scratch
@@ -239,7 +240,8 @@ process cellpose {
 
 // Register
 process register {
-    label 'normal'
+    //label 'normal'
+    label params.rg_label
     conda params.tg_conda_env
     storeDir "${params.rn_publish_dir}/registration/"
     input:
@@ -278,7 +280,8 @@ process register {
 
 // Deconvolute
 process deconvolute {
-    label 'gpu_midmem'
+    //label 'gpu_midmem'
+    label params.dc_label
     conda params.tg_conda_env
     storeDir "${params.rn_decon_dir}"
     scratch params.rn_scratch
@@ -1004,7 +1007,7 @@ workflow run_pipeline {
                     row[7], // merge plates
                     row[8], // registration path
                     row[9], // basicpy models   
-                    null
+                    null // mask channels
                 )}
             }
             
