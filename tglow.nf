@@ -479,6 +479,7 @@ process calculate_scaling_factors {
         val x
         path blacklist
         val plates
+        path registration_manifest
     output:
         path "scaling_factors.txt", emit: scaling_factors
         path "intensity_summary.tsv"
@@ -503,6 +504,11 @@ process calculate_scaling_factors {
         // Add optional blacklist
         if (params.rn_blacklist) {
             cmd += " --blacklist $blacklist"
+        }
+        
+        // add optional registration manifest
+        if (params.rn_manifest_registration) {
+            cmd += " --plate_groups $registration_manifest"
         }
         
         // TMP dummy variable
@@ -657,7 +663,15 @@ workflow run_pipeline {
         } else {
             blacklist_channel = Channel.value(file(params.rn_blacklist))
         }
-                
+    
+        // Registration manifest, if missing just an empty channel
+        if (params.rn_manifest_registration == null) {
+            log.info("No blacklist provided")
+                manifest_registration_channel = Channel.value(file('NO_REGISTRATION_MANIFEST'))
+        } else {
+                manifest_registration_channel = Channel.value(file(params.rn_manifest_registration))
+        }
+    
         //------------------------------------------------------------
         // Run basicpy
         
@@ -804,7 +818,8 @@ workflow run_pipeline {
         if (params.rn_autoscale) {
             scaling_channel = calculate_scaling_factors(cellpose_in.last(),
             blacklist_channel,
-            plates_channel).scaling_factors.map { file -> 
+            plates_channel,
+            manifest_registration_channel).scaling_factors.map { file -> 
                 file.text
             }.first()
             scaling_channel.view()

@@ -196,7 +196,7 @@ class CellposeRunner():
             img = downscale_local_mean(img, (1, self.downsample, self.downsample, 1))
             log.info(f"Downsampled image to {img.shape}, running cellpose with d {self.diameter}")
         
-        # Normalize between 1st and 99th percentile
+        # Normalize between 1st and 99.99th percentile
         for channel in range(0,img.shape[3]):
             img[:,:,:,channel] = img[:,:,:,channel] - np.percentile(img[:,:,:,channel], 1)
             img[:,:,:,channel] = img[:,:,:,channel] / np.percentile(img[:,:,:,channel], 99.99)
