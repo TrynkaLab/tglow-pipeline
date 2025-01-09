@@ -93,13 +93,7 @@ if __name__ == "__main__":
         
             i += 1
     
-    else:
-        plate_groups = [[main_df["plate"].unique()]]
-    
-    log.info("Considering plate groups:")
-    log.info(plate_groups)
-    
-    
+
     log.info("Reading intensity files")
         # Read per well intensity CSV files
     for file in files:
@@ -110,12 +104,25 @@ if __name__ == "__main__":
             main_df = pd.concat((main_df, cur_df))
         else:
             main_df = cur_df
+            
+    # If no registration is specified, only loop over the unique plates
+    if len(plate_groups) == 0:
+        plate_groups = [main_df["plate"].unique().tolist()]
 
-
+    log.info("Considering plate groups:")
+    log.info(plate_groups)
+    
     i = 0
     for plate_group in plate_groups:
+        
+        log.debug(f"current plategroup: {plate_group}")
+        
         # Subset to the plates in the group to normalize
         plate_df = main_df[main_df["plate"].isin(plate_group)]
+
+        log.debug(f"plate_df {plate_df.head}")
+
+
 
         # Find available channels
         channels = plate_df["channel"].unique()

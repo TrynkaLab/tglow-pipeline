@@ -513,7 +513,7 @@ process calculate_scaling_factors {
         
         // TMP dummy variable
         //cmd = "echo test > scaling_factors.txt"   
-        //cmd
+        cmd
 }
 
 
@@ -666,10 +666,10 @@ workflow run_pipeline {
     
         // Registration manifest, if missing just an empty channel
         if (params.rn_manifest_registration == null) {
-            log.info("No blacklist provided")
-                manifest_registration_channel = Channel.value(file('NO_REGISTRATION_MANIFEST'))
+            log.info("No registration provided")
+            manifest_registration_channel = Channel.value(file('NO_REGISTRATION_MANIFEST'))
         } else {
-                manifest_registration_channel = Channel.value(file(params.rn_manifest_registration))
+            manifest_registration_channel = Channel.value(file(params.rn_manifest_registration))
         }
     
         //------------------------------------------------------------
@@ -677,6 +677,8 @@ workflow run_pipeline {
         
         // If there is no global overide on basicpy channels, get them from manifest
         // TODO: nextflowify this by remaping this from manifest channel
+        
+        def run_basicpy = false
         if (params.bp_channels == null) {
             def csvFile = new File(params.rn_manifest)
             def csvData = csvFile.readLines()
@@ -693,12 +695,23 @@ workflow run_pipeline {
                         plate_channel << tuple(curLine[0], channel.toInteger()-1)
                     }
                 }
-            }   
+            }
+            
+            if (plate_channel.size() > 0) {
+                run_basicpy = true
+            }
+               
             basicpy_in = Channel.from(plate_channel)
         } else {
             basicpy_in = Channel.from(params.bp_channels)
         }
         
+        if (run_basicpy) {
+            log.info("Running basicpy")
+        } else {
+            log.info("No manifest entries or --bp_channels provided, so skipping basicpy")
+        }
+         
         //basicpy_channels = basicpy_channels.combine(manifest, by:0)
         //basicpy_in.view()
         basicpy_out = basicpy(basicpy_in, blacklist_channel).basicpy_out
@@ -760,7 +773,7 @@ workflow run_pipeline {
             log.info("Selecting " + wells.size() + " wells: " + wells)
 
             well_channel=well_channel.filter(row -> {row.well in wells})
-            well_channel.view()
+            //well_channel.view()
         }                  
     
         // Re-order the well channel for later merging
@@ -821,8 +834,9 @@ workflow run_pipeline {
             plates_channel,
             manifest_registration_channel).scaling_factors.map { file -> 
                 file.text
-            }.first()
-            scaling_channel.view()
+            }
+            //.first() this used to be at the end, but removed it as appreantly redundant
+            //scaling_channel.view()
         }
 
         //------------------------------------------------------------
@@ -917,11 +931,12 @@ workflow run_pipeline {
                     null,   // merge plates
                     file('NO_REGISTRATION'),   // registration path
                 )}
+                
             }
             
             //--------------------------------------------------------------------
             // Basicpy models        
-            if (basicpy_out != null) {
+            if (run_basicpy) {
             
                 // Concat to plate string format
                 basicpy_tmp = basicpy_out.map{ row -> tuple(
@@ -974,7 +989,6 @@ workflow run_pipeline {
                         row[1].join(" "), //  plate_ch1=path1 plate_ch2=path2 plate_chX=pathX
                         row[2] //plate
                     )}
-                    
                 }
 
                 // Append the basicpy models for a plate into that channel              
@@ -992,6 +1006,7 @@ workflow run_pipeline {
                         row[8], // registration path
                         null    // basicpy models       
                 )}
+                
             }
             
             //--------------------------------------------------------------------
@@ -1025,7 +1040,7 @@ workflow run_pipeline {
                     null // mask channels
                 )}
             }
-            
+                
             cellprofiler_out = cellprofiler(cellprofiler_in, scaling_channel)
         
         }
