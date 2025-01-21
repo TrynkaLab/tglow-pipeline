@@ -69,7 +69,9 @@ class CellposeRunner():
 
         if self.downsample is not None:
             self.diameter = round(self.diameter / self.downsample)
-            self.diameter_nucl = round(self.diameter_nucl / self.downsample)
+            
+            if self.diameter_nucl is not None:
+                self.diameter_nucl = round(self.diameter_nucl / self.downsample)
             
             if self.anisotropy is not None:
                 self.anisotropy=self.anisotropy / self.downsample
