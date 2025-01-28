@@ -51,7 +51,7 @@ process prepare_manifest {
 // imaging queue
 process fetch_raw {
     scratch params.rn_scratch
-    label 'small_img'
+    label params.st_label
     conda params.tg_conda_env
     storeDir "${params.rn_image_dir}"
 
