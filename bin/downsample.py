@@ -64,6 +64,13 @@ if __name__ == "__main__":
     downsample_z = int(args.downsample_z)
     downsample_xy = int(args.downsample_xy)
 
+    if (args.start_at_z is not None):
+        start_at_z = int(args.start_at_z)
+
+    if (args.end_at_z is not None):
+        end_at_z = int(args.end_at_z)
+
+
     for plate in args.plates:
         wells = []
         if args.well is not None:
@@ -83,14 +90,14 @@ if __name__ == "__main__":
                 log.info(f"Read image of shape: {img.shape} with dims {meta.dims}")
                 
                 if (args.start_at_z is not None and args.end_at_z is None):
-                    img = img[:,range(args.start_at_z, img.shape[1]),:,:]
-                    log.info(f"Dropped planes in range {args.start_at_z} to {args.end_at_z} to stack: {img.shape} with dims {meta.dims}")
+                    img = img[:,range(start_at_z, img.shape[1]),:,:]
+                    log.info(f"Dropped planes in range {start_at_z} to {end_at_z} to stack: {img.shape} with dims {meta.dims}")
                 elif (args.start_at_z is None and args.end_at_z is not None):
-                    img = img[:,range(0, args.end_at_z),:,:]
-                    log.info(f"Dropped planes in range {args.start_at_z} to {args.end_at_z} to stack: {img.shape} with dims {meta.dims}")
+                    img = img[:,range(0, end_at_z),:,:]
+                    log.info(f"Dropped planes in range {start_at_z} to {end_at_z} to stack: {img.shape} with dims {meta.dims}")
                 elif (args.start_at_z is not None and args.end_at_z is not None):
-                    img = img[:,range(args.start_at_z, args.end_at_z),:,:]
-                    log.info(f"Dropped planes in range {args.start_at_z} to {args.end_at_z} to stack: {img.shape} with dims {meta.dims}")
+                    img = img[:,range(start_at_z, end_at_z),:,:]
+                    log.info(f"Dropped planes in range {start_at_z} to {end_at_z} to stack: {img.shape} with dims {meta.dims}")
                 
                 pps = meta.physical_pixel_sizes
                 
