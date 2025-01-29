@@ -66,9 +66,13 @@ if __name__ == "__main__":
 
     if (args.start_at_z is not None):
         start_at_z = int(args.start_at_z)
+    else:
+        start_at_z = None
 
     if (args.end_at_z is not None):
         end_at_z = int(args.end_at_z)
+    else:
+        end_at_z = None
 
 
     for plate in args.plates:
@@ -89,13 +93,13 @@ if __name__ == "__main__":
     
                 log.info(f"Read image of shape: {img.shape} with dims {meta.dims}")
                 
-                if (args.start_at_z is not None and args.end_at_z is None):
+                if (start_at_z is not None and end_at_z is None):
                     img = img[:,range(start_at_z, img.shape[1]),:,:]
                     log.info(f"Dropped planes in range {start_at_z} to {end_at_z} to stack: {img.shape} with dims {meta.dims}")
-                elif (args.start_at_z is None and args.end_at_z is not None):
+                elif (start_at_z is None and end_at_z is not None):
                     img = img[:,range(0, end_at_z),:,:]
                     log.info(f"Dropped planes in range {start_at_z} to {end_at_z} to stack: {img.shape} with dims {meta.dims}")
-                elif (args.start_at_z is not None and args.end_at_z is not None):
+                elif (start_at_z is not None and end_at_z is not None):
                     img = img[:,range(start_at_z, end_at_z),:,:]
                     log.info(f"Dropped planes in range {start_at_z} to {end_at_z} to stack: {img.shape} with dims {meta.dims}")
                 
