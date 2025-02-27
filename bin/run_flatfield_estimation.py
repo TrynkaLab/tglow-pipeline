@@ -10,6 +10,7 @@ import time
 import numpy as np
 import logging
 import cv2 as cv
+import copy
 from basicpy import BaSiC
 from matplotlib import pyplot as plt
 from scipy import ndimage as ndi
@@ -18,6 +19,7 @@ from tglow.utils.tglow_utils import float_to_16bit_unint
 from skimage.filters import threshold_otsu, gaussian
 from skimage.transform import downscale_local_mean, resize
 from numpy.polynomial import polynomial as P
+from sklearn.linear_model import RidgeCV
 
 # Plot results from basicpy fit
 def plot_basic_results(basic, filename):
@@ -63,6 +65,51 @@ def plot_before_after_mp(images,images_transformed, filename):
     fig.savefig(filename, dpi=300)
     plt.close()
 
+def plot_flatfield_evaluation(flatfield, image, image_corrected, filename):
+
+    X=flatfield    
+    Y=image
+    Z=image_corrected
+    
+    f, ax = plt.subplots(2, 3, figsize=(10, 6))
+
+    ax[0,0].imshow(X, cmap='inferno')
+    ax[0,0].set_title('Flatfield')
+
+    ax[0,1].imshow(Y, cmap='inferno')
+    ax[0,1].set_title('Raw image')
+
+    ax[0,2].imshow(Z, cmap='inferno')
+    ax[0,2].set_title('Corrected image')
+
+    ax[1,0].imshow(Y-Z, cmap='inferno')
+    ax[1,0].set_title('Raw - Corrected')
+
+    # Uncorrected vs flatfield
+    ax[1,1].scatter(X.flatten(), Y.flatten(), color="lightgrey")
+    m, b = np.polyfit(X.flatten(),  Y.flatten(), 1)
+    x_line = np.linspace(min(X.flatten()), max(X.flatten()), 100)
+    ax[1,1].plot(x_line, np.repeat(np.mean(Y.flatten()), len(x_line)), color='black', linestyle='--')
+    ax[1,1].plot(x_line, m * x_line + b, color='red', linestyle='--')
+    ax[1,1].set_xlabel('Bin value of flatfield')
+    ax[1,1].set_ylabel('Bin intensity')
+    ax[1,1].set_title('Raw image')
+
+    # Corrected vs X
+    ax[1,2].scatter(X.flatten(), Z.flatten(), color="lightgrey")
+    m, b = np.polyfit(X.flatten(),  Z.flatten(), 1)
+    x_line = np.linspace(min(X.flatten()), max(X.flatten()), 100)
+    ax[1,2].plot(x_line, np.repeat(np.mean(Z.flatten()), len(x_line)), color='black', linestyle='--')
+    ax[1,2].plot(x_line, m * x_line + b, color='red', linestyle='--')
+    ax[1,2].set_xlabel('Bin value of flatfield')
+    ax[1,2].set_ylabel('Bin intensity')
+    ax[1,2].set_title('Corrected image')
+
+    plt.subplots_adjust(left=0.1, right=1.5, top=0.9, bottom=0.1)
+    plt.tight_layout()
+    plt.savefig(filename, dpi=300)
+
+
 
 # Logging
 logging.basicConfig(format='%(asctime)s %(message)s')
@@ -71,7 +118,7 @@ log.setLevel(logging.DEBUG)
 
 class FlatFieldTrainer():
     
-    def __init__(self, path, output_dir, output_prefix,  channel,  nimg, merge_n, tune, fit_darkfield, all_planes=False, max_project=False, plates=None, fields=None, planes=None, threshold=False, autosegment=False, plot=False, blacklist=None, pseudoreplicates=0, blur=False, sigma=2):
+    def __init__(self, path, output_dir, output_prefix,  channel,  nimg, merge_n, tune, fit_darkfield, all_planes=False, max_project=False, plates=None, fields=None, planes=None, threshold=False, autosegment=False, plot=False, blacklist=None, pseudoreplicates=0, blur=False, sigma=2, nimg_validate=0, bins=20):
         
         # Class to read images
         self.provider = CompoundImageProvider(path, nimg,  channel, blacklist, plates, fields, planes, pseudoreplicates, merge_n, max_project, all_planes)
@@ -79,6 +126,7 @@ class FlatFieldTrainer():
         
         self.nimg=nimg
         self.merge_n=merge_n
+        self.nimg_validate=nimg_validate
         self.all_planes=all_planes
         self.tune=tune
         self.fit_darkfield=fit_darkfield
@@ -92,6 +140,7 @@ class FlatFieldTrainer():
                 
         self.blur=blur
         self.sigma=sigma
+        self.bins=bins
         
         # Output
         self.out = f"{self.output_dir}/{self.output_prefix}_ch{str(self.channel)}"
@@ -174,7 +223,12 @@ class FlatFieldTrainer():
         basic.save_model(self.out, overwrite=True)
 
         if self.plot:
+            log.info("Plotting results")
             self.plot_results(basic, merged)
+            
+        if self.nimg_validate > 0:
+            log.info("Running validation on new imageset")
+            self.evaluate_flatfield(basic.flatfield, self.bins)
     
     def train_mean_filter(self):
         
@@ -215,7 +269,11 @@ class FlatFieldTrainer():
         
         self.__create_output(flatfield,  np.array(training_imgs))
         
-    def train_polynomial(self, degree):
+        if self.nimg_validate > 0:
+            log.info("Running validation on new imageset")
+            self.evaluate_flatfield(flatfield, self.bins)
+        
+    def train_polynomial(self, use_ridge):
     
         # Read random images possibly as compound
         training_imgs = self.provider.fetch_training_images()
@@ -228,7 +286,7 @@ class FlatFieldTrainer():
             
             if fit_sum is None:
                 fit_sum = np.ones_like(cur_img)
-            fit_sum += self.__fit_poly_img(cur_img, degree)
+            fit_sum += self.__fit_poly_img(cur_img, use_ridge=use_ridge)
             i += 1
             
         # Calculate the average over the images
@@ -237,28 +295,95 @@ class FlatFieldTrainer():
 
         # Normalize flatfield to mean
         flatfield = final_fit / np.mean(final_fit)
-        
+        log.info("Done, saving output")
         self.__create_output(flatfield, np.array(training_imgs))
-    
-    def __fit_poly_img(self, image, degree):
+        
+        if self.nimg_validate > 0:
+            log.info("Running validation on new imageset")
+            self.evaluate_flatfield(flatfield, self.bins)
+        
+        log.info("Done, successfully completed")
+
+
+    def __fit_poly_img(self, image, scale_xy=True, trim_quantile=0.9999, use_ridge=False):
         Y, X = np.mgrid[:image.shape[0], :image.shape[1]]
         Z = image
+        
+        if scale_xy:
+            X = X / np.max(X)
+            Y = Y / np.max(Y)
 
         x = X.flatten()
         y = Y.flatten()
         z = Z.flatten()
+        #z = (z - np.mean(z)) / np.std(z)
 
-        design_matrix = P.polyvander2d(x, y, [degree, degree])
+        if trim_quantile != 1:
+            keep = z < np.quantile(z, trim_quantile)
+            x = x[keep]
+            y = y[keep]
+            z = z[keep]
 
-        coeffs, residuals, rank, s = np.linalg.lstsq(design_matrix, z, rcond=None)
-        coeffs = coeffs.reshape((degree + 1, degree + 1))
+        # The cellprofiler model
+        # 1 + x2 + y2  + x*y + x + y 
+        design_matrix = np.column_stack((np.ones(len(x)), x*x, y*y, x*y, x, y))
+        
+        # Alternative full model
+        # 1 + y + y^2 + x + x*y + x*y^2 + x^2 + x^2*y + x^2*y^2
+        #design_matrix = P.polyvander2d(x, y, [degree, degree])
+        if use_ridge:
+            model = RidgeCV(alphas=np.logspace(-6, 6, 13), cv=5, fit_intercept=False)
+            fit = model.fit(design_matrix, z)
+            coef_tmp = fit.coef_
+            log.info(f"Best alpha: {fit.alpha_} r2: {fit.best_score_}")   
+        else:
+            # OLS    
+            coef_tmp, residuals, rank, s = np.linalg.lstsq(design_matrix, z, rcond=None)
 
+        # 2D matrix, where rows are the power of X and cols are the power of Y
+        coeffs = np.zeros((3, 3))
+        coeffs[0,0] = coef_tmp[0]
+        coeffs[2,0] = coef_tmp[1]
+        coeffs[0,2] = coef_tmp[2]
+        coeffs[1,1] = coef_tmp[3]
+        coeffs[1,0] = coef_tmp[4]
+        coeffs[0,1] = coef_tmp[5]
+        
+        # OR when using full model
+        #coeffs = coef_tmp.reshape((degree + 1, degree + 1))
         z_fit = P.polyval2d(X, Y, coeffs)
 
         return(z_fit)
 
     
+    def evaluate_flatfield(self, flatfield, bins=20):
+        
+        provider = copy.copy(self.provider)
+        
+        provider.pseudoreplicates = 0
+        provider.merge_n = 1
+        provider.nimg = self.nimg_validate
+        
+        log.info("Reading images for validation")
+        X = flatfield
+        Y = provider.fetch_average_image(rescale=False, threshold=False)
+        
+        # Reshape into bins and take the mean
+        X = X.reshape(bins, int(X.shape[0] / bins), bins, int(X.shape[1]/bins)).mean(3).mean(1)
+        Y = Y.reshape(bins, int(Y.shape[0] / bins), bins, int(Y.shape[1]/bins)).mean(3).mean(1)
+
+        # Calculate the correction
+        Z = Y
+        Z = Z.astype(np.float32)
+        Z = Z / X
+                
+        plot_flatfield_evaluation(X, Y, Z, filename=self.out + f"/model_evaluation_nimg_{self.nimg_validate}_nbin_{bins}.png")
+        
+
     def __create_output(self, flatfield, merged):
+        
+        log.info(f"Flatfiled min: {np.min(flatfield)} max: {np.max(flatfield)} median: {np.median(flatfield)}")
+        
         # Hack, but save the results as a basicpy object to keep it compatible with the pipeline
         basic = BaSiC()
         basic.flatfield = flatfield
@@ -269,20 +394,26 @@ class FlatFieldTrainer():
             os.makedirs(self.out)
     
         basic.save_model(self.out, overwrite=True)
+        log.info("Output saved")
         
         if self.plot:
             self.plot_results(basic, merged)
+            log.info("Plots saved")
+
         
+    def apply_transform(self, basic, images):
+        im_float = images.astype(np.float32)
+        output = (im_float - basic.darkfield[np.newaxis]) / basic.flatfield[np.newaxis]
+        return(output)
         
-    #def apply_transform(self, basic, images):
-    #    im_float = images.astype(np.float32)
-    #    output = (im_float - basic.darkfield[np.newaxis]) / basic.flatfield[np.newaxis]
-    #    return(output)
         
     def plot_results(self, basic, merged):
         
+        plot_max = 5
+        
         # Apply correction
         merged_corrected = basic.transform(merged)
+        #merged_corrected = self.apply_transform(basic, merged)
 
         # Convert data back to original 16bit uint
         merged_corrected = float_to_16bit_unint(merged_corrected)
@@ -293,7 +424,6 @@ class FlatFieldTrainer():
             plot_before_after_mp(np.max(merged, axis=0), np.max(merged_corrected, axis=0), filename=self.out + "/all_imgs_max_proj_pre_post.png")
             
             # Plot before and after for first 5 images, or as many as are available
-            plot_max = 5
             if merged_corrected.shape[0] < plot_max:
                 plot_max = merged_corrected.shape[0]
             
@@ -313,6 +443,7 @@ if __name__ == "__main__":
     parser.add_argument('--no_tune', help="[BP only] Do not tune the basicpy model", action='store_true', default=False)
     parser.add_argument('--fit_darkfield', help="[BP only] Fit the darkfield component. For tglow not reccomended", action='store_true', default=False)
     parser.add_argument('--nimg', help="Number of random images to train on. Sampled with replacement", default=None, required=True)
+    parser.add_argument('--nimg_test', help="Number of random images to evaluate the final flatfield on. Set to 0 to not evaluate.", default=0, required=False)
     parser.add_argument('--merge_n', help="Number of images to combine into one --nimg times", default=1)
     parser.add_argument('--pseudoreplicates', help="Number of pseudoreplicates to generate. Pseudoreplicate is a compound from --merge_n images samples from --nimg read images", default=0)
     parser.add_argument('-p','--plate', help='Plate to process. Defaults to all detected plates.', nargs='+', default=None)
@@ -328,7 +459,9 @@ if __name__ == "__main__":
     parser.add_argument('--sigma', help="[BP only] The sd of the gaussian kernel.", default=5)
     parser.add_argument('--plot', help="Plot basicpy results", action='store_true', default=False)
     parser.add_argument('--mode', help='The mode to run in BASICPY | MEAN | POLY', default="BASICPY")
-    parser.add_argument('--degree', help="[POLY only] The degree for the polynomial", default=2)
+    parser.add_argument('--ridge', help="Use ridge regression instead of OLS for POLY", action='store_true', default=False)
+    parser.add_argument('--bins', help="The number of 2d bins to use in validating. Reccomend 10-50, use lower number for sparse images", default=20, required=False)
+    #parser.add_argument('--degree', help="[POLY only] The degree for the polynomial", default=2)
 
     args = parser.parse_args()
     
@@ -355,6 +488,7 @@ if __name__ == "__main__":
     print("Output pre:\t" + args.output_prefix)
     print("channel:\t" + str(args.channel))
     print("n img:\t\t" + str(args.nimg))
+    print("n img validate:\t" + str(args.nimg_test))
     print("tune basicpy:\t" + str(not args.no_tune))
     print("merge n:\t" + str(args.merge_n))
     print("darkfied:\t" + str(args.fit_darkfield))
@@ -366,7 +500,8 @@ if __name__ == "__main__":
     print("pseudoreplicates:\t" + str(args.pseudoreplicates))
     print("gaussian blur:\t" + str(args.blur))
     print("sigma:\t" + str(args.sigma))
-    print("degree:\t" + str(args.degree))
+    print("bins:\t" + str(args.bins))
+    #print("degree:\t" + str(args.degree))
 
     print("-----------------------------------------------------------")
 
@@ -388,7 +523,9 @@ if __name__ == "__main__":
                             blacklist=args.blacklist,
                             pseudoreplicates=int(args.pseudoreplicates),
                             blur=args.blur,
-                            sigma=float(args.sigma))
+                            sigma=float(args.sigma),
+                            nimg_validate=int(args.nimg_test),
+                            bins=int(args.bins))
     
     if (args.mode == "BASICPY"):                 
         trainer.train_basicpy()
@@ -396,7 +533,8 @@ if __name__ == "__main__":
         log.warning("MEAN method is very dodgy and I do not reccomend it, Use it at your own risk!")
         trainer.train_mean_filter()
     elif (args.mode == "POLY"):
-        trainer.train_polynomial(int(args.degree))
+        #trainer.train_polynomial(int(args.degree))
+        trainer.train_polynomial(use_ridge=args.ridge)
     else:
         raise ValueError(f"{args.mode}, not a valid mode")
 
