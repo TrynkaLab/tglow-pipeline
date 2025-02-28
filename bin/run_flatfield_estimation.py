@@ -11,12 +11,14 @@ import numpy as np
 import logging
 import cv2 as cv
 import copy
+from tqdm import tqdm
 from basicpy import BaSiC
 from matplotlib import pyplot as plt
 from scipy import ndimage as ndi
 from tglow.io.compound_image_provider import CompoundImageProvider
 from tglow.utils.tglow_utils import float_to_16bit_unint
-from skimage.filters import threshold_otsu, gaussian
+from skimage.filters import threshold_otsu, gaussian, threshold_multiotsu, threshold_sauvola, rank
+from skimage.morphology import disk
 from skimage.transform import downscale_local_mean, resize
 from numpy.polynomial import polynomial as P
 from sklearn.linear_model import RidgeCV
@@ -67,25 +69,30 @@ def plot_before_after_mp(images,images_transformed, filename):
     fig.savefig(filename, dpi=300)
     plt.close()
 
+
 def plot_flatfield_evaluation(flatfield, image, image_corrected, filename):
 
     X=flatfield    
     Y=image
     Z=image_corrected
     
-    f, ax = plt.subplots(2, 3, figsize=(10, 6))
+    f, ax = plt.subplots(2, 3, figsize=(11, 6))
 
-    ax[0,0].imshow(X, cmap='inferno')
+    im = ax[0,0].imshow(X, cmap='inferno')
     ax[0,0].set_title('Flatfield')
+    f.colorbar(im, ax=ax[0,0])
 
-    ax[0,1].imshow(Y, cmap='inferno')
+    im = ax[0,1].imshow(Y, cmap='inferno')
     ax[0,1].set_title('Raw image')
+    f.colorbar(im, ax=ax[0,1])
 
-    ax[0,2].imshow(Z, cmap='inferno')
+    im = ax[0,2].imshow(Z, cmap='inferno')
     ax[0,2].set_title('Corrected image')
+    f.colorbar(im, ax=ax[0,2])
 
-    ax[1,0].imshow(Y-Z, cmap='inferno')
+    im = ax[1,0].imshow(Y-Z, cmap='inferno')
     ax[1,0].set_title('Raw - Corrected')
+    f.colorbar(im, ax=ax[1,0])
 
     # Uncorrected vs flatfield
     ax[1,1].scatter(X.flatten(), Y.flatten(), color="lightgrey")
@@ -277,20 +284,48 @@ class FlatFieldTrainer():
             self.evaluate_flatfield(flatfield, self.bins)
         
         
-    def train_polynomial(self, use_ridge):
+    def train_polynomial(self, use_ridge, degree=2):
     
         # Read random images possibly as compound
         training_imgs = self.provider.fetch_training_images()
         
+        if self.blur:
+            i=0
+            pb = tqdm(total=len(training_imgs), desc='Gaussian blur', unit='image')
+            while i < len(training_imgs): 
+                training_imgs[i] = gaussian(training_imgs[i], sigma=self.sigma, preserve_range=True)
+                i+=1
+                pb.update(1)
+            pb.close()
+                
+        if self.threshold:
+            size = round(training_imgs[0].shape[0] *0.03)
+            
+            log.info(f"Local thresholding images with window {size}")
+            i=0
+            pb = tqdm(total=len(training_imgs), desc='Threshold', unit='image')
+            while i < len(training_imgs): 
+                #training_imgs[i][training_imgs[i] < threshold_multiotsu(training_imgs[i])[0]] = 0
+                training_imgs[i][training_imgs[i] < threshold_sauvola(training_imgs[i], size)[0]] = 0
+                i+=1
+                pb.update(1)
+            pb.close()
+            
+                #cur_img[cur_img < threshold_sauvola(cur_img, 11)] = 0
+                #img[img < rank.otsu(img, disk(11))[0]] = 0
+                
+                
         fit_sum = None
         i =0
         for img in training_imgs:
-            log.info(f"Fitting poly to image {i}")
+        
             cur_img = downscale_local_mean(img, (4, 4))
             
             if fit_sum is None:
-                fit_sum = np.ones_like(cur_img)
-            fit_sum += self.__fit_poly_img(cur_img, use_ridge=use_ridge)
+                fit_sum = np.zeroes_like(cur_img)    
+            
+            log.info(f"Fitting poly to image {i}")
+            fit_sum += self.__fit_poly_img(cur_img, use_ridge=use_ridge, remove_zeroes=self.threshold, degree=degree)
             i += 1
             
         # Calculate the average over the images
@@ -308,6 +343,7 @@ class FlatFieldTrainer():
         
         log.info("Done, successfully completed")
 
+
     def train_pe_index(self, pe_index):
         
         pe_channel = str(int(self.channel)+1)
@@ -315,12 +351,12 @@ class FlatFieldTrainer():
         parser.parse_flatfields(channel=pe_channel)
         
         if (str(pe_channel) not in parser.flatfields.keys()):
-            ValueError(f"Channel {pe_channel} (ch {self.channel}) not found in PE index among {parser.flatfields.keys()}")
+            raise ValueError(f"Channel {pe_channel} (ch {self.channel}) not found in PE index among {parser.flatfields.keys()}")
         
         flatfield = parser.flatfields[pe_channel]['flatfield']
         
         # Normalize flatfield to mean
-        flatfield = flatfield / np.mean(flatfield)
+        #flatfield = flatfield / np.mean(flatfield)
         
         log.info("Done, saving output")
         self.plot = False
@@ -332,7 +368,20 @@ class FlatFieldTrainer():
         
         log.info("Done, successfully completed")
 
-    def __fit_poly_img(self, image, scale_xy=True, trim_quantile=0.9999, use_ridge=False):
+    
+    def test(self, input):
+        
+        log.info("Loading previous flatfield")
+        basic = BaSiC.load_model(input)
+        
+        if self.nimg_validate > 0:
+            log.info("Running validation on new imageset")
+            self.evaluate_flatfield(basic.flatfield, self.bins)
+
+        log.info("Done, successfully completed")
+
+
+    def __fit_poly_img(self, image, scale_xy=True, trim_quantile=0.9999, use_ridge=False, remove_zeroes=True, degree=2):
         Y, X = np.mgrid[:image.shape[0], :image.shape[1]]
         Z = image
         
@@ -343,21 +392,34 @@ class FlatFieldTrainer():
         x = X.flatten()
         y = Y.flatten()
         z = Z.flatten()
-        #z = (z - np.mean(z)) / np.std(z)
-
-        if trim_quantile != 1:
-            keep = z < np.quantile(z, trim_quantile)
+        if remove_zeroes:
+            keep = z != 0
             x = x[keep]
             y = y[keep]
             z = z[keep]
+            log.info(f"Removed {(image.shape[0] * image.shape[1]) - len(z)} zero values")
 
+        if trim_quantile != 1:
+            keep = z < np.quantile(z, trim_quantile)
+            log.info(f"Removed {len(z) - sum(keep)} q99.999 values")
+            x = x[keep]
+            y = y[keep]
+            z = z[keep]
+        
+        z = (z - np.mean(z)) / np.std(z)
+        
+        ptotal=len(z) / (image.shape[0] * image.shape[1])
+        log.info(f"Fitting moddel with {len(z)}/{(image.shape[0] * image.shape[1])} values")
+        if (ptotal < 0.05):
+            log.warning("Fewer then 5% of values left after filtering, returning even flatfield")
+            return (np.zeros_like(image))
+        
         # The cellprofiler model
         # 1 + x2 + y2  + x*y + x + y 
         #design_matrix = np.column_stack((np.ones(len(x)), x*x, y*y, x*y, x, y))
         
         # Alternative full model
         # 1 + y + y^2 + x + x*y + x*y^2 + x^2 + x^2*y + x^2*y^2
-        degree=2
         design_matrix = P.polyvander2d(x, y, [degree, degree])
         if use_ridge:
             model = RidgeCV(alphas=np.logspace(-6, 6, 13), cv=5, fit_intercept=False)
@@ -465,6 +527,8 @@ class FlatFieldTrainer():
             plot_before_after(merged, merged_corrected, i, filename=self.out + f"/img{i}_pre_post.png")
             i += 1
 
+    
+
 if __name__ == "__main__":
     
     # CLI 
@@ -486,16 +550,17 @@ if __name__ == "__main__":
     #parser.add_argument('--gpu', help="Use the GPU", action='store_true', default=False)
     parser.add_argument('--all_planes', help="Instead of randomly picking one plane for a stack, use them all", action='store_true', default=False)
     parser.add_argument('--max_project', help="Calculate flatfields on max projections. Automatically activates --all_planes", action='store_true', default=False)
-    parser.add_argument('--threshold', help="For mode MEAN, use otsu to only calculate mean in foreground regions. For BP Use Otsu threshold to set fitting_weight from basicpy to 1 for foreground and 0 for background. This conceptually the inverse of the autosegmentation", action='store_true', default=False)
+    parser.add_argument('--threshold', help="For mode MEAN | POLY, use otsu to only calculate mean in foreground regions. For BP Use Otsu threshold to set fitting_weight from basicpy to 1 for foreground and 0 for background. This conceptually the inverse of the autosegmentation", action='store_true', default=False)
     parser.add_argument('--autosegment', help="[BP only] Enable basicpy autosegment option", action='store_true', default=False)
-    parser.add_argument('--blur', help="[BP only] Apply a gaussian blur prior to fitting model.", action='store_true', default=False)
-    parser.add_argument('--sigma', help="[BP only] The sd of the gaussian kernel.", default=5)
+    parser.add_argument('--blur', help="[BP|POLY] Apply a gaussian blur prior to fitting model.", action='store_true', default=False)
+    parser.add_argument('--sigma', help="[BP|POLY] The sd of the gaussian kernel.", default=5)
     parser.add_argument('--plot', help="Plot basicpy results", action='store_true', default=False)
     parser.add_argument('--mode', help='The mode to run in BASICPY | MEAN | POLY | PE', default="BASICPY")
     parser.add_argument('--ridge', help="Use ridge regression instead of OLS for POLY", action='store_true', default=False)
     parser.add_argument('--bins', help="The number of 2d bins to use in validating. Reccomend 10-50, use lower number for sparse images", default=20, required=False)
     parser.add_argument('--pe_index', help="PerkinElmer index.xml file to extract flatfiels when --mode PE", default=None, required=False)
-    #parser.add_argument('--degree', help="[POLY only] The degree for the polynomial", default=2)
+    parser.add_argument('--degree', help="[POLY only] The degree for the polynomial", default=2)
+    parser.add_argument('--flatfield', help="[TEST] Path to previous results", default=None)
 
     args = parser.parse_args()
     
@@ -561,6 +626,12 @@ if __name__ == "__main__":
                             nimg_validate=int(args.nimg_test),
                             bins=int(args.bins))
     
+    # Test mode
+    if (args.flatfield is not None):
+        trainer.test(args.flatfield)
+        exit(0)
+    
+    # Train modes
     if (args.mode == "BASICPY"):                 
         trainer.train_basicpy()
     elif (args.mode == "MEAN"):
@@ -568,7 +639,7 @@ if __name__ == "__main__":
         trainer.train_mean_filter()
     elif (args.mode == "POLY"):
         #trainer.train_polynomial(int(args.degree))
-        trainer.train_polynomial(use_ridge=args.ridge)
+        trainer.train_polynomial(use_ridge=args.ridge, degree=int(args.degree))
     elif (args.mode == "PE"):
         
         if args.pe_index is None:
