@@ -20,6 +20,8 @@ from skimage.filters import threshold_otsu, gaussian
 from skimage.transform import downscale_local_mean, resize
 from numpy.polynomial import polynomial as P
 from sklearn.linear_model import RidgeCV
+from tglow.io.perkin_elmer_parser import PerkinElmerParser
+
 
 # Plot results from basicpy fit
 def plot_basic_results(basic, filename):
@@ -230,6 +232,7 @@ class FlatFieldTrainer():
             log.info("Running validation on new imageset")
             self.evaluate_flatfield(basic.flatfield, self.bins)
     
+    
     def train_mean_filter(self):
         
         # Read random images possibly as compound
@@ -273,6 +276,7 @@ class FlatFieldTrainer():
             log.info("Running validation on new imageset")
             self.evaluate_flatfield(flatfield, self.bins)
         
+        
     def train_polynomial(self, use_ridge):
     
         # Read random images possibly as compound
@@ -304,6 +308,29 @@ class FlatFieldTrainer():
         
         log.info("Done, successfully completed")
 
+    def train_pe_index(self, pe_index):
+        
+        pe_channel = str(int(self.channel)+1)
+        parser = PerkinElmerParser(pe_index)
+        parser.parse_flatfields(channel=pe_channel)
+        
+        if (str(pe_channel) not in parser.flatfields.keys()):
+            ValueError(f"Channel {pe_channel} (ch {self.channel}) not found in PE index among {parser.flatfields.keys()}")
+        
+        flatfield = parser.flatfields[pe_channel]['flatfield']
+        
+        # Normalize flatfield to mean
+        flatfield = flatfield / np.mean(flatfield)
+        
+        log.info("Done, saving output")
+        self.plot = False
+        self.__create_output(flatfield, None)
+        
+        if self.nimg_validate > 0:
+            log.info("Running validation on new imageset")
+            self.evaluate_flatfield(flatfield, self.bins)
+        
+        log.info("Done, successfully completed")
 
     def __fit_poly_img(self, image, scale_xy=True, trim_quantile=0.9999, use_ridge=False):
         Y, X = np.mgrid[:image.shape[0], :image.shape[1]]
@@ -326,11 +353,12 @@ class FlatFieldTrainer():
 
         # The cellprofiler model
         # 1 + x2 + y2  + x*y + x + y 
-        design_matrix = np.column_stack((np.ones(len(x)), x*x, y*y, x*y, x, y))
+        #design_matrix = np.column_stack((np.ones(len(x)), x*x, y*y, x*y, x, y))
         
         # Alternative full model
         # 1 + y + y^2 + x + x*y + x*y^2 + x^2 + x^2*y + x^2*y^2
-        #design_matrix = P.polyvander2d(x, y, [degree, degree])
+        degree=2
+        design_matrix = P.polyvander2d(x, y, [degree, degree])
         if use_ridge:
             model = RidgeCV(alphas=np.logspace(-6, 6, 13), cv=5, fit_intercept=False)
             fit = model.fit(design_matrix, z)
@@ -341,16 +369,16 @@ class FlatFieldTrainer():
             coef_tmp, residuals, rank, s = np.linalg.lstsq(design_matrix, z, rcond=None)
 
         # 2D matrix, where rows are the power of X and cols are the power of Y
-        coeffs = np.zeros((3, 3))
-        coeffs[0,0] = coef_tmp[0]
-        coeffs[2,0] = coef_tmp[1]
-        coeffs[0,2] = coef_tmp[2]
-        coeffs[1,1] = coef_tmp[3]
-        coeffs[1,0] = coef_tmp[4]
-        coeffs[0,1] = coef_tmp[5]
+        #coeffs = np.zeros((3, 3))
+        #coeffs[0,0] = coef_tmp[0]
+        #coeffs[2,0] = coef_tmp[1]
+        #coeffs[0,2] = coef_tmp[2]
+        #coeffs[1,1] = coef_tmp[3]
+        #coeffs[1,0] = coef_tmp[4]
+        #coeffs[0,1] = coef_tmp[5]
         
         # OR when using full model
-        #coeffs = coef_tmp.reshape((degree + 1, degree + 1))
+        coeffs = coef_tmp.reshape((degree + 1, degree + 1))
         z_fit = P.polyval2d(X, Y, coeffs)
 
         return(z_fit)
@@ -388,12 +416,18 @@ class FlatFieldTrainer():
         basic = BaSiC()
         basic.flatfield = flatfield
         basic.darkfield = np.zeros_like(flatfield)
-        basic.baseline = np.mean(merged, axis=(1,2))
         
+        if merged is None:
+            basic.baseline = 1
+        else:
+            basic.baseline = np.mean(merged, axis=(1,2))
+            
         if not os.path.exists(self.out):
             os.makedirs(self.out)
     
         basic.save_model(self.out, overwrite=True)
+        plot_basic_results(basic, self.out + "/flat_and_darkfield.png")
+
         log.info("Output saved")
         
         if self.plot:
@@ -419,18 +453,17 @@ class FlatFieldTrainer():
         merged_corrected = float_to_16bit_unint(merged_corrected)
         
         # Plot results
-        if self.plot:
-            plot_basic_results(basic, self.out + "/flat_and_darkfield.png")
-            plot_before_after_mp(np.max(merged, axis=0), np.max(merged_corrected, axis=0), filename=self.out + "/all_imgs_max_proj_pre_post.png")
-            
-            # Plot before and after for first 5 images, or as many as are available
-            if merged_corrected.shape[0] < plot_max:
-                plot_max = merged_corrected.shape[0]
-            
-            i = 0
-            while i < plot_max:
-                plot_before_after(merged, merged_corrected, i, filename=self.out + f"/img{i}_pre_post.png")
-                i += 1
+        #plot_basic_results(basic, self.out + "/flat_and_darkfield.png")
+        plot_before_after_mp(np.max(merged, axis=0), np.max(merged_corrected, axis=0), filename=self.out + "/all_imgs_max_proj_pre_post.png")
+        
+        # Plot before and after for first 5 images, or as many as are available
+        if merged_corrected.shape[0] < plot_max:
+            plot_max = merged_corrected.shape[0]
+        
+        i = 0
+        while i < plot_max:
+            plot_before_after(merged, merged_corrected, i, filename=self.out + f"/img{i}_pre_post.png")
+            i += 1
 
 if __name__ == "__main__":
     
@@ -447,7 +480,7 @@ if __name__ == "__main__":
     parser.add_argument('--merge_n', help="Number of images to combine into one --nimg times", default=1)
     parser.add_argument('--pseudoreplicates', help="Number of pseudoreplicates to generate. Pseudoreplicate is a compound from --merge_n images samples from --nimg read images", default=0)
     parser.add_argument('-p','--plate', help='Plate to process. Defaults to all detected plates.', nargs='+', default=None)
-    parser.add_argument('-c','--channel', help="Channel number to correct", required=True)
+    parser.add_argument('-c','--channel', help="Channel number to correct, zero indexed", required=True)
     parser.add_argument('--fields', help='Fields to use. Defaults to use all fields.', nargs='+', default=None)
     #parser.add_argument('--planes', help='Z planes to use. Defaults to use all planes', nargs='+', default=None)
     #parser.add_argument('--gpu', help="Use the GPU", action='store_true', default=False)
@@ -458,9 +491,10 @@ if __name__ == "__main__":
     parser.add_argument('--blur', help="[BP only] Apply a gaussian blur prior to fitting model.", action='store_true', default=False)
     parser.add_argument('--sigma', help="[BP only] The sd of the gaussian kernel.", default=5)
     parser.add_argument('--plot', help="Plot basicpy results", action='store_true', default=False)
-    parser.add_argument('--mode', help='The mode to run in BASICPY | MEAN | POLY', default="BASICPY")
+    parser.add_argument('--mode', help='The mode to run in BASICPY | MEAN | POLY | PE', default="BASICPY")
     parser.add_argument('--ridge', help="Use ridge regression instead of OLS for POLY", action='store_true', default=False)
     parser.add_argument('--bins', help="The number of 2d bins to use in validating. Reccomend 10-50, use lower number for sparse images", default=20, required=False)
+    parser.add_argument('--pe_index', help="PerkinElmer index.xml file to extract flatfiels when --mode PE", default=None, required=False)
     #parser.add_argument('--degree', help="[POLY only] The degree for the polynomial", default=2)
 
     args = parser.parse_args()
@@ -535,6 +569,13 @@ if __name__ == "__main__":
     elif (args.mode == "POLY"):
         #trainer.train_polynomial(int(args.degree))
         trainer.train_polynomial(use_ridge=args.ridge)
+    elif (args.mode == "PE"):
+        
+        if args.pe_index is None:
+            log.error("When --mode PE, must provide --pe_index to extract flatfields from")
+            exit(1)
+        
+        trainer.train_pe_index(pe_index=args.pe_index)
     else:
         raise ValueError(f"{args.mode}, not a valid mode")
 
