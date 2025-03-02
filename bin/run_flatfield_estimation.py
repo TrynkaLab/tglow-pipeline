@@ -49,7 +49,7 @@ def plot_before_after(images, images_transformed, i, filename):
     images[images==0] = np.nan
     images_transformed[images_transformed==0] = np.nan
 
-    cmap = plt.get_cmap('inferno').copy()
+    cmap = plt.get_cmap('viridis').copy()
 
     # Set the color for NaN values (e.g., white)
     cmap.set_bad('darkgrey')
@@ -75,7 +75,7 @@ def plot_before_after_mp(images,images_transformed, filename, main="Max projecte
         images[images==0] = np.nan
         images_transformed[images_transformed==0] = np.nan
     
-    cmap = plt.get_cmap('inferno').copy()
+    cmap = plt.get_cmap('viridis').copy()
 
     # Set the color for NaN values (e.g., white)
     cmap.set_bad('darkgrey')
