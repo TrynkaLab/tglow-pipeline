@@ -72,37 +72,48 @@ process fetch_raw {
         """         
 }
 
-// Basicpy
+// Estimate_flatfield
 // normal queue
-process basicpy {
+process estimate_flatfield {
     //label 'himem'
     label params.bp_label
     conda params.tg_conda_env
-    storeDir "${params.rn_publish_dir}/basicpy/${plate}" //, mode: 'copy'
+    storeDir "${params.rn_publish_dir}/flatfields/${plate}" //, mode: 'copy'
 
     input:
-        tuple val(plate), val(img_channel)
+        tuple val(plate), val(img_channel), val(pe_index)
         path blacklist
     output:
-        path "${plate}_ch${img_channel}", emit: basicpy_file_out
-        tuple val(plate), val(img_channel),  path("${plate}_ch${img_channel}"), emit: basicpy_out       
+        path "*${plate}_ch${img_channel}", emit: basicpy_file_out
+        tuple val(plate), val(img_channel),  path("*${plate}_ch${img_channel}"), emit: flatfield_out       
     script:
         cmd =
         """
-        run_basicpy.py \
+        run_flatfield_estimation.py \
+        --mode $params.bp_mode \
         --input $params.rn_image_dir \
         --output ./ \
-        --output_prefix $plate \
-        --plate $plate \
         --nimg $params.bp_nimg \
         --plot \
+        --pe_index '$pe_index' \
         --channel $img_channel\
         """
+        
+        if (params.bp_global_flatfield) {
+            cmd += " --output_prefix global_refplate_$plate"
+        } else {
+            cmd += " --plate $plate"
+            cmd += " --output_prefix $plate"
+        }
         
         if (params.rn_max_project) {
             cmd += " --max_project"
         }
-            
+        
+        if (params.bp_nimg_test) {
+            cmd += " --nimg_test $params.bp_nimg_test"
+        }
+        
         if (params.bp_no_tune) {
             cmd += " --no_tune"
         }   
@@ -113,6 +124,10 @@ process basicpy {
         
         if (params.bp_pseudoreplicates) {
             cmd += " --pseudoreplicates $params.bp_pseudoreplicates"
+        }
+        
+        if (params.bp_pseudoreplicates_test) {
+            cmd += " --pseudoreplicates_test $params.bp_pseudoreplicates_test"
         }
         
         if (params.bp_all_planes) {
@@ -133,6 +148,25 @@ process basicpy {
           
         cmd
 }
+
+// Copy the global flatfield to per plate folders
+process stage_global_flatfield {
+    
+    label "tiny"
+    conda params.tg_conda_env
+    storeDir "${params.rn_publish_dir}/flatfields/${plate}/" //, mode: 'copy'
+
+    input:
+        tuple val(plate), val(img_channel),  path(refdir)
+    output:
+        path "${plate}_ch${img_channel}", emit: basicpy_file_out
+        tuple val(plate), val(img_channel),  path("${plate}_ch${img_channel}"), emit: flatfield_out      
+    script:
+    """
+    cp -r $refdir ${plate}_ch${img_channel}
+    """
+}
+
 
 // Cellpose
 process cellpose {
@@ -673,48 +707,78 @@ workflow run_pipeline {
         }
     
         //------------------------------------------------------------
-        // Run basicpy
+        // Run estimate_flatfield
         
         // If there is no global overide on basicpy channels, get them from manifest
         // TODO: nextflowify this by remaping this from manifest channel
         
-        def run_basicpy = false
+        def run_flatfield = false
         if (params.bp_channels == null) {
             def csvFile = new File(params.rn_manifest)
             def csvData = csvFile.readLines()
 
             def plate_channel = []
+            def plate_channel_global = []
+
             // Skip header
             // Substract one from the channel is python is 0 indexed
+            // Returns a list of tuples, one for each plate channel with (plate, channel, pe_index)
             for (int i = 1; i < csvData.size(); i++) {
                 def curLine = csvData[i].split('\t')
                 
                 if (curLine[3] != "none") {
                     def curChannels = curLine[3].split(',')
                     for (channel in curChannels) {
-                        plate_channel << tuple(curLine[0], channel.toInteger()-1)
+                        plate_channel << tuple(curLine[0], channel.toInteger()-1, curLine[1])
+                        
+                        // Save the first line as the global channel
+                        if (i == 1) {
+                            plate_channel_global << tuple(curLine[0], channel.toInteger()-1, curLine[1])
+                        }
                     }
                 }
             }
             
             if (plate_channel.size() > 0) {
-                run_basicpy = true
+                run_flatfield = true
             }
-               
-            basicpy_in = Channel.from(plate_channel)
+            
+            flatfield_in = Channel.from(plate_channel)
+            flatfield_in_global = Channel.from(plate_channel_global)
+
         } else {
-            basicpy_in = Channel.from(params.bp_channels)
+            flatfield_in = Channel.from(params.bp_channels)
         }
         
-        if (run_basicpy) {
-            log.info("Running basicpy")
+        if (run_flatfield) {
+            log.info("Running flatfield estimation")
         } else {
             log.info("No manifest entries or --bp_channels provided, so skipping basicpy")
         }
          
-        //basicpy_channels = basicpy_channels.combine(manifest, by:0)
-        //basicpy_in.view()
-        basicpy_out = basicpy(basicpy_in, blacklist_channel).basicpy_out
+        if (params.bp_global_flatfield) {
+            log.info("Estimating one global flatfield")
+            // Runs only one model per plate
+            global_flatfield = estimate_flatfield(flatfield_in_global, blacklist_channel).flatfield_out
+            
+            // Now need to make a channel like flatfield_in, but replacing the path with global_flatfield
+            // Combine on the channel
+            global_flatfield_in = flatfield_in
+            .combine(global_flatfield, by: 1)
+            .map{ row -> tuple(
+                row[1], // plate
+                row[0], // channel
+                row[4] // reference path
+                )
+            }                
+            global_flatfield_in.view()
+            flatfield_out = stage_global_flatfield(global_flatfield_in).flatfield_out
+        } else {
+            log.info("Estimating one flatfield per channel")
+            flatfield_out = estimate_flatfield(flatfield_in, blacklist_channel).flatfield_out
+        }
+         
+         
         
         //------------------------------------------------------------
         // Loop over previously generated manifests assuming stage has been run
@@ -936,19 +1000,19 @@ workflow run_pipeline {
             
             //--------------------------------------------------------------------
             // Basicpy models        
-            if (run_basicpy) {
+            if (run_flatfield) {
             
                 // Concat to plate string format
-                basicpy_tmp = basicpy_out.map{ row -> tuple(
+                flatfield_tmp = flatfield_out.map{ row -> tuple(
                     row[0], // plate
                     row[0] + "_ch" + row[1] + "=" + row[2] // plate : channel = path
                 )}
     
                 // debug only to test multiple channels
-                //basicpy_out=basicpy_out.concat(basicpy_out)
+                //flatfield_out=flatfield_out.concat(flatfield_out)
     
                 // Merge channel of same plates into single string 
-                basicpy_tmp = basicpy_tmp
+                flatfield_tmp = flatfield_tmp
                 .groupTuple(by:0)
                 .map{row -> tuple(
                     row[1].join(" "), //  plate_ch1=path1 plate_ch2=path2 plate_chX=pathX
@@ -980,10 +1044,10 @@ workflow run_pipeline {
                     )}
                     
                     // Add the reference plate to the basicpy output channel: (plate, bp_string, ref_plate)
-                    basicpy_tmp = basicpy_tmp.combine(qry_ref_channel, by:1)
+                    flatfield_tmp = flatfield_tmp.combine(qry_ref_channel, by:1)
                     
                     // Group together by reference plate and concat the bp strings
-                    basicpy_tmp = basicpy_tmp
+                    flatfield_tmp = flatfield_tmp
                     .groupTuple(by:2)
                     .map{row -> tuple(
                         row[1].join(" "), //  plate_ch1=path1 plate_ch2=path2 plate_chX=pathX
@@ -992,7 +1056,7 @@ workflow run_pipeline {
                 }
 
                 // Append the basicpy models for a plate into that channel              
-                cellprofiler_in = cellprofiler_in.combine(basicpy_tmp, by: 1)
+                cellprofiler_in = cellprofiler_in.combine(flatfield_tmp, by: 1)
             } else {
                 cellprofiler_in = cellprofiler_in.map{row -> tuple(
                         row[1], // plate

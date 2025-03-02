@@ -99,7 +99,7 @@ def plot_flatfield_evaluation(flatfield, image, image_corrected, filename):
     Y=image
     Z=image_corrected
     
-    f, ax = plt.subplots(2, 3, figsize=(11, 6))
+    f, ax = plt.subplots(2, 3, figsize=(12, 6))
 
     im = ax[0,0].imshow(X, cmap='inferno')
     ax[0,0].set_title('Flatfield')
@@ -143,8 +143,6 @@ def plot_flatfield_evaluation(flatfield, image, image_corrected, filename):
     plt.tight_layout()
     plt.savefig(filename, dpi=300)
 
-
-
 # Logging
 logging.basicConfig(format='%(asctime)s %(message)s')
 log = logging.getLogger(__name__)
@@ -152,7 +150,7 @@ log.setLevel(logging.DEBUG)
 
 class FlatFieldTrainer():
     
-    def __init__(self, path, output_dir, output_prefix,  channel,  nimg, merge_n, tune, fit_darkfield, all_planes=False, max_project=False, plates=None, fields=None, planes=None, threshold=False, autosegment=False, plot=False, blacklist=None, pseudoreplicates=0, blur=False, sigma=2, nimg_validate=0, bins=20):
+    def __init__(self, path, output_dir, output_prefix,  channel,  nimg, merge_n, tune, fit_darkfield, all_planes=False, max_project=False, plates=None, fields=None, planes=None, threshold=False, autosegment=False, plot=False, blacklist=None, pseudoreplicates=0, pseudoreplicates_test=0, blur=False, sigma=2, nimg_validate=0, bins=20):
         
         # Class to read images
         self.provider = CompoundImageProvider(path, nimg,  channel, blacklist, plates, fields, planes, pseudoreplicates, merge_n, max_project, all_planes)
@@ -161,6 +159,7 @@ class FlatFieldTrainer():
         self.nimg=nimg
         self.merge_n=merge_n
         self.nimg_validate=nimg_validate
+        self.pseudoreplicates_validate=pseudoreplicates_test
         self.all_planes=all_planes
         self.tune=tune
         self.fit_darkfield=fit_darkfield
@@ -175,6 +174,7 @@ class FlatFieldTrainer():
         self.blur=blur
         self.sigma=sigma
         self.bins=bins
+        
         
         # Output
         self.out = f"{self.output_dir}/{self.output_prefix}_ch{str(self.channel)}"
@@ -403,11 +403,26 @@ class FlatFieldTrainer():
             i=0
             pb = tqdm(total=len(training_imgs), desc='Threshold', unit='image')
             while i < len(training_imgs): 
+                
+                # Remove outliers/saturated pixels prior to thresholding
+                thresh_img=training_imgs[i]
+                
+                # Remove saturated pixels
+                thresh_img[thresh_img == np.iinfo(thresh_img.dtype).max] = 0
+                
+                # Remove 0.1% of most intense pixels
+                q=np.quantile(thresh_img, 99.9)
+                thresh_img[thresh_img < q] = 0
+                
                 # Localized sauvola threshold. With sparse images, gives issues
                 #thresh = threshold_sauvola(training_imgs[i], size)
+                
                 # Multiotsu threshold, a little slower
-                #thresh = threshold_multiotsu(training_imgs[i])[0]
-                thresh = threshold_otsu(training_imgs[i])
+                thresh = threshold_multiotsu(thresh_img)[0]
+                
+                # Regular otsu
+                #thresh = threshold_otsu(training_imgs[i])
+                
                 training_imgs[i][training_imgs[i] < thresh] = 0
                 i+=1
                 pb.update(1)
@@ -431,7 +446,7 @@ class FlatFieldTrainer():
         log.info("Done, successfully completed")
 
 
-    def __fit_poly_img(self, image, scale_xy=True, trim_quantile=0.9999, use_ridge=False, remove_zeroes=True, degree=2):
+    def __fit_poly_img(self, image, scale_xy=True, trim_quantile=0, use_ridge=False, remove_zeroes=True, degree=2):
         Y, X = np.mgrid[:image.shape[0], :image.shape[1]]
         Z = image
         
@@ -449,9 +464,10 @@ class FlatFieldTrainer():
             z = z[keep]
             log.info(f"Removed {(image.shape[0] * image.shape[1]) - len(z)} zero values")
 
-        if trim_quantile != 1:
-            keep = z < np.quantile(z, trim_quantile)
-            log.info(f"Removed {len(z) - sum(keep)} q99.999 values")
+        if trim_quantile != 0:
+            q = np.quantile(z, trim_quantile)
+            keep = z < q
+            log.info(f"Removed {len(z) - sum(keep)} >q{trim_quantile} (<{q}) values.")
             x = x[keep]
             y = y[keep]
             z = z[keep]
@@ -500,10 +516,8 @@ class FlatFieldTrainer():
         
         provider = copy.copy(self.provider)
 
-        if provider.pseudoreplicates > 0:
-            provider.pseudoreplicates = self.nimg_validate
-        else:
-            provider.nimg = self.nimg_validate
+        provider.pseudoreplicates = self.pseudoreplicates_validate
+        provider.nimg = self.nimg_validate
         #provider.pseudoreplicates = 0
         #provider.merge_n = 1
         #provider.nimg = self.nimg_validate
@@ -631,6 +645,7 @@ if __name__ == "__main__":
     parser.add_argument('--nimg_test', help="Number of random images to evaluate the final flatfield on. Set to 0 to not evaluate.", default=0, required=False)
     parser.add_argument('--merge_n', help="Number of images to combine into one --nimg times", default=1)
     parser.add_argument('--pseudoreplicates', help="Number of pseudoreplicates to generate. Pseudoreplicate is a compound from --merge_n images samples from --nimg read images", default=0)
+    parser.add_argument('--pseudoreplicates_test', help="As --pseudoreplicates, but for the testset", default=0)
     parser.add_argument('-p','--plate', help='Plate to process. Defaults to all detected plates.', nargs='+', default=None)
     parser.add_argument('-c','--channel', help="Channel number to correct, zero indexed", required=True)
     parser.add_argument('--fields', help='Fields to use. Defaults to use all fields.', nargs='+', default=None)
@@ -685,6 +700,7 @@ if __name__ == "__main__":
     print("plot:\t" + str(args.plot))
     print("blacklist:\t" + str(args.blacklist))
     print("pseudoreplicates:\t" + str(args.pseudoreplicates))
+    print("pseudoreplicates test:\t" + str(args.pseudoreplicates_test))
     print("gaussian blur:\t" + str(args.blur))
     print("sigma:\t" + str(args.sigma))
     print("bins:\t" + str(args.bins))
@@ -709,6 +725,7 @@ if __name__ == "__main__":
                             plot=args.plot,
                             blacklist=args.blacklist,
                             pseudoreplicates=int(args.pseudoreplicates),
+                            pseudoreplicates_test=int(args.pseudoreplicates_test),
                             blur=args.blur,
                             sigma=float(args.sigma),
                             nimg_validate=int(args.nimg_test),
