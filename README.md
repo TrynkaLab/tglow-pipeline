@@ -41,11 +41,12 @@ Nextflow proccess:
 This takes as input the images produced during staging and then runs the following processes.
 
 Nextflow processes (in order):
-1. basicpy [optional]: parallelized on the plate + channel level, flatfields are saved, no images are stored
+1. estimate flatfield [optional]: parallelized on the plate + channel level or runs one flatfield for all plates in a run. Only flatfields are saved, no images are stored
 2. register (pystackreg) [optional]: parallelized on the well level (all fields). Only registration matrices are saved, no images are stored
 3. cellpose: parallelized on the well level (all fields), runs on GPU. If registering, currently only runs on the reference plate. Must run a cell segmentation, can optionally provide nucleus channel as well.
 4. deconvolute [optional]: Will spin out another copy of the data, runs on GPU
-5. cellprofiler (feature extraction): 
+5. estimate scaling factors: Given aquisitions may vary a lot in intensity bewtween channels, this calculates how to scale the intensities for each channel by a constant factor across all plates to maximize the dynamic range in unint16. This is usefull if you have dim channels/stains as with dim channels and no rescaling histogram based image tasks (e.g. textures etc) become problematic. As the scaling factor is the same for all plates, intensity values can still be safely compared accross plates. 
+6. feature extraction (cellprofiler): 
     1. Stage the files into a cellprofiler compatable format, apply flatfields, bring together imaging cylces and apply registration if applicable
     2. run feature extraction (cellprofiler) or other custom script
 
