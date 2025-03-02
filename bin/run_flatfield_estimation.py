@@ -19,7 +19,7 @@ from tglow.io.compound_image_provider import CompoundImageProvider
 from tglow.utils.tglow_utils import float_to_16bit_unint
 from skimage.filters import threshold_otsu, gaussian, threshold_multiotsu, threshold_sauvola, rank
 from skimage.morphology import disk
-from skimage.transform import downscale_local_mean, resize
+from skimage.transform import downscale_local_mean, resize, resize_local_mean
 from numpy.polynomial import polynomial as P
 from sklearn.linear_model import RidgeCV
 from tglow.io.perkin_elmer_parser import PerkinElmerParser
@@ -43,11 +43,22 @@ def plot_basic_results(basic, filename):
 
 # Plot before and after of an imageset for a given index in the arrays
 def plot_before_after(images, images_transformed, i, filename):
+    
+    images=images.astype(np.float32)
+    images_transformed=images_transformed.astype(np.float32)
+    images[images==0] = np.nan
+    images_transformed[images_transformed==0] = np.nan
+
+    cmap = plt.get_cmap('inferno').copy()
+
+    # Set the color for NaN values (e.g., white)
+    cmap.set_bad('darkgrey')
+
     fig, axes = plt.subplots(1, 2, figsize=(6, 3))
-    im = axes[0].imshow(images[i])
+    im = axes[0].imshow(images[i], cmap=cmap)
     fig.colorbar(im, ax=axes[0])
     axes[0].set_title("Original")
-    im = axes[1].imshow(images_transformed[i])
+    im = axes[1].imshow(images_transformed[i], cmap=cmap)
     fig.colorbar(im, ax=axes[1])
     axes[1].set_title("Corrected")
     fig.suptitle(f"frame {i}")
@@ -56,15 +67,27 @@ def plot_before_after(images, images_transformed, i, filename):
     plt.close()
 
 # Plot before and after for two pre-picked images, usefull for max projections
-def plot_before_after_mp(images,images_transformed, filename):
+def plot_before_after_mp(images,images_transformed, filename, main="Max projected", zero_na=False):
+    
+    if zero_na:
+        images=images.astype(np.float32)
+        images_transformed=images_transformed.astype(np.float32)
+        images[images==0] = np.nan
+        images_transformed[images_transformed==0] = np.nan
+    
+    cmap = plt.get_cmap('inferno').copy()
+
+    # Set the color for NaN values (e.g., white)
+    cmap.set_bad('darkgrey')
+    
     fig, axes = plt.subplots(1, 2, figsize=(6, 3))
-    im = axes[0].imshow(images)
+    im = axes[0].imshow(images, cmap=cmap)
     fig.colorbar(im, ax=axes[0])
     axes[0].set_title("Original")
-    im = axes[1].imshow(images_transformed)
+    im = axes[1].imshow(images_transformed, cmap=cmap)
     fig.colorbar(im, ax=axes[1])
     axes[1].set_title("Corrected")
-    fig.suptitle(f"Max projected")
+    fig.suptitle(f"{main}")
     fig.tight_layout()
     fig.savefig(filename, dpi=300)
     plt.close()
@@ -90,8 +113,10 @@ def plot_flatfield_evaluation(flatfield, image, image_corrected, filename):
     ax[0,2].set_title('Corrected image')
     f.colorbar(im, ax=ax[0,2])
 
-    im = ax[1,0].imshow(Y-Z, cmap='inferno')
-    ax[1,0].set_title('Raw - Corrected')
+    tmp = Z / np.mean(Z)
+
+    im = ax[1,0].imshow(X/tmp, cmap='inferno')
+    ax[1,0].set_title('Flatfield / (corr / mean(corr))')
     f.colorbar(im, ax=ax[1,0])
 
     # Uncorrected vs flatfield
@@ -286,54 +311,42 @@ class FlatFieldTrainer():
         
     def train_polynomial(self, use_ridge, degree=2):
     
-        # Read random images possibly as compound
-        training_imgs = self.provider.fetch_training_images()
-        
-        if self.blur:
-            i=0
-            pb = tqdm(total=len(training_imgs), desc='Gaussian blur', unit='image')
-            while i < len(training_imgs): 
-                training_imgs[i] = gaussian(training_imgs[i], sigma=self.sigma, preserve_range=True)
-                i+=1
-                pb.update(1)
-            pb.close()
-                
-        if self.threshold:
-            size = round(training_imgs[0].shape[0] *0.03)
-            
-            log.info(f"Local thresholding images with window {size}")
-            i=0
-            pb = tqdm(total=len(training_imgs), desc='Threshold', unit='image')
-            while i < len(training_imgs): 
-                #training_imgs[i][training_imgs[i] < threshold_multiotsu(training_imgs[i])[0]] = 0
-                training_imgs[i][training_imgs[i] < threshold_sauvola(training_imgs[i], size)[0]] = 0
-                i+=1
-                pb.update(1)
-            pb.close()
-            
-                #cur_img[cur_img < threshold_sauvola(cur_img, 11)] = 0
-                #img[img < rank.otsu(img, disk(11))[0]] = 0
-                
-                
+        training_imgs = self.fetch_images(self.provider)
+
         fit_sum = None
         i =0
         for img in training_imgs:
-        
+            log.info(f"Fitting poly to image {i}")
             cur_img = downscale_local_mean(img, (4, 4))
             
+            cur_ff = self.__fit_poly_img(cur_img, use_ridge=use_ridge, remove_zeroes=self.threshold, degree=degree)
+            #if fit_sum is None:
+            #    fit_sum = np.ones_like(cur_img)    
             if fit_sum is None:
-                fit_sum = np.zeroes_like(cur_img)    
-            
-            log.info(f"Fitting poly to image {i}")
-            fit_sum += self.__fit_poly_img(cur_img, use_ridge=use_ridge, remove_zeroes=self.threshold, degree=degree)
+                fit_sum = cur_ff
+            else:
+                fit_sum += cur_ff
             i += 1
             
         # Calculate the average over the images
         fit_avg = fit_sum / len(training_imgs)
-        final_fit = resize(fit_avg, training_imgs[0].shape, order=0)
+        
+        # Upsize with bilinear interpolation
+        final_fit = resize(fit_avg,
+                           training_imgs[0].shape,
+                           order=2,
+                           mode="reflect")
 
         # Normalize flatfield to mean
         flatfield = final_fit / np.mean(final_fit)
+        
+        # For debugging
+        #flatfield =  resize_local_mean(flatfield, (50, 50))
+        #i=0
+        #while i < len(training_imgs):
+        #    training_imgs[i] = resize_local_mean(training_imgs[i], (50, 50))
+        #    i+=1
+        
         log.info("Done, saving output")
         self.__create_output(flatfield, np.array(training_imgs))
         
@@ -367,6 +380,43 @@ class FlatFieldTrainer():
             self.evaluate_flatfield(flatfield, self.bins)
         
         log.info("Done, successfully completed")
+
+
+    def fetch_images(self, provider):
+        # Read random images possibly as compound
+        training_imgs = provider.fetch_training_images()
+        
+        if self.blur:
+            i=0
+            pb = tqdm(total=len(training_imgs), desc='Gaussian blur', unit='image')
+            while i < len(training_imgs): 
+                training_imgs[i] = gaussian(training_imgs[i], sigma=self.sigma, preserve_range=True)
+                i+=1
+                pb.update(1)
+            pb.close()
+                
+        if self.threshold:
+            #size = round(training_imgs[0].shape[0] *0.25)
+            #if size % 2 == 0:
+            #    size = size-1
+            #log.info(f"Local thresholding images with window {size}")
+            i=0
+            pb = tqdm(total=len(training_imgs), desc='Threshold', unit='image')
+            while i < len(training_imgs): 
+                # Localized sauvola threshold. With sparse images, gives issues
+                #thresh = threshold_sauvola(training_imgs[i], size)
+                # Multiotsu threshold, a little slower
+                #thresh = threshold_multiotsu(training_imgs[i])[0]
+                thresh = threshold_otsu(training_imgs[i])
+                training_imgs[i][training_imgs[i] < thresh] = 0
+                i+=1
+                pb.update(1)
+            pb.close()
+            
+            #for img in training_imgs:
+            #    log.debug(f"Kept {np.sum(img!=0)} / {img.shape[0]*img.shape[1]} pixels")
+         
+        return training_imgs
 
     
     def test(self, input):
@@ -406,7 +456,7 @@ class FlatFieldTrainer():
             y = y[keep]
             z = z[keep]
         
-        z = (z - np.mean(z)) / np.std(z)
+        #z = (z - np.mean(z)) / np.std(z)
         
         ptotal=len(z) / (image.shape[0] * image.shape[1])
         log.info(f"Fitting moddel with {len(z)}/{(image.shape[0] * image.shape[1])} values")
@@ -449,25 +499,62 @@ class FlatFieldTrainer():
     def evaluate_flatfield(self, flatfield, bins=20):
         
         provider = copy.copy(self.provider)
-        
-        provider.pseudoreplicates = 0
-        provider.merge_n = 1
-        provider.nimg = self.nimg_validate
-        
+
+        if provider.pseudoreplicates > 0:
+            provider.pseudoreplicates = self.nimg_validate
+        else:
+            provider.nimg = self.nimg_validate
+        #provider.pseudoreplicates = 0
+        #provider.merge_n = 1
+        #provider.nimg = self.nimg_validate
+    
         log.info("Reading images for validation")
+        imgs = self.fetch_images(provider)
+    
+        I=np.array(imgs)
+        
         X = flatfield
-        Y = provider.fetch_average_image(rescale=False, threshold=False)
+        #Y = provider.fetch_average_image(max_project=True)
+        Y = np.array(imgs)
+        Y = Y.astype(np.float32)
+        Y[Y==0] = np.nan
+        
+        if self.threshold:
+            plot_before_after(I, Y, 1, filename=f"{self.out}/model_evaluation_thresh_1_nimg_{self.nimg_validate}_nbin_{bins}.png")
+            plot_before_after(I, Y, 2, filename=f"{self.out}/model_evaluation_thresh_2_nimg_{self.nimg_validate}_nbin_{bins}.png")
+            plot_before_after(I, Y, 3, filename=f"{self.out}/model_evaluation_thresh_3_nimg_{self.nimg_validate}_nbin_{bins}.png")
+
+        Y = np.nanmean(Y, axis=0)
+        Z = Y
+        Z = Z.astype(np.float32)
+        Z = Z / X
+        
+        Y_plot = Y
+        Y_plot[np.isnan(Y_plot)] = 0
+        Z_plot = Z
+        Z_plot[np.isnan(Z_plot)] = 0
+        plot_before_after_mp(Y_plot, Z_plot, filename=f"{self.out}/model_evaluation_pre_post_nimg_{self.nimg_validate}_nbin_{bins}.png")
         
         # Reshape into bins and take the mean
-        X = X.reshape(bins, int(X.shape[0] / bins), bins, int(X.shape[1]/bins)).mean(3).mean(1)
-        Y = Y.reshape(bins, int(Y.shape[0] / bins), bins, int(Y.shape[1]/bins)).mean(3).mean(1)
+        #X = X.reshape(bins, int(X.shape[0] / bins), bins, int(X.shape[1]/bins)).nanmean(3).nanmean(1)
+        #Y = Y.reshape(bins, int(Y.shape[0] / bins), bins, int(Y.shape[1]/bins)).nanmean(3).nanmean(1)
+        
+        X = X.reshape(bins, int(X.shape[0] / bins), bins, int(X.shape[1]/bins))
+        X = np.nanmean(X, axis=3)
+        X = np.nanmean(X, axis=1)
+        
+        Y = Y.reshape(bins, int(Y.shape[0] / bins), bins, int(Y.shape[1]/bins))
+        Y = np.nanmean(Y, axis=3)
+        Y = np.nanmean(Y, axis=1)
+        #X = resize_local_mean(X, (bins, bins))
+        #Y = resize_local_mean(Y, (bins, bins))
 
         # Calculate the correction
         Z = Y
         Z = Z.astype(np.float32)
         Z = Z / X
                 
-        plot_flatfield_evaluation(X, Y, Z, filename=self.out + f"/model_evaluation_nimg_{self.nimg_validate}_nbin_{bins}.png")
+        plot_flatfield_evaluation(X, Y, Z, filename=f"{self.out}/model_evaluation_nimg_{self.nimg_validate}_nbin_{bins}.png")
         
 
     def __create_output(self, flatfield, merged):
@@ -497,6 +584,7 @@ class FlatFieldTrainer():
             log.info("Plots saved")
 
         
+
     def apply_transform(self, basic, images):
         im_float = images.astype(np.float32)
         output = (im_float - basic.darkfield[np.newaxis]) / basic.flatfield[np.newaxis]
@@ -559,7 +647,7 @@ if __name__ == "__main__":
     parser.add_argument('--ridge', help="Use ridge regression instead of OLS for POLY", action='store_true', default=False)
     parser.add_argument('--bins', help="The number of 2d bins to use in validating. Reccomend 10-50, use lower number for sparse images", default=20, required=False)
     parser.add_argument('--pe_index', help="PerkinElmer index.xml file to extract flatfiels when --mode PE", default=None, required=False)
-    parser.add_argument('--degree', help="[POLY only] The degree for the polynomial", default=2)
+    parser.add_argument('--degree', help="[POLY only] The degree for the polynomial", default=3)
     parser.add_argument('--flatfield', help="[TEST] Path to previous results", default=None)
 
     args = parser.parse_args()
