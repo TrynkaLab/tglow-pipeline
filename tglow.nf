@@ -122,6 +122,14 @@ process estimate_flatfield {
             cmd += " --merge_n $params.bp_merge_n"
         }
         
+        if (params.bp_degree) {
+            cmd += " --degree $params.bp_degree"
+        }
+        
+        if (params.bp_use_ridge) {
+            cmd += " --ridge"
+        }
+         
         if (params.bp_pseudoreplicates) {
             cmd += " --pseudoreplicates $params.bp_pseudoreplicates"
         }

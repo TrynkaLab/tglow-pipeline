@@ -410,15 +410,24 @@ class FlatFieldTrainer():
                 # Remove saturated pixels
                 thresh_img[thresh_img == np.iinfo(thresh_img.dtype).max] = 0
                 
-                # Remove 0.1% of most intense pixels
-                q=np.quantile(thresh_img, 99.9)
-                thresh_img[thresh_img < q] = 0
+                # Remove 1% of the most bright pixels
+                q=np.quantile(thresh_img, 0.99)
+                thresh_img[thresh_img > q] = 0
                 
                 # Localized sauvola threshold. With sparse images, gives issues
                 #thresh = threshold_sauvola(training_imgs[i], size)
                 
-                # Multiotsu threshold, a little slower
-                thresh = threshold_multiotsu(thresh_img)[0]
+                # Multiotsu threshold, convert to float to allow proper histogramming
+                # Otherwise it attempts to fit on a 65k intensity histogram
+                thresh_img = thresh_img.astype(np.float32)
+                unit16max = np.iinfo(training_imgs[i].dtype).max
+                float32max = np.finfo(thresh_img.dtype).max
+                
+                thresh_img = (thresh_img/unit16max)*float32max
+                thresh_raw = threshold_multiotsu(thresh_img, classes=3, nbins=5000)[0]
+                thresh = (thresh_raw/float32max) * unit16max
+                
+                #log.info(f"Otsu tresh: {thresh} ({thresh_raw})")
                 
                 # Regular otsu
                 #thresh = threshold_otsu(training_imgs[i])
@@ -488,7 +497,7 @@ class FlatFieldTrainer():
         # 1 + y + y^2 + x + x*y + x*y^2 + x^2 + x^2*y + x^2*y^2
         design_matrix = P.polyvander2d(x, y, [degree, degree])
         if use_ridge:
-            model = RidgeCV(alphas=np.logspace(-6, 6, 13), cv=5, fit_intercept=False)
+            model = RidgeCV(alphas=np.logspace(-6, 6, 13), cv=10, fit_intercept=False)
             fit = model.fit(design_matrix, z)
             coef_tmp = fit.coef_
             log.info(f"Best alpha: {fit.alpha_} r2: {fit.best_score_}")   
