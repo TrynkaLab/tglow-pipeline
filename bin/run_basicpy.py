@@ -364,6 +364,8 @@ if __name__ == "__main__":
 
     print("-----------------------------------------------------------")
 
+    log.warning("[DEPRECATED] This runner has been deprecated in favor of run_flatfield_estimation.py")
+
     trainer = BasicpyTrainer(path=input,
                             output_dir=args.output,
                             output_prefix=args.output_prefix,
@@ -385,6 +387,7 @@ if __name__ == "__main__":
                             sigma=float(args.sigma))
                             
     trainer.train()
+    log.warning("[DEPRECATED] This runner has been deprecated in favor of run_flatfield_estimation.py")
 
 
 

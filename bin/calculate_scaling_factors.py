@@ -14,175 +14,386 @@ logging.basicConfig(format='%(asctime)s %(message)s')
 log = logging.getLogger(__name__)
 log.setLevel(logging.DEBUG)
 
+class ScalingCalculator():
+    
+    
+    def __init__(self, path, pattern, output, path_control=None, pattern_control=None, plate=None, blacklist=None, plate_groups=None, mask_channels=None):
+        
+        self.output=output
+        self.mask_channels=mask_channels
+        
+        # Build list of files
+        files = glob.glob(f"{path}/**/{pattern}", recursive=True)
+        
+        plates = glob.glob(f"{path}/**", recursive=False)
+        plates = [os.path.basename(plate) for plate in plates if os.path.isdir(plate)]
+        log.info(f"Indexed {len(files)} files over {len(plates)} plates")
+
+        # Read the blacklist
+        if blacklist is not None:
+            bl_reader = BlacklistReader(blacklist)
+            bl = bl_reader.read_blacklist_as_prc()
+            log.info(f"Read blacklist with {len(bl)} patterns")
+            log.info(f"Blacklist consists of patterns: {bl[:3] if len(bl)>=3 else bl}")
+
+            #files = [file for file in files if not reg]  
+            files = [file for file in files if not any(pattern in file for pattern in bl)]
+            log.info(f"Filtered using blacklist to {len(files)} files")
+
+        if plate is not None:
+            log.info(f"Platelist consists of {len(plate)} patterns {plate[:3] if len(plate)>=3 else plate}")
+            files = [file for file in files if any(pattern in file for pattern in args.plate)]
+            plates = [plate for plate in plates if any(pattern in plate for pattern in args.plate)]
+            log.info(f"Filtered using platelist to {len(files)} files and {len(plates)} plates")
+        
+        # Set the final filelist
+        self.files = files
+        self.plates = plates
+        
+        if path_control is not None:
+            self.control_files = glob.glob(f"{path_control}/**/{pattern_control}", recursive=True)
+            log.info(f"Indexed {len(self.control_files)} control intensity files over")
+
+        # Define the plate groups (one cycle of imaging = a plate group)
+        # This ensures channels are scaled witin a cycle and not accross cycles.
+        self.plate_groups = []
+        if plate_groups is not None:
+            df = pd.read_csv(plate_groups, sep="\t")
+            
+            print(df.head())
+                    
+            # Extract the first column (ref plate)
+            self.plate_groups.append(df["reference_plate"].tolist())
+
+            # Extract the third column (query plates)
+            qry_plates = df["query_plates"].tolist()
+
+            # Split the 3rd col on comma, and add each subsequent col
+            # as a plategroup
+            i = 0
+            for qry in qry_plates:
+                cur_qry = qry.split(",") 
+                
+                for j in range(0, len(cur_qry)):
+                    if i == 0:
+                        self.plate_groups.append([])
+                        
+                    self.plate_groups[j+1].append(cur_qry[j])
+            
+                i += 1
+        else:
+            self.plate_groups.append(plates)
+                
+        self.main_df=None
+        self.control_df=None
+        
+    def read_intensity_files(self):
+        log.info("Reading intensity files")
+        
+        # Read per well intensity CSV files
+        for file in self.files:
+            #log.debug(f"Reading: {file}")
+            cur_df = pd.read_csv(file, sep="\t")
+            
+            if self.main_df is not None:
+                self.main_df = pd.concat((self.main_df, cur_df))
+            else:
+                self.main_df = cur_df
+    
+    def read_control_intensities(self):
+        
+        if self.control_files is None:
+            raise ValueError("Must provide control filtes to read control files")
+        
+        for file in self.control_files:
+            cur_df = pd.read_csv(file, sep="\t")
+            
+            if self.control_df is not None:
+                self.control_df = pd.concat((self.control_df, cur_df))
+            else:
+                self.control_df = cur_df
+        
+    def calculate_plate_offsets(self, use_col="mean_mean_object_intensity"):
+        
+        for channel in self.control_df['channel'].unique():
+            cur_df = self.control_df[self.control_df['channel'] == channel]
+            self.control_df.loc[self.control_df['channel'] == channel, 'plate_offset'] = cur_df[use_col] / cur_df[use_col].max()
+        
+        tmp = self.control_df[['plate', 'channel', 'plate_offset']]
+        
+        merged = pd.merge(self.channel_index, tmp, left_on=['ref_plate', 'channel'], right_on=['plate', 'channel'], validate="one_to_one", suffixes=[None, "_y"], how="outer")
+        
+        #merged['base_scale'] = merged['base_scale'].fillna(1)
+        
+        # Set the default to 1 (no scaling)
+        merged['plate_offset'] = merged['plate_offset'].fillna(1)
+        merged['scale_factor'] = merged['base_scale'] * merged['plate_offset']
+        
+        # Set the default to 1 (no scaling)
+        merged['scale_factor'] = merged['scale_factor'].fillna(1)
+        self.channel_index = merged
+        
+        #add to the channel_index
+            
+    
+    # Build an index of what the new image channels will look like given these settings    
+    def build_channel_index(self):
+    
+        if self.main_df is None:
+            self.read_intensity_files()
+        # Peak at an image for channel dims and names
+        #img = self.plate_reader.get_img(self.plate_reader.images[self.plates[0]][0])      
+        
+        final_df=None
+        
+        plate_idx = 0
+        for plate in self.plate_groups[0]:
+            df = pd.DataFrame(columns=["ref_plate", "plate", "cycle", "channel", "name", "orig_channel", "orig_name"])
+
+            cycle = 1
+            channel_id = 0
+            tmp_df = self.main_df[self.main_df['plate'].isin([plate])].copy()
+            if (len(tmp_df) == 0):
+                continue
+            
+            # Loop over cycle one channels
+            for channel in sorted([int(x) for x in tmp_df['channel'].unique()]):
+                df.at[channel, "ref_plate"] = plate
+                df.at[channel, "plate"] = plate
+                df.at[channel, "channel"] = channel
+                df.at[channel, "name"] = ""
+                df.at[channel, "cycle"] = cycle
+                df.at[channel, "orig_channel"] = channel
+                df.at[channel, "orig_name"] = ""
+
+                channel_id += 1  
+            
+            # Add the channel names and IDs in the merged plate
+            if len(self.plate_groups) != 1:
+                
+                for plate_group in self.plate_groups[1:]:
+                    
+                    cycle += 1
+                    cur_plate = plate_group[plate_idx]
+                    tmp_df = self.main_df[self.main_df['plate'].isin([cur_plate])].copy()
+
+                    for channel in sorted([int(x) for x in tmp_df['channel'].unique()]):
+                        df.at[channel_id, "ref_plate"] = plate
+                        df.at[channel_id, "plate"] = cur_plate
+                        df.at[channel_id, "channel"] = channel_id
+                        df.at[channel_id, "name"] = ""
+                        df.at[channel_id, "cycle"] = cycle
+                        df.at[channel_id, "orig_channel"] = channel
+                        df.at[channel_id, "orig_name"] = ""
+                        channel_id += 1
+                        
+            # If there are channel to mask
+            if self.mask_channels is not None:
+                for mask_channel in self.mask_channels:
+                        mask_channel = int(mask_channel)
+                        df.at[channel_id, "ref_plate"] = df.iloc[mask_channel]["ref_plate"]
+                        df.at[channel_id, "plate"] = df.iloc[mask_channel]["plate"]
+                        df.at[channel_id, "channel"] = channel_id
+                        df.at[channel_id, "name"] = f"ch{channel_id} - {df.iloc[mask_channel]['name']} mask inclusive"
+                        df.at[channel_id, "cycle"] = df.iloc[mask_channel]["cycle"]
+                        df.at[channel_id, "orig_channel"] = df.iloc[mask_channel]["channel"]
+                        df.at[channel_id, "orig_name"] = df.iloc[mask_channel]["name"]
+                        channel_id += 1
+                    
+                        df.at[channel_id, "ref_plate"] = df.iloc[mask_channel]["ref_plate"]
+                        df.at[channel_id, "plate"] = df.iloc[mask_channel]["plate"]
+                        df.at[channel_id, "channel"] = channel_id
+                        df.at[channel_id, "name"] = f"ch{channel_id} - {df.iloc[mask_channel]['name']} mask exclusive"
+                        df.at[channel_id, "cycle"] = df.iloc[mask_channel]["cycle"]
+                        df.at[channel_id, "orig_channel"] = df.iloc[mask_channel]["channel"]
+                        df.at[channel_id, "orig_name"] = df.iloc[mask_channel]["name"]
+                        channel_id += 1
+
+            
+            if final_df is None:
+                final_df=df
+            else:
+                final_df=pd.concat([final_df, df], axis=0)
+        
+        
+        #df.final_df = final_df["plate"] + "_ch" + str(final_df["orig_channel"])
+        self.channel_index=final_df
+        
+    def save_channel_index(self):
+        self.channel_index.to_csv(f"{self.output}/channel_index_with_scaling.tsv", sep='\t', index=False)
+              
+    def save_scaling_factors(self, scale):
+        scaling_factors = [x for x in self.channel_index["ref_plate"] + "_ch" +  self.channel_index["channel"].astype(str) + "=" + self.channel_index[scale].astype(str)]
+        # Write scaling factors
+        info_file=open(f"{self.output}/scaling_factors.txt", 'w')
+        info_file.write(" ".join(scaling_factors))
+        info_file.flush()
+        info_file.close()
+        
+    def calculate_quantile_scaling_factors(self, q1, q2, scale_max):
+
+        log.info("Considering plate groups:")
+        log.info(self.plate_groups)
+        
+        indices = []
+        stats_max=[]
+        stats_mean=[]
+        stats_median=[]
+        scale_factors = {}
+        
+        # Quantiles to report on
+        quantiles = [0, 0.01, 0.1, 25, 50, 75, 95, 99, 99.9, 99.99, 99.999, 99.9999, 100]
+        
+        i = 0
+        for plate_group in self.plate_groups:
+            
+            log.debug(f"current plategroup: {plate_group}")
+            
+            # Subset to the plates in the group to normalize
+            plate_df = self.main_df[self.main_df["plate"].isin(plate_group)].copy()
+            log.debug(f"plate_df {plate_df.head}")
+
+            # Find available channels
+            for channel in  plate_df["channel"].unique(): 
+                
+                indices.append(f"group{i}_ch{channel}")
+            
+                # Subset to the current channel
+                cur_df = plate_df[plate_df["channel"] == channel].copy()
+            
+                # Calculate the scale factor
+                scale_factor = np.percentile(cur_df[q1], q2) / scale_max
+                
+                # Max
+                cur_stats = np.percentile(cur_df["q100"], quantiles).tolist()
+                cur_stats.append(np.mean(cur_df["q100"]))
+                stats_max.append(cur_stats)
+                
+                # Mean
+                cur_stats = np.percentile(cur_df["mean"], quantiles).tolist()
+                cur_stats.append(np.mean(cur_df["mean"]))
+                stats_mean.append(cur_stats)
+                
+                # Median
+                cur_stats = np.percentile(cur_df["q50"], quantiles).tolist()
+                cur_stats.append(np.mean(cur_df["q50"]))
+                stats_median.append(cur_stats)
+                
+                # Scale factors
+                for plate in plate_df["plate"].unique():
+                    scale_factors[f"{plate}_ch{channel}"]=scale_factor
+            i += 1
+        
+        orig_ch_index=[x for x in self.channel_index["plate"] + "_ch" + self.channel_index["orig_channel"].astype(str)]
+        self.channel_index["base_scale"] = [scale_factors[key] for key in orig_ch_index]
+        
+        raw_scale_factors = [x for x in self.channel_index["ref_plate"] + "_ch" +  self.channel_index["channel"].astype(str) + "=" + self.channel_index["base_scale"].astype(str)]
+        
+        # Write scaling factors
+        info_file=open(f"{self.output}/raw_scaling_factors.txt", 'w')
+        info_file.write(" ".join(raw_scale_factors))
+        info_file.flush()
+        info_file.close()
+
+        # Write the summary file        
+        header = ['type', 'channel'] + [f"q{str(x)}" for x in quantiles] + ["mean"]
+        
+        mean_file=open(f"{self.output}/intensity_summary.tsv", 'w')
+        mean_file.write("\t".join(header))
+        mean_file.write("\n")
+        
+        for ch in range(len(indices)):
+            mean_file.write(f"mean_intensity\t{indices[ch]}\t")
+            mean_file.write("\t".join([str(num) for num in stats_mean[ch]]))
+            mean_file.write("\n")
+            
+            mean_file.write(f"median_intensity\t{indices[ch]}\t")
+            mean_file.write("\t".join([str(num) for num in stats_median[ch]]))
+            mean_file.write("\n")
+        
+            mean_file.write(f"max_intensity\t{indices[ch]}\t")
+            mean_file.write("\t".join([str(num) for num in stats_max[ch]]))
+            mean_file.write("\n")
+        
+        mean_file.flush()
+        mean_file.close()
+        
+        log.info("Done")
+
 
 if __name__ == "__main__":
     
     parser = argparse.ArgumentParser(description="Calculate per channel scaling factors based on previously calculated intensity_stats.tsv")
-    parser.add_argument('-i','--input', help='Base dir to input organized <plate>/<row>/<col>/<field>.ome.tiff', required=True)
-    parser.add_argument('-o','--output', help='Output folder', default="./")
-    parser.add_argument('-p','--plate', help='Subfolders to process', nargs='+', default=None)
-    parser.add_argument('--plate_groups', help='File describing how plates are grouped, used for multicycle runs to ensure scaling is done per cycles. Use registration_manifest.tsv from tglow pipeline', default=None)
+    parser.add_argument('-i','--input', help='Base dir to raw input', required=True)
+    parser.add_argument('-o','--output', help='Output prefix', required=True)
+    parser.add_argument('-p','--plate', help='Subfolder in raw dir to process', nargs='+', required=True)
+    parser.add_argument('--registration_dir', help="Path to registration root storing <plate>/<row>/<col>/<field>.pickle", default=None)
+    parser.add_argument('--mask_channels', help='Channels to mask, output will get 2 extra channels per mask_channel, in the order provided. This is applied after registering and flatfield correction, so use the final channel ids', nargs='+', default=None)
     parser.add_argument('--blacklist', help='TSV file with "<plate>  <well>" on each row descrbing what to ignore', default=None)
+    
+    # Specific arguments
+    parser.add_argument('--control_dir', help='Output dir from masked_control_intensity_calculator.py used for plate+channel specific offsets to scale factor organized in <control_dir>/<plate>/<pattern_control>', default=None)
+    parser.add_argument('--plate_groups', help='File describing how plates are grouped, used for multicycle runs to ensure scaling is done per cycles. Use registration_manifest.tsv from tglow pipeline', default=None)
     parser.add_argument('--q1', help='Quantile 1, the quantile in an image', default="q99.9999")
-    parser.add_argument('--q2', help='Quantile 2, the quantile over all images in input 0-100', default="95")
+    parser.add_argument('--q2', help='Quantile 2, the quantile over all images in input 0-100', default="99")
     parser.add_argument('--pattern', help='File pattern of sumstats tsv', default="intensity_stats.tsv")
+    parser.add_argument('--pattern_control', help='File pattern of the control intensties', default="plate_level_control_intensity_summary.tsv")
     parser.add_argument('--scale_max', help='The max possible value of the input images, this will be the max value of the output', default=65535)
     args = parser.parse_args()
     
-    path = args.input
-    
     args.q2 = float(args.q2)
-    args.scale_max = float(args.scale_max)
-
-    # Build list of files
-    files = glob.glob(f"{path}/**/{args.pattern}", recursive=True)
-    
-    log.info(f"Indexed {len(files)} files")
-    # Read the blacklist
-    if args.blacklist is not None:
-        bl_reader = BlacklistReader(args.blacklist)
-        bl = bl_reader.read_blacklist_as_prc()
-        log.info(f"Read blacklist with {len(bl)} patterns")
-        log.info(f"Blacklist consists of patterns: {bl}")
-
-        #files = [file for file in files if not reg]  
-        files = [file for file in files if not any(pattern in file for pattern in bl)]
-        log.info(f"Filtered using blacklist to {len(files)} files")
-
-    if args.plate is not None:
-        log.info(f"Platelist consists of patterns: {args.plate}")
-        files = [file for file in files if any(pattern in file for pattern in args.plate)]
-        log.info(f"Filtered using platelist to {len(files)} files")
-
-
-    main_df = None
-
-    indices = []
-    scale_factors = []
-    stats_max = []
-    stats_mean = []
-    stats_median = []
-    quantiles = [0, 0.01, 0.1, 25, 50, 75, 95, 99, 99.9, 99.99, 99.999, 99.9999, 100]
-    
-    plate_groups = []
-    
-    # Define the plate groups (one cycle of imaging = a plate group)
-    # This ensures channels are scaled witin a cycle and not accross cycles.
-    if args.plate_groups != None:
-        df = pd.read_csv(args.plate_groups, sep="\t")
+    args.scale_max = int(args.scale_max)
         
-        print(df.head())
-                
-        # Extract the first column (ref plate)
-        plate_groups.append(df["reference_plate"].tolist())
+    calculator = ScalingCalculator(path=args.input,
+                                    path_control=args.control_dir,
+                                    pattern=args.pattern,
+                                    pattern_control=args.pattern_control,
+                                    output=args.output,
+                                    plate=args.plate,
+                                    mask_channels=args.mask_channels,
+                                    blacklist=args.blacklist,
+                                    plate_groups=args.plate_groups)
+      
+    # args.q1="q99.9999"
+    # args.q2=99
+    # args.scale_max=65535
 
-        # Extract the third column (query plates)
-        qry_plates = df["query_plates"].tolist()
-
-        # Split the 3rd col on comma, and add each subsequent col
-        # as a plategroup
-        i = 0
-        for qry in qry_plates:
-            cur_qry = qry.split(",") 
-            
-            for j in range(0, len(cur_qry)):
-                if i == 0:
-                    plate_groups.append([])
-                    
-                plate_groups[j+1].append(cur_qry[j])
+    # calculator = ScalingCalculator(path="/lustre/scratch125/humgen/projects/cell_activation_tc/projects/DRUG_PERTURB/pipeline/results/decon",
+    #                                pattern="intensity_stats.tsv",
+    #                                output="/lustre/scratch125/humgen/projects/cell_activation_tc/projects/DRUG_PERTURB/pipeline/testing",
+    #                                plate=None,
+    #                                mask_channels=[0],
+    #                                path_control="/lustre/scratch125/humgen/projects/cell_activation_tc/projects/DRUG_PERTURB/pipeline/testing",
+    #                                pattern_control="plate_level_control_intensity_summary.tsv",
+    #                                blacklist="/lustre/scratch125/humgen/projects/cell_activation_tc/projects/DRUG_PERTURB/pipeline/scripts/blacklist.tsv",
+    #                                plate_groups="/lustre/scratch125/humgen/projects/cell_activation_tc/projects/DRUG_PERTURB/pipeline/scripts/manifest_registration.tsv")
         
-            i += 1
     
-
-    log.info("Reading intensity files")
-        # Read per well intensity CSV files
-    for file in files:
-        #log.debug(f"Reading: {file}")
-        cur_df = pd.read_csv(file, sep="\t")
+    calculator.read_intensity_files()
+    calculator.build_channel_index()
+    
+    if args.control_dir is not None:
+        calculator.read_control_intensities()
         
-        if main_df is not None:
-            main_df = pd.concat((main_df, cur_df))
-        else:
-            main_df = cur_df
-            
-    # If no registration is specified, only loop over the unique plates
-    if len(plate_groups) == 0:
-        plate_groups = [main_df["plate"].unique().tolist()]
+    calculator.calculate_quantile_scaling_factors(args.q1, args.q2, args.scale_max)
 
-    log.info("Considering plate groups:")
-    log.info(plate_groups)
+    if args.control_dir is not None:
+        calculator.calculate_plate_offsets()
     
-    i = 0
-    for plate_group in plate_groups:
-        
-        log.debug(f"current plategroup: {plate_group}")
-        
-        # Subset to the plates in the group to normalize
-        plate_df = main_df[main_df["plate"].isin(plate_group)]
-
-        log.debug(f"plate_df {plate_df.head}")
-
-
-
-        # Find available channels
-        channels = plate_df["channel"].unique()
-
-        for channel in channels: 
-            
-            indices.append(f"group{i}_ch{channel}")
-        
-            # Subset to the current channel
-            cur_df = plate_df[plate_df["channel"] == channel]
-        
-            # Calculate the scale factor
-            scale_factor = np.percentile(cur_df[args.q1], args.q2) / args.scale_max
-            
-            # Max
-            cur_stats = np.percentile(cur_df["q100"], quantiles).tolist()
-            cur_stats.append(np.mean(cur_df["q100"]))
-            stats_max.append(cur_stats)
-            
-            # Mean
-            cur_stats = np.percentile(cur_df["mean"], quantiles).tolist()
-            cur_stats.append(np.mean(cur_df["mean"]))
-            stats_mean.append(cur_stats)
-            
-            # Median
-            cur_stats = np.percentile(cur_df["q50"], quantiles).tolist()
-            cur_stats.append(np.mean(cur_df["q50"]))
-            stats_median.append(cur_stats)
-            
-            # Scale factors
-            for plate in plate_df["plate"].unique():
-                scale_factors.append(f"{plate}_ch{channel}={scale_factor}")
-        i += 1
+    calculator.save_channel_index()
     
-    # Write scaling factors
-    info_file=open(f"{args.output}/scaling_factors.txt", 'w')
-    info_file.write(" ".join(scale_factors))
-    info_file.flush()
-    info_file.close()
+    if args.control_dir is not None:
+        if calculator.channel_index['plate'].isnull().values.any():
+            msg = "NA's found in scaling factors, this should not happen if control intensties are matched, check all arguments are specififed the same between control intensities and this"
+            log.error(msg)
+            raise RuntimeError(msg)
+    
+        calculator.save_scaling_factors("scale_factor")
+    else:
+        if calculator.channel_index['plate'].isnull().values.any():
+            msg = "NA's found in scaling factors, usually due to misspecification of arguments, check 'channel_index_with_scaling.tsv' for issues."
+            log.error(msg)
+            raise RuntimeError(msg)     
+        calculator.save_scaling_factors("base_scale")
 
-    # Write the summary file
-    header = ['type', 'channel', 'q0', 'q0.1', 'q1', 'q25', 'q50', 'q75', 'q95', 'q99', 'q99.9', 'q99.99', 'q99.999', 'q99.9999', 'q100', 'mean']
-    mean_file=open(f"{args.output}/intensity_summary.tsv", 'w')
-    mean_file.write("\t".join(header))
-    mean_file.write("\n")
-    
-    for ch in range(len(indices)):
-        mean_file.write(f"mean_intensity\t{indices[ch]}\t")
-        mean_file.write("\t".join([str(num) for num in stats_mean[ch]]))
-        mean_file.write("\n")
-        
-        mean_file.write(f"median_intensity\t{indices[ch]}\t")
-        mean_file.write("\t".join([str(num) for num in stats_median[ch]]))
-        mean_file.write("\n")
-    
-        mean_file.write(f"max_intensity\t{indices[ch]}\t")
-        mean_file.write("\t".join([str(num) for num in stats_max[ch]]))
-        mean_file.write("\n")
-    
-    mean_file.flush()
-    mean_file.close()
-    
-    log.info("Done")
+    #calculator.channel_index[["cycle","channel","base_scale","plate_offset", "scale_factor"]]
