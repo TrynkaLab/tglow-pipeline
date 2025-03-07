@@ -51,11 +51,14 @@ class MaskedControlIntensityCalculator():
                 
                 # Derrive integrated intensity
                 cur_df.loc[:,'intensity_integrated'] = cur_df['area'] * cur_df['intensity_mean']
-                
+                cur_df.loc[:,'well_label_field'] = cur_df['label'] + "_" + cur_df['well'] + "_" + cur_df['field'] 
+                cur_df.loc[:,'well_field'] = cur_df['well'] + "_" + cur_df['field'] 
+
                 df.at[i, "plate"] = plate
                 df.at[i, "channel"] = channel
-                df.at[i, "nobjects"] = len(cur_df['label'].unique())
+                df.at[i, "nobjects"] = len(cur_df['well_label_field'].unique())
                 df.at[i, "nfields"] = len(cur_df['field'].unique())
+                df.at[i, "nfields_total"] = len(cur_df['well_field'].unique())
                 df.at[i, "nwells"] = len(cur_df['well'].unique())
                 df.at[i, "name"] = ','.join(map(str, cur_df['name'].unique().tolist()))
                 df.at[i, "mean_mean_object_intensity"] = cur_df['intensity_mean'].mean()
