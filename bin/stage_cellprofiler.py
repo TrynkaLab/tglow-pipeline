@@ -8,7 +8,7 @@ from basicpy import BaSiC
 
 import logging
 from tglow.io.image_query import ImageQuery
-from tglow.io.processed_image_provider import ProcesedImageProvider
+from tglow.io.processed_image_provider import ProcessedImageProvider
 
 # Logging
 logging.basicConfig(format='%(asctime)s %(message)s')
@@ -28,14 +28,15 @@ class MergeAndAlign:
         self.write_max_projection=args.max_project
         self.uint32=args.uint32
         self.fields=args.fields
+        self.plates=args.plate
         
         if (self.write_max_projection):
             self.write_zstack=False
             log.info("Writing max projection as individual files, not saving z-stacks")
         
-        self.provider = ProcesedImageProvider(path=args.path,
+        self.provider = ProcessedImageProvider(path=args.input,
                                                blacklist=args.blacklist,
-                                               plate=args.plates,
+                                               plate=args.plate,
                                                plate_merge=args.plate_merge,
                                                registration_dir=args.registration_dir,
                                                flatfields=args.flatfields,
@@ -50,7 +51,6 @@ class MergeAndAlign:
 
         self.provider.write_channel_index(self.output)
         row, col = ImageQuery.well_id_to_index(well)
-        out_dir_final= f"{self.output}/{plate}/{ImageQuery.ID_TO_ROW[str(row)]}/{col}"
 
         # Loop over possible plates
         for plate in self.plates:

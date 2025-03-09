@@ -42,7 +42,7 @@ class MaskedControlIntensityCalculator():
 
     def make_intensity_summary(self):
         
-        df = pd.DataFrame(columns=["plate", "channel", "nobjects", 'nfields', 'nwells', 'name', "mean_mean_object_intensity", "mean_integrated_object_intensity", "mean_max_object_intensity"])
+        df = pd.DataFrame(columns=["plate", "channel", "nobjects", 'nfields', 'nfields_total', 'nwells', 'name', "mean_mean_object_intensity", "mean_integrated_object_intensity", "mean_max_object_intensity"])
         
         i = 0    
         for plate in self.object_intensity['plate'].unique():
@@ -51,8 +51,8 @@ class MaskedControlIntensityCalculator():
                 
                 # Derrive integrated intensity
                 cur_df.loc[:,'intensity_integrated'] = cur_df['area'] * cur_df['intensity_mean']
-                cur_df.loc[:,'well_label_field'] = cur_df['label'].to_string() + "_" + cur_df['well'] + "_" + cur_df['field'].to_string()
-                cur_df.loc[:,'well_field'] = cur_df['well'] + "_" + cur_df['field'].to_string()
+                cur_df.loc[:,'well_label_field'] = cur_df['label'].astype(str) + "_" + cur_df['well'] + "_" + cur_df['field'].astype(str)
+                cur_df.loc[:,'well_field'] = cur_df['well'] + "_" + cur_df['field'].astype(str)
 
                 df.at[i, "plate"] = plate
                 df.at[i, "channel"] = channel

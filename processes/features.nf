@@ -48,7 +48,7 @@ process cellprofiler {
         }
                 
         if (basicpy_string) {
-            cmd += " --basicpy_model $basicpy_string"
+            cmd += " --flatfields $basicpy_string"
         }
         
         if ((params.rn_manualscale | params.rn_autoscale) & scaling_string != "none")  {

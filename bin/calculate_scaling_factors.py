@@ -117,7 +117,7 @@ class ScalingCalculator():
         
         for channel in self.control_df['channel'].unique():
             cur_df = self.control_df[self.control_df['channel'] == channel]
-            self.control_df.loc[self.control_df['channel'] == channel, 'plate_offset'] = cur_df[use_col] / cur_df[use_col].max()
+            self.control_df.loc[self.control_df['channel'] == channel, 'plate_offset'] = cur_df[use_col] / cur_df[use_col].min()
         
         tmp = self.control_df[['plate', 'channel', 'plate_offset']]
         

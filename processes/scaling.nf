@@ -63,7 +63,7 @@ process calculate_scaling_factors {
 
 // Determine offsets for scaling factors based on controls
 process calculate_plate_offsets {
-    label 'normal'
+    label 'normal_plus'
     conda params.tg_conda_env
     storeDir "$params.rn_publish_dir/scaling/offsets/"
     stageInMode 'symlink'

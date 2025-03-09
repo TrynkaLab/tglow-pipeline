@@ -7,6 +7,7 @@ include { estimate_flatfield; stage_global_flatfield } from './processes/flatfie
 include { register } from './processes/registration.nf'
 include { calculate_scaling_factors; calculate_plate_offsets } from './processes/scaling.nf'
 include { cellpose } from './processes/segmentation.nf'
+include { cellprofiler } from './processes/features.nf'
 
 
 // Workflow to stage the data from NFS to lustre
@@ -385,14 +386,16 @@ workflow run_pipeline {
                     row[5]  // nucl masks
             )}
                 
+                
+                
+            
             //--------------------------------------------------------------------
             // Add registration
             if (registration_out != null) {
                 // re-key output
-                registration_out = registration_out.map{row -> tuple(row[0] + ":" + row[1], row[4], row[5], )} // key, merge plates, path
-                
+                registration_out = registration_out.map{row -> tuple(row[0] + ":" + row[1], row[4], row[5])} // key, merge plates, path
                 // merge
-                cellprofiler_in = cellpose_out.join(registration_out, by: 0)
+                cellprofiler_in = cellpose_out.join(registration_out, by: 0)                
             } else {
                 cellprofiler_in = cellpose_out.map{row -> tuple(
                     row[0], // key
@@ -410,7 +413,13 @@ workflow run_pipeline {
             //--------------------------------------------------------------------
             // for in hybrid mode
             if (params.rn_hybrid) {
-                cellprofiler_in = cellprofiler_in.combine(manifest, by: 0).map{row -> tuple(
+                remapped_manifest = manifest.map{ row -> tuple(
+                    row[8], // scale channels
+                    row[0] // plate
+                )}
+                
+
+                cellprofiler_in = cellprofiler_in.combine(remapped_manifest, by: 1).map{row -> tuple(
                     row[0], // plate
                     row[1], // key
                     row[2], // well
@@ -420,8 +429,10 @@ workflow run_pipeline {
                     row[6], // nucl masks
                     row[7], // merge plates
                     row[8], // registration path
-                    (row[16] == "none") ? "none" : row[16].collect{it -> row[0] + "=" + (it.toInteger() -1).toString()}.join(" ") // mask channels   
+                    (row[9] == "none") ? "none" : row[9].collect{it -> row[0] + "=" + (it.toInteger() -1).toString()}.join(" ") // mask channels   
                 )}
+                
+                cellprofiler_in.view()
             } else {
                 cellprofiler_in = cellprofiler_in.map{row -> tuple(
                     row[0], // plate
@@ -436,7 +447,7 @@ workflow run_pipeline {
                     null // mask channels
                 )}
             }
-                
+            
             cellprofiler_out = cellprofiler(cellprofiler_in, flatfield_out_string, scaling_channel)
         
         }   
