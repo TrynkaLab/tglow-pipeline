@@ -9,6 +9,7 @@ from basicpy import BaSiC
 import logging
 from tglow.io.image_query import ImageQuery
 from tglow.io.processed_image_provider import ProcessedImageProvider
+from tglow.io.tglow_io import AICSImageWriter
 
 # Logging
 logging.basicConfig(format='%(asctime)s %(message)s')
@@ -24,7 +25,7 @@ class MergeAndAlign:
         self.input=args.input
         self.output=args.output
         self.write_zstack=not args.no_zstack
-        self.write_max_projection_onefile=args.max_project_onefile
+        #self.write_max_projection_onefile=args.max_project_onefile
         self.write_max_projection=args.max_project
         self.uint32=args.uint32
         self.fields=args.fields
@@ -46,6 +47,9 @@ class MergeAndAlign:
                                                mask_pattern=args.mask_pattern,
                                                uint32=args.uint32)
 
+        self.aics_writer = AICSImageWriter(self.output)
+        self.output_format=args.output_format
+
     # Main loops
     def run(self, well):
 
@@ -55,13 +59,6 @@ class MergeAndAlign:
         # Loop over possible plates
         for plate in self.plates:
                 
-            row, col = ImageQuery.well_id_to_index(well)
-            out_dir_final= f"{self.output}/{plate}/{ImageQuery.ID_TO_ROW[str(row)]}/{col}"
-            
-            if not os.path.exists(out_dir_final):
-                os.makedirs(out_dir_final)
-                log.info(f"Folder created: {out_dir_final}")
-                    
             # Assume all plates have the same fields
             if self.fields is None:
                 fields = self.provider.plate_reader.fields[plate]
@@ -69,58 +66,106 @@ class MergeAndAlign:
                 fields = self.fields
                 
             for field in fields:
- 
                 iq = ImageQuery(plate, row, col, field)
                 stack = self.provider.fetch_image(iq)
                 
-                #-------------------------------------------------
-                # Save the images per channel
-                # Array to store the channels for the max projection
-                max_projection = []
+                if self.output_format == "CP":
+                    self.write_cellprofiler(stack, iq)
+                elif self.output_format == "TIFF":
+                    self.write_plaintiff(stack, iq)
+                elif self.output_format == "OME_TIFF":
+                    self.write_ometiff(stack, iq)
+            
+            if self.output_format == "OME_TIFF":
+                self.aics_writer.write_image_stats(ImageQuery(plate, row, col, 1))
+    
+    def write_ometiff(self, stack, query):
+        #img = self.provider.plate_reader.get_img(query)
+        
+        if self.write_max_projection & self.write_zstack:
+            raise RuntimeError("Cannot provide --max_project without --no_zstack when --output_format OME_TIFF")
+        
+        if self.write_max_projection:
+            stack = np.max(stack, axis=1, keepdims=True)
+            
+        # TODO: currently writes a ome tiff without physical pixel sizes
+        self.aics_writer.write_stack(stack, query, channel_names=self.provider.channel_index['name'].tolist())
+    
+    
+    def write_plaintiff(self, stack, query):
+        plate = query.plate
+        well = query.get_well_id()
+        field = query.field
+        
+        row, col = ImageQuery.well_id_to_index(well)
+        out_dir_final= f"{self.output}/{plate}/{ImageQuery.ID_TO_ROW[str(row)]}/{col}"
+        if not os.path.exists(out_dir_final):
+            os.makedirs(out_dir_final)
+            log.info(f"Folder created: {out_dir_final}")
+                    
+        #-------------------------------------------------
+        # Write the stack one file, CZYX
+        if self.write_zstack:
+            if self.uint32:
+                tifffile.imwrite(cur_out, stack, shape=stack.shape, metadata={'axes': 'CZYX'})
+            else:
+                tifffile.imwrite(cur_out, stack, shape=stack.shape, imagej=True, metadata={'axes': 'CZYX'})
+                  
+        #-------------------------------------------------
+        # Write the max projection one file, CYX
+        if self.write_max_projection:
+            log.info(f"{plate} well: {well} field: {field} max projection")
+            cur_out = f"{out_dir_final}/{plate}_{well}_{field}_max_projection.tiff"
+            
+            max_stack = np.max(stack, axis=1)
+            
+            if self.uint32:
+                tifffile.imwrite(cur_out, max_stack, shape=max_stack.shape, metadata={'axes': 'CYX'})
+            else:
+                tifffile.imwrite(cur_out, max_stack, shape=max_stack.shape, imagej=True, metadata={'axes': 'CYX'})
+      
+
+    def write_cellprofiler(self, stack, query):
+        plate = query.plate
+        well = query.get_well_id()
+        field = query.field
+        
+        row, col = ImageQuery.well_id_to_index(well)
+        out_dir_final= f"{self.output}/{plate}/{ImageQuery.ID_TO_ROW[str(row)]}/{col}"
+        if not os.path.exists(out_dir_final):
+            os.makedirs(out_dir_final)
+            log.info(f"Folder created: {out_dir_final}")
+            
+        #-------------------------------------------------
+        # Save the images per channel
+        # Array to store the channels for the max projection                
+        for channel in range(0, stack.shape[0]):
+            log.info(f"{plate} well: {well} channel: {str(channel)} field: {field}: Saving.")
+
+            # Final output filename for channel
+            cur_out = f"{out_dir_final}/{field}_{plate}_{well}_ch{str(channel)}.tiff"      
+            merged = stack[channel,:,:,:]
+
+            # Write out the final tiff file, saves as ZYX
+            if self.write_zstack:
+                if self.uint32:
+                    tifffile.imwrite(cur_out, merged, shape=merged.shape, photometric='MINISBLACK', metadata={'axes': 'ZYX'})
+                else:
+                    tifffile.imwrite(cur_out, merged, shape=merged.shape, imagej=True, photometric='MINISBLACK', metadata={'axes': 'ZYX'})
                 
-                for channel in range(0, stack.shape[0]):
-                    log.info(f"{plate} well: {well} channel: {str(channel)} field: {field}: Saving.")
-
-                    # Final output filename for channel
-                    cur_out = f"{out_dir_final}/{field}_{plate}_{well}_ch{str(channel)}.tiff"      
-                    merged = stack[channel,:,:,:]
-
-                    # Write out the final tiff file, saves as ZYX
-                    if self.write_zstack:
-                        if self.uint32:
-                            tifffile.imwrite(cur_out, merged, shape=merged.shape, photometric='MINISBLACK', metadata={'axes': 'ZYX'})
-                        else:
-                            tifffile.imwrite(cur_out, merged, shape=merged.shape, imagej=True, photometric='MINISBLACK', metadata={'axes': 'ZYX'})
-                        
-                    # Store max projection accross the first axis (Z) for current channel 
-                    if (self.write_max_projection | self.write_max_projection_onefile):
-                        mp = np.max(merged, axis=0)
-                        
-                        if (self.write_max_projection):
-                            log.info(f"{plate} well: {well} channel: {str(channel)} field: {field}, max projection")
-                        
-                            # Final output filename for channel
-                            cur_out = f"{out_dir_final}/{field}_{plate}_{well}_ch{str(channel)}.tiff"
-                            
-                            if self.uint32:
-                                tifffile.imwrite(cur_out, mp, shape=mp.shape, metadata={'axes': 'YX'})        
-                            else:
-                                tifffile.imwrite(cur_out, mp, shape=mp.shape, imagej=True, metadata={'axes': 'YX'})        
-                        else:
-                            max_projection.append(mp)
-
-                #-------------------------------------------------
-                # Write the max projection one file, CYX
-                if (self.write_max_projection_onefile):
-                    log.info(f"{plate} well: {well} field: {field} max projection")
-                    cur_out = f"{out_dir_final}/{plate}_{well}_{field}_max_projection.tiff"
-                    
-                    max_merged = np.array(max_projection)
-                    
-                    if self.uint32:
-                        tifffile.imwrite(cur_out, max_merged, shape=max_merged.shape, metadata={'axes': 'CYX'})
-                    else:
-                        tifffile.imwrite(cur_out, max_merged, shape=max_merged.shape, imagej=True, metadata={'axes': 'CYX'})
+            # Store max projection accross the first axis (Z) for current channel 
+            if self.write_max_projection:
+                mp = np.max(merged, axis=0)
+                
+                log.info(f"{plate} well: {well} channel: {str(channel)} field: {field}, max projection")
+            
+                # Final output filename for channel
+                cur_out = f"{out_dir_final}/{field}_{plate}_{well}_ch{str(channel)}.tiff"
+                
+                if self.uint32:
+                    tifffile.imwrite(cur_out, mp, shape=mp.shape, metadata={'axes': 'YX'})        
+                else:
+                    tifffile.imwrite(cur_out, mp, shape=mp.shape, imagej=True, metadata={'axes': 'YX'})        
 
 
 # Main loop
@@ -133,6 +178,7 @@ if __name__ == "__main__":
     # Common argulents
     parser.add_argument('-i','--input', help='Base dir to raw input', required=True)
     parser.add_argument('-o','--output', help='Output prefix', required=True)
+    parser.add_argument('--output_format', help="Output format, one of CP | TIFF | OME_TIFF", default="CP")
     parser.add_argument('-p','--plate', help='Subfolder in raw dir to process', nargs='+', required=True)
     parser.add_argument('-m','--plate_merge', help='Plates to combine as multiple cycles of the same plate. Output will be seqeuntially added as additional channels in the order provided', nargs='+', default=None)
     parser.add_argument('--registration_dir', help="Path to registration root storing <plate>/<row>/<col>/<field>.pickle", default=None)
@@ -147,11 +193,14 @@ if __name__ == "__main__":
 
     # Specific arguments
     parser.add_argument('--scaling_factors', help='Divide each channel by this constant factor. Apply this if images are using a small portion of the 16/32 bit space <plate>_ch<channel>=<factor>', nargs='+', default=None)
-    parser.add_argument('--no_zstack', help="Do not output one tiff file per channel containing all z-stacks", action='store_true', default=False)
     parser.add_argument('--max_project', help="Output max projection as per channel YX tiffs", action='store_true', default=False)
-    parser.add_argument('--max_project_onefile', help="Output max projection one CYX tiff. Specify --no_zstack to skip per channel tiffs.", action='store_true', default=False)
-    
+    parser.add_argument('--no_zstack', help="Do not output one tiff file per channel containing all z-stacks", action='store_true', default=False)
+    #parser.add_argument('--max_project_onefile', help="Output max projection one CYX tiff. Specify --no_zstack to skip per channel tiffs.", action='store_true', default=False)
     args = parser.parse_args()
+  
+    if args.output_format not in ['CP', 'TIFF', "OME_TIFF"]:
+        log.error(f"{args.output_format} is not valid output format must be one of CP, TIFF, OME_TIFF")
+        exit(1)
   
     log.info("-----------------------------------------------------------")
     if not os.path.exists(args.output):

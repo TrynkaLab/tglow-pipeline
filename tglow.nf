@@ -7,7 +7,7 @@ include { estimate_flatfield; stage_global_flatfield } from './processes/flatfie
 include { register } from './processes/registration.nf'
 include { calculate_scaling_factors; calculate_plate_offsets } from './processes/scaling.nf'
 include { cellpose } from './processes/segmentation.nf'
-include { cellprofiler } from './processes/features.nf'
+include { cellprofiler; finalize; finalize_and_cellprofiler } from './processes/features.nf'
 
 
 // Workflow to stage the data from NFS to lustre
@@ -91,7 +91,7 @@ workflow run_pipeline {
         // Set runtime defaults, these are overidden when specified on commandline
         params.rn_image_dir = params.rn_publish_dir + "/images"
         params.rn_decon_dir = params.rn_publish_dir + "/decon"
-        
+                
         //------------------------------------------------------------
         // Read manifests & input files
         //------------------------------------------------------------
@@ -353,7 +353,7 @@ workflow run_pipeline {
                 control_dir = Channel.value(file('NO_CONTROL_DIR'))
             }
             
-            // Final scaling, TODO: currently no plate specific channels
+            // Final scaling
             demultiplex_channelstring = scaling_in.map{row -> row[1]}.collect().map({it.unique().join(" ")})
 
             // Start running only if all the plate offsets have been calculated
@@ -385,10 +385,7 @@ workflow run_pipeline {
                     row[4], // cell masks
                     row[5]  // nucl masks
             )}
-                
-                
-                
-            
+
             //--------------------------------------------------------------------
             // Add registration
             if (registration_out != null) {
@@ -417,7 +414,6 @@ workflow run_pipeline {
                     row[8], // scale channels
                     row[0] // plate
                 )}
-                
 
                 cellprofiler_in = cellprofiler_in.combine(remapped_manifest, by: 1).map{row -> tuple(
                     row[0], // plate
@@ -432,7 +428,6 @@ workflow run_pipeline {
                     (row[9] == "none") ? "none" : row[9].collect{it -> row[0] + "=" + (it.toInteger() -1).toString()}.join(" ") // mask channels   
                 )}
                 
-                cellprofiler_in.view()
             } else {
                 cellprofiler_in = cellprofiler_in.map{row -> tuple(
                     row[0], // plate
@@ -448,7 +443,15 @@ workflow run_pipeline {
                 )}
             }
             
-            cellprofiler_out = cellprofiler(cellprofiler_in, flatfield_out_string, scaling_channel)
+            // Run cellprofiler either caching images or not caching images
+            if (params.cpr_cache_images) {
+                
+                finalize_out = finalize(cellprofiler_in, flatfield_out_string, scaling_channel)[0]
+                cellprofiler_out = cellprofiler(finalize_out)
+                
+            } else {
+                cellprofiler_out = finalize_and_cellprofiler(cellprofiler_in, flatfield_out_string, scaling_channel)
+            }
         
         }   
 }
