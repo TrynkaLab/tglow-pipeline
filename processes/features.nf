@@ -143,7 +143,7 @@ process finalize {
         val basicpy_string
         val scaling_string
     output:
-        tuple val(plate), val(key), val(well), val(row), val(col), path("$plate/$row/$col")
+        tuple val(plate), val(key), val(well), val(row), val(col), path("$plate/$row/$col/*.tiff")
         path "$plate/channel_indices.tsv"
     script:
     
@@ -237,7 +237,7 @@ process cellprofiler {
     scratch params.rn_scratch
 
     input:
-        tuple val(plate), val(key), val(well), val(row), val(col), path(images, stageAs: "images/*")
+        tuple val(plate), val(key), val(well), val(row), val(col), path(images, stageAs: "tmp/*")
     output:
         path "features/$plate/$row/$col/*"
     script:
@@ -245,6 +245,9 @@ process cellprofiler {
         // Outputs the cp files into ./images
         cmd = 
         """
+        mkdir -p images/$plate/$row/$col
+        mv tmp/* images/$plate/$row/$col/
+        
         # Convert format from OME tiff to CP
         stage_cellprofiler.py \
         --input ./images \
