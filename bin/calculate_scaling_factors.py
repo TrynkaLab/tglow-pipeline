@@ -52,7 +52,7 @@ class ScalingCalculator():
         
         if path_control is not None:
             self.control_files = glob.glob(f"{path_control}/**/{pattern_control}", recursive=True)
-            log.info(f"Indexed {len(self.control_files)} control intensity files over")
+            log.info(f"Indexed {len(self.control_files)} control intensity files")
 
         # Define the plate groups (one cycle of imaging = a plate group)
         # This ensures channels are scaled witin a cycle and not accross cycles.
@@ -113,7 +113,7 @@ class ScalingCalculator():
             else:
                 self.control_df = cur_df
         
-    def calculate_plate_offsets(self, use_col="mean_mean_object_intensity"):
+    def calculate_plate_offsets(self, q1, q2, use_col="mean_mean_object_intensity"):
         
         for channel in self.control_df['channel'].unique():
             cur_df = self.control_df[self.control_df['channel'] == channel]
@@ -123,19 +123,43 @@ class ScalingCalculator():
         
         merged = pd.merge(self.channel_index, tmp, left_on=['ref_plate', 'channel'], right_on=['plate', 'channel'], validate="one_to_one", suffixes=[None, "_y"], how="outer")
         
-        #merged['base_scale'] = merged['base_scale'].fillna(1)
+        #merged['max_scale_total'] = merged['max_scale_total'].fillna(1)
         
         # Set the default to 1 (no scaling)
+        # This plate offset descibes how the intensity varies in the controls
         merged['plate_offset'] = merged['plate_offset'].fillna(1)
+        
+        # Normalize the base plate scale. This descibes the saturation point in each plate after normalization
+        merged['max_scale_plate_norm'] =  merged['max_scale_plate'] / merged['plate_offset']
+        
+        # Derrive the base scale, the point where after equalling plates, the intensity is highest
+        # this forms the constant offset applied to all plates
+        for channel in merged['channel'].unique():
+            cur_df = merged[merged['channel'] == channel]
+            merged.loc[merged['channel'] == channel, 'base_scale'] = cur_df['max_scale_plate_norm'].max()
+        
+        # Set the final scale factor so that the plate with the lowest intensity signal is scaled the most upwards
+        # and the plates with the highest intensity as scaled the most downwards, while maintaining the intensity
+        # range most optimally based on the base_scale
         merged['scale_factor'] = merged['base_scale'] * merged['plate_offset']
         
         # Set the default to 1 (no scaling)
         merged['scale_factor'] = merged['scale_factor'].fillna(1)
+        
+        for plate in merged['plate'].unique():
+            cur_df = merged[merged['plate'] == plate].copy()
+            
+            for channel in cur_df['orig_channel'].unique():
+                cur_intensity = self.main_df[(self.main_df['channel'] == int(channel)) & (self.main_df['plate'] == plate)]
+                
+                merged.loc[(merged['plate'] == plate) & (merged['orig_channel'] == channel), 'observed_at_q'] = np.percentile(cur_intensity[q1], q2)
+
+        merged['predicted_at_q_post_scale'] = merged['observed_at_q'] / merged['scale_factor']
+        
         self.channel_index = merged
         
         #add to the channel_index
             
-    
     # Build an index of what the new image channels will look like given these settings    
     def build_channel_index(self):
     
@@ -154,6 +178,7 @@ class ScalingCalculator():
             channel_id = 0
             tmp_df = self.main_df[self.main_df['plate'].isin([plate])].copy()
             if (len(tmp_df) == 0):
+                plate_idx += 1
                 continue
             
             # Loop over cycle one channels
@@ -167,7 +192,7 @@ class ScalingCalculator():
                 df.at[channel, "orig_name"] = ""
 
                 channel_id += 1  
-            
+                            
             # Add the channel names and IDs in the merged plate
             if len(self.plate_groups) != 1:
                 
@@ -175,6 +200,7 @@ class ScalingCalculator():
                     
                     cycle += 1
                     cur_plate = plate_group[plate_idx]
+                    log.debug(cur_plate)
                     tmp_df = self.main_df[self.main_df['plate'].isin([cur_plate])].copy()
 
                     for channel in sorted([int(x) for x in tmp_df['channel'].unique()]):
@@ -209,7 +235,8 @@ class ScalingCalculator():
                         df.at[channel_id, "orig_name"] = df.iloc[mask_channel]["name"]
                         channel_id += 1
 
-            
+            plate_idx += 1
+
             if final_df is None:
                 final_df=df
             else:
@@ -240,7 +267,8 @@ class ScalingCalculator():
         stats_mean=[]
         stats_median=[]
         scale_factors = {}
-        
+        scale_factors_plate = {}
+
         # Quantiles to report on
         quantiles = [0, 0.01, 0.1, 25, 50, 75, 95, 99, 99.9, 99.99, 99.999, 99.9999, 100]
         
@@ -282,12 +310,19 @@ class ScalingCalculator():
                 # Scale factors
                 for plate in plate_df["plate"].unique():
                     scale_factors[f"{plate}_ch{channel}"]=scale_factor
+                    
+                    cur_plate_df = plate_df[plate_df['plate'] == plate].copy()
+                    cur_plate_df = cur_plate_df[cur_plate_df["channel"] == channel]
+                    plate_scale_factor=np.percentile(cur_plate_df[q1], q2) / scale_max
+                    scale_factors_plate[f"{plate}_ch{channel}"] = plate_scale_factor 
+                    
             i += 1
         
         orig_ch_index=[x for x in self.channel_index["plate"] + "_ch" + self.channel_index["orig_channel"].astype(str)]
-        self.channel_index["base_scale"] = [scale_factors[key] for key in orig_ch_index]
-        
-        raw_scale_factors = [x for x in self.channel_index["ref_plate"] + "_ch" +  self.channel_index["channel"].astype(str) + "=" + self.channel_index["base_scale"].astype(str)]
+        self.channel_index["max_scale_total"] = [scale_factors[key] for key in orig_ch_index]
+        self.channel_index["max_scale_plate"] = [scale_factors_plate[key] for key in orig_ch_index]
+
+        raw_scale_factors = [x for x in self.channel_index["ref_plate"] + "_ch" +  self.channel_index["channel"].astype(str) + "=" + self.channel_index["max_scale_total"].astype(str)]
         
         # Write scaling factors
         info_file=open(f"{self.output}/raw_scaling_factors.txt", 'w')
@@ -353,20 +388,23 @@ if __name__ == "__main__":
                                     mask_channels=args.mask_channels,
                                     blacklist=args.blacklist,
                                     plate_groups=args.plate_groups)
-      
-    # args.q1="q99.9999"
-    # args.q2=99
-    # args.scale_max=65535
+    
+    
+    parser = argparse.ArgumentParser(description="Calculate per channel scaling factors based on previously calculated intensity_stats.tsv")
+    args = parser.parse_args()
+    args.q1="q99.9999"
+    args.q2=99
+    args.scale_max=65535
 
-    # calculator = ScalingCalculator(path="/lustre/scratch125/humgen/projects/cell_activation_tc/projects/DRUG_PERTURB/pipeline/results/decon",
-    #                                pattern="intensity_stats.tsv",
-    #                                output="/lustre/scratch125/humgen/projects/cell_activation_tc/projects/DRUG_PERTURB/pipeline/testing",
-    #                                plate=None,
-    #                                mask_channels=[0],
-    #                                path_control="/lustre/scratch125/humgen/projects/cell_activation_tc/projects/DRUG_PERTURB/pipeline/testing",
-    #                                pattern_control="plate_level_control_intensity_summary.tsv",
-    #                                blacklist="/lustre/scratch125/humgen/projects/cell_activation_tc/projects/DRUG_PERTURB/pipeline/scripts/blacklist.tsv",
-    #                                plate_groups="/lustre/scratch125/humgen/projects/cell_activation_tc/projects/DRUG_PERTURB/pipeline/scripts/manifest_registration.tsv")
+    calculator = ScalingCalculator(path="/lustre/scratch125/humgen/projects/cell_activation_tc/projects/DRUG_PERTURB/pipeline/results/decon",
+                                   pattern="intensity_stats.tsv",
+                                   output="/lustre/scratch125/humgen/projects/cell_activation_tc/projects/DRUG_PERTURB/pipeline/testing",
+                                   plate=None,
+                                   mask_channels=[0],
+                                   path_control="/lustre/scratch125/humgen/projects/cell_activation_tc/projects/DRUG_PERTURB/pipeline/results/scaling/offsets",
+                                   pattern_control="plate_level_control_intensity_summary.tsv",
+                                   blacklist="/lustre/scratch125/humgen/projects/cell_activation_tc/projects/DRUG_PERTURB/pipeline/scripts/blacklist.tsv",
+                                   plate_groups="/lustre/scratch125/humgen/projects/cell_activation_tc/projects/DRUG_PERTURB/pipeline/scripts/manifest_registration.tsv")
         
     
     calculator.read_intensity_files()
@@ -378,7 +416,7 @@ if __name__ == "__main__":
     calculator.calculate_quantile_scaling_factors(args.q1, args.q2, args.scale_max)
 
     if args.control_dir is not None:
-        calculator.calculate_plate_offsets()
+        calculator.calculate_plate_offsets(args.q1, args.q2)
     
     calculator.save_channel_index()
     
@@ -394,6 +432,6 @@ if __name__ == "__main__":
             msg = "NA's found in scaling factors, usually due to misspecification of arguments, check 'channel_index_with_scaling.tsv' for issues."
             log.error(msg)
             raise RuntimeError(msg)     
-        calculator.save_scaling_factors("base_scale")
+        calculator.save_scaling_factors("max_scale_total")
 
-    #calculator.channel_index[["cycle","channel","base_scale","plate_offset", "scale_factor"]]
+    #calculator.channel_index[["cycle","channel","max_scale_total","plate_offset", "scale_factor"]]

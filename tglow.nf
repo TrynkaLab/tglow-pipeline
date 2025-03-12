@@ -234,8 +234,6 @@ workflow run_pipeline {
                     row[4], // channel
                     row[10] // reference path
                 )}                
-                         
-                global_flatfield_in.view()       
                 flatfield_out = stage_global_flatfield(global_flatfield_in).flatfield_out
             } else {
                 log.info("Estimating one flatfield per channel")

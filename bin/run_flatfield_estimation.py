@@ -11,6 +11,7 @@ import numpy as np
 import logging
 import cv2 as cv
 import copy
+import gc
 from tqdm import tqdm
 from basicpy import BaSiC
 from matplotlib import pyplot as plt
@@ -261,6 +262,10 @@ class FlatFieldTrainer():
             log.info("Plotting results")
             self.plot_results(basic, merged)
             
+        del training_imgs
+        del merged 
+        gc.collect()
+            
         if self.nimg_validate > 0:
             log.info("Running validation on new imageset")
             self.evaluate_flatfield(basic.flatfield, self.bins)
@@ -405,7 +410,17 @@ class FlatFieldTrainer():
         #    i+=1
         
         log.info("Done, saving output")
-        self.create_output(flatfield, np.array(training_imgs))
+        
+        # convert to 3d numpy array
+        merged = np.array(training_imgs, copy=True)
+        del training_imgs
+        gc.collect()
+        
+        self.create_output(flatfield, merged)
+        
+        del merged
+        gc.collect()
+
         
         if self.nimg_validate > 0:
             log.info("Running validation on new imageset")
@@ -726,7 +741,7 @@ if __name__ == "__main__":
     parser.add_argument('--fit_darkfield', help="[BP only] Fit the darkfield component. For tglow not reccomended", action='store_true', default=False)
     parser.add_argument('--nimg', help="Number of random images to train on. Sampled with replacement", default=None, required=True)
     parser.add_argument('--nimg_test', help="Number of random images to evaluate the final flatfield on. Set to 0 to not evaluate.", default=0, required=False)
-    parser.add_argument('--merge_n', help="Number of images to combine into one --nimg times", default=0)
+    parser.add_argument('--merge_n', help="Number of images to combine into one --nimg times", default=1)
     parser.add_argument('--pseudoreplicates', help="Number of pseudoreplicates to generate. Pseudoreplicate is a compound from --merge_n images samples from --nimg read images", default=0)
     parser.add_argument('--pseudoreplicates_test', help="As --pseudoreplicates, but for the testset", default=0)
     parser.add_argument('-p','--plate', help='Plate to process. Defaults to all detected plates.', nargs='+', default=None)
