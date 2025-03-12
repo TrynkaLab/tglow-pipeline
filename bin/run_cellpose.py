@@ -234,7 +234,7 @@ class CellposeRunner():
             os.makedirs(f"{self.output}/{query.plate}/{query.get_row_letter()}/{query.col}")
 
         # save results
-        tifffile.imwrite(f"{self.output}/{query.plate}/{query.get_row_letter()}/{query.col}/{query.field}_cell_mask_d{str(self.diameter)}_ch{self.other_channel}_cp_masks.tiff", masks)
+        tifffile.imwrite(f"{self.output}/{query.plate}/{query.get_row_letter()}/{query.col}/{query.field}_cell_mask_d{str(self.diameter)}_ch{self.other_channel}_cp_masks.tiff", masks, compression="zlib")
         
         start_time = time.time()
         
@@ -308,7 +308,7 @@ class CellposeRunner():
                 
                 log.info(f"Smoothed edges with median filter {nucl_masks.shape}")
 
-            tifffile.imwrite(f"{self.output}/{query.plate}/{query.get_row_letter()}/{query.col}/{query.field}_nucl_mask_d{self.diameter_nucl}_ch{self.nucl_channel}_cp_masks.tiff", nucl_masks)
+            tifffile.imwrite(f"{self.output}/{query.plate}/{query.get_row_letter()}/{query.col}/{query.field}_nucl_mask_d{self.diameter_nucl}_ch{self.nucl_channel}_cp_masks.tiff", nucl_masks, compression="zlib")
 
 
 
