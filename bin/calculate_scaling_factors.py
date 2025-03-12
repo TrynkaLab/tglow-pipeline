@@ -390,21 +390,21 @@ if __name__ == "__main__":
                                     plate_groups=args.plate_groups)
     
     
-    parser = argparse.ArgumentParser(description="Calculate per channel scaling factors based on previously calculated intensity_stats.tsv")
-    args = parser.parse_args()
-    args.q1="q99.9999"
-    args.q2=99
-    args.scale_max=65535
+    # parser = argparse.ArgumentParser(description="Calculate per channel scaling factors based on previously calculated intensity_stats.tsv")
+    # args = parser.parse_args()
+    # args.q1="q99.9999"
+    # args.q2=99
+    # args.scale_max=65535
 
-    calculator = ScalingCalculator(path="/lustre/scratch125/humgen/projects/cell_activation_tc/projects/DRUG_PERTURB/pipeline/results/decon",
-                                   pattern="intensity_stats.tsv",
-                                   output="/lustre/scratch125/humgen/projects/cell_activation_tc/projects/DRUG_PERTURB/pipeline/testing",
-                                   plate=None,
-                                   mask_channels=[0],
-                                   path_control="/lustre/scratch125/humgen/projects/cell_activation_tc/projects/DRUG_PERTURB/pipeline/results/scaling/offsets",
-                                   pattern_control="plate_level_control_intensity_summary.tsv",
-                                   blacklist="/lustre/scratch125/humgen/projects/cell_activation_tc/projects/DRUG_PERTURB/pipeline/scripts/blacklist.tsv",
-                                   plate_groups="/lustre/scratch125/humgen/projects/cell_activation_tc/projects/DRUG_PERTURB/pipeline/scripts/manifest_registration.tsv")
+    # calculator = ScalingCalculator(path="/lustre/scratch125/humgen/projects/cell_activation_tc/projects/DRUG_PERTURB/pipeline/results/decon",
+    #                                pattern="intensity_stats.tsv",
+    #                                output="/lustre/scratch125/humgen/projects/cell_activation_tc/projects/DRUG_PERTURB/pipeline/testing",
+    #                                plate=None,
+    #                                mask_channels=[0],
+    #                                path_control="/lustre/scratch125/humgen/projects/cell_activation_tc/projects/DRUG_PERTURB/pipeline/results/scaling/offsets",
+    #                                pattern_control="plate_level_control_intensity_summary.tsv",
+    #                                blacklist="/lustre/scratch125/humgen/projects/cell_activation_tc/projects/DRUG_PERTURB/pipeline/scripts/blacklist.tsv",
+    #                                plate_groups="/lustre/scratch125/humgen/projects/cell_activation_tc/projects/DRUG_PERTURB/pipeline/scripts/manifest_registration.tsv")
         
     
     calculator.read_intensity_files()
