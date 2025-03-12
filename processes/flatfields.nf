@@ -9,11 +9,11 @@ process estimate_flatfield {
     storeDir "${params.rn_publish_dir}/flatfields/${plate}" //, mode: 'copy'
 
     input:
-        tuple val(plate), val(img_channel), val(pe_index)
+        tuple val(key), val(cycle), val(plate), val(plates), val(img_channel), val(pe_index)
         path blacklist
     output:
         path "*${plate}_ch${img_channel}", emit: basicpy_file_out
-        tuple val(plate), val(img_channel),  path("*${plate}_ch${img_channel}"), emit: flatfield_out       
+        tuple val(key), val(cycle), val(plate), val(plates), val(img_channel), path("*${plate}_ch${img_channel}"), emit: flatfield_out       
     script:
         cmd =
         """
@@ -24,14 +24,16 @@ process estimate_flatfield {
         --nimg $params.bp_nimg \
         --plot \
         --pe_index '$pe_index' \
+        --onemodel \
         --channel $img_channel\
         """
         
         if (params.bp_global_flatfield) {
             cmd += " --output_prefix global_refplate_$plate"
+            cmd += " --plate " + plates.join(' ')
         } else {
-            cmd += " --plate $plate"
             cmd += " --output_prefix $plate"
+            cmd += " --plate $plate"
         }
         
         if (params.rn_max_project) {
@@ -87,16 +89,15 @@ process estimate_flatfield {
 
 // Copy the global flatfield to per plate folders
 process stage_global_flatfield {
-    
     label "tiny"
     conda params.tg_conda_env
     storeDir "${params.rn_publish_dir}/flatfields/${plate}/" //, mode: 'copy'
 
     input:
-        tuple val(plate), val(img_channel),  path(refdir)
+        tuple val(key), val(cycle), val(plate), val(plates), val(img_channel),  path(refdir)
     output:
         path "${plate}_ch${img_channel}", emit: basicpy_file_out
-        tuple val(plate), val(img_channel),  path("${plate}_ch${img_channel}"), emit: flatfield_out      
+        tuple val(key), val(cycle), val(plate), val(plates), val(img_channel),  path("${plate}_ch${img_channel}"), emit: flatfield_out      
     script:
     """
     cp -r $refdir ${plate}_ch${img_channel}

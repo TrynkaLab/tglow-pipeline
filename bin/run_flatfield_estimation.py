@@ -150,7 +150,7 @@ log.setLevel(logging.DEBUG)
 
 class FlatFieldTrainer():
     
-    def __init__(self, path, output_dir, output_prefix,  channel,  nimg, merge_n, tune, fit_darkfield, all_planes=False, max_project=False, plates=None, fields=None, planes=None, threshold=False, autosegment=False, plot=False, blacklist=None, pseudoreplicates=0, pseudoreplicates_test=0, blur=False, sigma=2, nimg_validate=0, bins=20):
+    def __init__(self, path, output_dir, output_prefix,  channel,  nimg, merge_n, tune, fit_darkfield, all_planes=False, max_project=False, plates=None, fields=None, planes=None, threshold=False, autosegment=False, plot=False, blacklist=None, pseudoreplicates=None, pseudoreplicates_test=None, blur=False, sigma=2, nimg_validate=0, bins=20):
         
         # Class to read images
         self.provider = CompoundImageProvider(path, nimg,  channel, blacklist, plates, fields, planes, pseudoreplicates, merge_n, max_project, all_planes)
@@ -159,6 +159,7 @@ class FlatFieldTrainer():
         self.nimg=nimg
         self.merge_n=merge_n
         self.nimg_validate=nimg_validate
+        self.pseudoreplicates=pseudoreplicates
         self.pseudoreplicates_validate=pseudoreplicates_test
         self.all_planes=all_planes
         self.tune=tune
@@ -302,40 +303,96 @@ class FlatFieldTrainer():
         # Normalize to mean to derive scaling factors
         flatfield = blurred / np.mean(flatfield)
         
-        self.__create_output(flatfield,  np.array(training_imgs))
+        self.create_output(flatfield,  np.array(training_imgs))
         
         if self.nimg_validate > 0:
             log.info("Running validation on new imageset")
             self.evaluate_flatfield(flatfield, self.bins)
         
         
-    def train_polynomial(self, use_ridge, degree=2):
+    def train_polynomial(self, use_ridge, degree=2, one_model=False):
     
         training_imgs = self.fetch_images(self.provider)
 
-        fit_sum = None
-        i =0
-        for img in training_imgs:
-            log.info(f"Fitting poly to image {i}")
-            cur_img = downscale_local_mean(img, (4, 4))
+        if one_model:
             
-            cur_ff = self.__fit_poly_img(cur_img, use_ridge=use_ridge, remove_zeroes=self.threshold, degree=degree)
-            #if fit_sum is None:
-            #    fit_sum = np.ones_like(cur_img)    
-            if fit_sum is None:
-                fit_sum = cur_ff
+            tmp = downscale_local_mean(training_imgs[0], (4, 4))
+            Y, X = np.mgrid[:tmp.shape[0], :tmp.shape[1]]
+            y_flat = Y.flatten()
+            x_flat = X.flatten()
+                
+            if self.pseudoreplicates >0:
+                nimg = self.pseudoreplicates
             else:
-                fit_sum += cur_ff
-            i += 1
+                nimg = self.nimg
+    
+            arr_size=tmp.shape[0] * tmp.shape[1]
+                
+            log.debug(f"Creating new flat array of size: {arr_size*nimg} of approx {(arr_size*nimg*2)/ float(1024*1024)} mb")
+            x = np.empty(tmp.shape[0] * tmp.shape[1] * nimg, dtype=np.uint16)
+            y = np.empty(tmp.shape[0] * tmp.shape[1] * nimg, dtype=np.uint16)
+            z = np.empty(tmp.shape[0] * tmp.shape[1] * nimg, dtype=np.uint16)
             
-        # Calculate the average over the images
-        fit_avg = fit_sum / len(training_imgs)
-        
-        # Upsize with bilinear interpolation
-        final_fit = resize(fit_avg,
-                           training_imgs[0].shape,
-                           order=2,
-                           mode="reflect")
+            start = 0
+            i =0
+            for img in training_imgs:
+                log.info(f"Processing {i}")
+                cur_img = downscale_local_mean(img, (4, 4))
+                #cur_flat = cur_img.flatten()
+                
+                #keep = cur_flat!=0
+                x[start:start+arr_size] = x_flat
+                y[start:start+arr_size] = y_flat
+                z[start:start+arr_size] = cur_img.flatten()
+                start += arr_size
+                i +=1
+                
+            log.info(f"Read images into single flat array of length {len(z)}, last value x/y/i  {x[len(x)-1]}/ {y[len(y)-1]} / {z[len(z)-1]}")
+            
+            # Scale xy
+            x = x/np.max(x)
+            y = y/np.max(y)
+            
+            coeffs = self.fit_poly(x,y,z,
+                          trim_quantile=0,
+                          use_ridge=use_ridge,
+                          remove_zeroes=True,
+                          degree=degree)
+            
+            # Scale xy
+            X = X/np.max(X)
+            Y = Y/np.max(Y)
+            
+            z_fit = P.polyval2d(X, Y, coeffs)
+
+            final_fit = resize(z_fit,
+                training_imgs[0].shape,
+                order=2,
+                mode="reflect")
+        else:
+            fit_sum = None
+            i =0
+            for img in training_imgs:
+                log.info(f"Fitting poly to image {i}")
+                cur_img = downscale_local_mean(img, (4, 4))
+                
+                cur_ff = self.fit_poly_img(cur_img, use_ridge=use_ridge, remove_zeroes=self.threshold, degree=degree, trim_quantile=0)
+                #if fit_sum is None:
+                #    fit_sum = np.ones_like(cur_img)    
+                if fit_sum is None:
+                    fit_sum = cur_ff
+                else:
+                    fit_sum += cur_ff
+                i += 1
+                
+            # Calculate the average over the images
+            fit_avg = fit_sum / len(training_imgs)
+            
+            # Upsize with bilinear interpolation
+            final_fit = resize(fit_avg,
+                            training_imgs[0].shape,
+                            order=2,
+                            mode="reflect")
 
         # Normalize flatfield to mean
         flatfield = final_fit / np.mean(final_fit)
@@ -348,7 +405,7 @@ class FlatFieldTrainer():
         #    i+=1
         
         log.info("Done, saving output")
-        self.__create_output(flatfield, np.array(training_imgs))
+        self.create_output(flatfield, np.array(training_imgs))
         
         if self.nimg_validate > 0:
             log.info("Running validation on new imageset")
@@ -373,7 +430,7 @@ class FlatFieldTrainer():
         
         log.info("Done, saving output")
         self.plot = False
-        self.__create_output(flatfield, None)
+        self.create_output(flatfield, None)
         
         if self.nimg_validate > 0:
             log.info("Running validation on new imageset")
@@ -411,8 +468,8 @@ class FlatFieldTrainer():
                 thresh_img[thresh_img == np.iinfo(thresh_img.dtype).max] = 0
                 
                 # Remove 1% of the most bright pixels
-                q=np.quantile(thresh_img, 0.99)
-                thresh_img[thresh_img > q] = 0
+                #q=np.quantile(thresh_img, 0.99)
+                #thresh_img[thresh_img > q] = 0
                 
                 # Localized sauvola threshold. With sparse images, gives issues
                 #thresh = threshold_sauvola(training_imgs[i], size)
@@ -455,23 +512,43 @@ class FlatFieldTrainer():
         log.info("Done, successfully completed")
 
 
-    def __fit_poly_img(self, image, scale_xy=True, trim_quantile=0, use_ridge=False, remove_zeroes=True, degree=2):
+    def fit_poly_img(self, image, scale_xy=True, trim_quantile=0, use_ridge=False, remove_zeroes=True, degree=2):
         Y, X = np.mgrid[:image.shape[0], :image.shape[1]]
         Z = image
         
-        if scale_xy:
-            X = X / np.max(X)
-            Y = Y / np.max(Y)
-
         x = X.flatten()
         y = Y.flatten()
         z = Z.flatten()
+        
+        if scale_xy:
+            x = x / np.max(x)
+            y = y / np.max(x)
+        
+        coeffs = self.fit_poly(x,y,z, trim_quantile=trim_quantile, use_ridge=use_ridge, remove_zeroes=remove_zeroes, degree=degree)
+        
+        if coeffs is None:
+            log.warning("Model did not fit, returning even flatfield")
+            return (np.zeros(image.shape))
+        
+        if scale_xy:
+            Y = Y/np.max(Y)
+            X = X/np.max(X)
+
+        z_fit = P.polyval2d(X, Y, coeffs)
+        
+        return(z_fit)
+
+    
+    def fit_poly(self, x, y, z, trim_quantile=0, use_ridge=False, remove_zeroes=True, degree=2):
+        
+        nobs_in = len(z)
+
         if remove_zeroes:
             keep = z != 0
             x = x[keep]
             y = y[keep]
             z = z[keep]
-            log.info(f"Removed {(image.shape[0] * image.shape[1]) - len(z)} zero values")
+            log.info(f"Removed {nobs_in - len(z)} zero values")
 
         if trim_quantile != 0:
             q = np.quantile(z, trim_quantile)
@@ -482,12 +559,11 @@ class FlatFieldTrainer():
             z = z[keep]
         
         #z = (z - np.mean(z)) / np.std(z)
-        
-        ptotal=len(z) / (image.shape[0] * image.shape[1])
-        log.info(f"Fitting moddel with {len(z)}/{(image.shape[0] * image.shape[1])} values")
+        ptotal=len(z) / nobs_in
+        log.info(f"Fitting moddel with {len(z)} values")
         if (ptotal < 0.05):
-            log.warning("Fewer then 5% of values left after filtering, returning even flatfield")
-            return (np.zeros_like(image))
+            log.warning("Fewer then 5% of pixel values left after filtering")
+            #return None
         
         # The cellprofiler model
         # 1 + x2 + y2  + x*y + x + y 
@@ -516,9 +592,8 @@ class FlatFieldTrainer():
         
         # OR when using full model
         coeffs = coef_tmp.reshape((degree + 1, degree + 1))
-        z_fit = P.polyval2d(X, Y, coeffs)
 
-        return(z_fit)
+        return(coeffs)
 
     
     def evaluate_flatfield(self, flatfield, bins=20):
@@ -580,7 +655,7 @@ class FlatFieldTrainer():
         plot_flatfield_evaluation(X, Y, Z, filename=f"{self.out}/model_evaluation_nimg_{self.nimg_validate}_nbin_{bins}.png")
         
 
-    def __create_output(self, flatfield, merged):
+    def create_output(self, flatfield, merged):
         
         log.info(f"Flatfiled min: {np.min(flatfield)} max: {np.max(flatfield)} median: {np.median(flatfield)}")
         
@@ -607,7 +682,6 @@ class FlatFieldTrainer():
             log.info("Plots saved")
 
         
-
     def apply_transform(self, basic, images):
         im_float = images.astype(np.float32)
         output = (im_float - basic.darkfield[np.newaxis]) / basic.flatfield[np.newaxis]
@@ -652,7 +726,7 @@ if __name__ == "__main__":
     parser.add_argument('--fit_darkfield', help="[BP only] Fit the darkfield component. For tglow not reccomended", action='store_true', default=False)
     parser.add_argument('--nimg', help="Number of random images to train on. Sampled with replacement", default=None, required=True)
     parser.add_argument('--nimg_test', help="Number of random images to evaluate the final flatfield on. Set to 0 to not evaluate.", default=0, required=False)
-    parser.add_argument('--merge_n', help="Number of images to combine into one --nimg times", default=1)
+    parser.add_argument('--merge_n', help="Number of images to combine into one --nimg times", default=0)
     parser.add_argument('--pseudoreplicates', help="Number of pseudoreplicates to generate. Pseudoreplicate is a compound from --merge_n images samples from --nimg read images", default=0)
     parser.add_argument('--pseudoreplicates_test', help="As --pseudoreplicates, but for the testset", default=0)
     parser.add_argument('-p','--plate', help='Plate to process. Defaults to all detected plates.', nargs='+', default=None)
@@ -672,6 +746,7 @@ if __name__ == "__main__":
     parser.add_argument('--bins', help="The number of 2d bins to use in validating. Reccomend 10-50, use lower number for sparse images", default=20, required=False)
     parser.add_argument('--pe_index', help="PerkinElmer index.xml file to extract flatfiels when --mode PE", default=None, required=False)
     parser.add_argument('--degree', help="[POLY only] The degree for the polynomial", default=3)
+    parser.add_argument('--onemodel', help="[POLY only] Combine all images into one flat vector and fit on that", action='store_true', default=False)
     parser.add_argument('--flatfield', help="[TEST] Path to previous results", default=None)
 
     args = parser.parse_args()
@@ -753,7 +828,7 @@ if __name__ == "__main__":
         trainer.train_mean_filter()
     elif (args.mode == "POLY"):
         #trainer.train_polynomial(int(args.degree))
-        trainer.train_polynomial(use_ridge=args.ridge, degree=int(args.degree))
+        trainer.train_polynomial(use_ridge=args.ridge, degree=int(args.degree), one_model=args.onemodel)
     elif (args.mode == "PE"):
         
         if args.pe_index is None:

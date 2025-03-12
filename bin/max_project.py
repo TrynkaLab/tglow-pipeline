@@ -56,5 +56,5 @@ if __name__ == "__main__":
                 log.info(f"Folder created: {outdir}")
                 
             cur_out = f"{outdir}/{field}{args.suffix}"      
-            tifffile.imwrite(cur_out, img, shape=img.shape, imagej=True, metadata={'axes': 'YX'})        
+            tifffile.imwrite(cur_out, img, shape=img.shape, imagej=True, metadata={'axes': 'YX'}, compression="zlib")        
 

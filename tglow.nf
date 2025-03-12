@@ -181,7 +181,36 @@ workflow run_pipeline {
             
             flatfield_in = Channel.from(flatfield_channels[0])
             flatfield_in_global = Channel.from(flatfield_channels[1])
-
+                            
+            if (params.rn_manifest_registration) {
+                log.info("Estimating one global flatfield per cycle")
+                
+                // Create a flat [<plate> <cycle>] channel
+                plate_cycle = manifest_registration
+                .map{row -> [row[0], *row[2].split(",")]}
+                .flatMap { row -> row.withIndex().collect { item, index ->[item, index] }}
+                
+                // Create a channel per cycle <ref_plate> <cycle> [<plate1> <plateN>]
+                per_cycle = plate_cycle
+                .groupTuple(by:1)
+                .map{row -> tuple(row[0][0], row[1], row[0])}
+                
+                flatfield_in_global = per_cycle
+                .combine(manifest, by:0)
+                .flatMap{row -> row[5].collect{ channel -> tuple(row[1] + ":" + channel, row[1], row[2][0], row[2],  channel, row[3])}} // key, cycle, plate, plate(s), channel, index xml
+                
+                flatfield_in = flatfield_in
+                .combine(plate_cycle, by:0)
+                .map{row -> tuple(row[3] + ":" + row[1], row[3], row[0], [row[0]],row[1], row[2])} // key, cycle, plate, plate(s), channel, index xml
+            } else {
+                flatfield_in_global = flatfield_in_global
+                .combine(plates_channel)
+                .map{row -> tuple( "0:" + row[1], 0, row[0], row[3].split(" "), row[1], row[2])} // key, cycle, plates, channel, index_xml
+                
+                flatfield_in = flatfield_in
+                .combine(plates_channel)
+                .map{row -> tuple("0:" + row[1], 0, row[0], row[3].split(" "), row[1], row[2])} // key, cycle, plates, channel, index_xml
+            }
         } else {
             flatfield_in = Channel.from(params.bp_channels)
         }
@@ -189,20 +218,24 @@ workflow run_pipeline {
         if (run_flatfield) {
             log.info("Running flatfield estimation")
             if (params.bp_global_flatfield) {
-                log.info("Estimating one global flatfield")
+
                 // Runs only one model per plate
                 global_flatfield = estimate_flatfield(flatfield_in_global, blacklist_channel).flatfield_out
                 
                 // Now need to make a channel like flatfield_in, but replacing the path with global_flatfield
                 // Combine on the channel
                 global_flatfield_in = flatfield_in
-                .combine(global_flatfield, by: 1)
+                .combine(global_flatfield, by: 0)
                 .map{ row -> tuple(
-                    row[1], // plate
-                    row[0], // channel
-                    row[4] // reference path
+                    row[0], // key
+                    row[1], // cycle
+                    row[2], // plate
+                    row[3], // plates
+                    row[4], // channel
+                    row[10] // reference path
                 )}                
-                
+                         
+                global_flatfield_in.view()       
                 flatfield_out = stage_global_flatfield(global_flatfield_in).flatfield_out
             } else {
                 log.info("Estimating one flatfield per channel")
@@ -210,8 +243,10 @@ workflow run_pipeline {
             }
             
             // Concat to plate string format // plate : channel = path
-            flatfield_out_string = flatfield_out.map{ row -> (row[0] + "_ch" + row[1] + "=" + row[2])}.collect().map{it.join(" ")}
+            flatfield_out_string = flatfield_out.map{ row -> (row[2] + "_ch" + row[4] + "=" + row[5])}.collect().map{it.join(" ")}
+
         } else {
+            flatfield_out_string = Channel.empty()
             log.info("No manifest entries or --bp_channels provided, so skipping flatfield estimation")
         }
          
