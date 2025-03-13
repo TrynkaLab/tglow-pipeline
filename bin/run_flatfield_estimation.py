@@ -177,7 +177,6 @@ class FlatFieldTrainer():
         self.sigma=sigma
         self.bins=bins
         
-        
         # Output
         self.out = f"{self.output_dir}/{self.output_prefix}_ch{str(self.channel)}"
         
@@ -340,8 +339,9 @@ class FlatFieldTrainer():
             
             start = 0
             i =0
+            log.debug("Downscaling images by 4x")
             for img in training_imgs:
-                log.info(f"Processing {i}")
+                #log.info(f"Processing {i}")
                 cur_img = downscale_local_mean(img, (4, 4))
                 #cur_flat = cur_img.flatten()
                 
