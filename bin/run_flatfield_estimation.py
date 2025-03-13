@@ -315,7 +315,7 @@ class FlatFieldTrainer():
             self.evaluate_flatfield(flatfield, self.bins)
         
         
-    def train_polynomial(self, use_ridge, degree=2, one_model=False):
+    def train_polynomial(self, use_ridge, degree=2, one_model=False, log_trans=True):
     
         training_imgs = self.fetch_images(self.provider)
 
@@ -362,13 +362,17 @@ class FlatFieldTrainer():
                           trim_quantile=0,
                           use_ridge=use_ridge,
                           remove_zeroes=True,
-                          degree=degree)
+                          degree=degree,
+                          log_trans=log_trans)
             
             # Scale xy
             X = X/np.max(X)
             Y = Y/np.max(Y)
             
             z_fit = P.polyval2d(X, Y, coeffs)
+            
+            if log_trans:
+                z_fit = np.power(2, z_fit, out=z_fit)
 
             final_fit = resize(z_fit,
                 training_imgs[0].shape,
@@ -381,7 +385,7 @@ class FlatFieldTrainer():
                 log.info(f"Fitting poly to image {i}")
                 cur_img = downscale_local_mean(img, (4, 4))
                 
-                cur_ff = self.fit_poly_img(cur_img, use_ridge=use_ridge, remove_zeroes=self.threshold, degree=degree, trim_quantile=0)
+                cur_ff = self.fit_poly_img(cur_img, use_ridge=use_ridge, remove_zeroes=self.threshold, degree=degree, trim_quantile=0, log_trans=log_trans)
                 #if fit_sum is None:
                 #    fit_sum = np.ones_like(cur_img)    
                 if fit_sum is None:
@@ -527,7 +531,7 @@ class FlatFieldTrainer():
         log.info("Done, successfully completed")
 
 
-    def fit_poly_img(self, image, scale_xy=True, trim_quantile=0, use_ridge=False, remove_zeroes=True, degree=2):
+    def fit_poly_img(self, image, scale_xy=True, trim_quantile=0, use_ridge=False, remove_zeroes=True, degree=2, log_trans=False):
         Y, X = np.mgrid[:image.shape[0], :image.shape[1]]
         Z = image
         
@@ -551,10 +555,13 @@ class FlatFieldTrainer():
 
         z_fit = P.polyval2d(X, Y, coeffs)
         
+        if log_trans:
+            z_fit = np.power(2, z_fit, out=z_fit)
+        
         return(z_fit)
 
     
-    def fit_poly(self, x, y, z, trim_quantile=0, use_ridge=False, remove_zeroes=True, degree=2):
+    def fit_poly(self, x, y, z, trim_quantile=0, use_ridge=False, remove_zeroes=True, degree=2, log_trans=False):
         
         nobs_in = len(z)
 
@@ -579,7 +586,11 @@ class FlatFieldTrainer():
         if (ptotal < 0.05):
             log.warning("Fewer then 5% of pixel values left after filtering")
             #return None
-        
+    
+        if log_trans:
+            log.info(f"Log2 transforming intensity values")
+            z = np.log2(z)
+    
         # The cellprofiler model
         # 1 + x2 + y2  + x*y + x + y 
         #design_matrix = np.column_stack((np.ones(len(x)), x*x, y*y, x*y, x, y))

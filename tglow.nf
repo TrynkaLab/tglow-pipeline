@@ -179,6 +179,7 @@ workflow run_pipeline {
             
             if (flatfield_channels[0].size() > 0) {run_flatfield = true}
             
+            // These have the channel already zero indexed
             flatfield_in = Channel.from(flatfield_channels[0])
             flatfield_in_global = Channel.from(flatfield_channels[1])
                             
@@ -195,13 +196,16 @@ workflow run_pipeline {
                 .groupTuple(by:1)
                 .map{row -> tuple(row[0][0], row[1], row[0])}
                 
+                // Subtract one from the channel here, as we combine the manifest which is one indexed
                 flatfield_in_global = per_cycle
                 .combine(manifest, by:0)
-                .flatMap{row -> row[5].collect{ channel -> tuple(row[1] + ":" + channel, row[1], row[2][0], row[2],  channel, row[3])}} // key, cycle, plate, plate(s), channel, index xml
+                .flatMap{row -> row[5].collect{ channel -> tuple(row[1] + ":" + (channel.toInteger()-1).toString(), row[1], row[2][0], row[2],  channel.toInteger() - 1, row[3])}} // key, cycle, plate, plate(s), channel, index xml
                 
+                // These have already been converted to zero indexed
                 flatfield_in = flatfield_in
                 .combine(plate_cycle, by:0)
                 .map{row -> tuple(row[3] + ":" + row[1], row[3], row[0], [row[0]],row[1], row[2])} // key, cycle, plate, plate(s), channel, index xml
+                                
             } else {
                 flatfield_in_global = flatfield_in_global
                 .combine(plates_channel)
@@ -219,6 +223,7 @@ workflow run_pipeline {
             log.info("Running flatfield estimation")
             if (params.bp_global_flatfield) {
 
+                flatfield_in_global.view()
                 // Runs only one model per plate
                 global_flatfield = estimate_flatfield(flatfield_in_global, blacklist_channel).flatfield_out
                 
