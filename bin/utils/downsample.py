@@ -20,7 +20,7 @@ log.setLevel(logging.DEBUG)
 # Main loop
 if __name__ == "__main__":
     
-    parser = argparse.ArgumentParser(description="Max project a plate/row/col/fields.ome.tiff into a YX tiff compatbible with cellprofiler.")
+    parser = argparse.ArgumentParser(description="Downsample a plate/row/col/fields.ome.tiff into a YX tiff ")
 
     parser.add_argument('-w', '--well', help='Well ID to merge', required=False, default=None)
     parser.add_argument('-i','--input', help='Base dir to raw input', required=True)
