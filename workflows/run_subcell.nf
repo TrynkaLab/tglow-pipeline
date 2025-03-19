@@ -1,3 +1,6 @@
+#!/usr/bin/env nextflow
+
+include { fetch_model; subcell; index_imagedir} from '../processes/subcell.nf'
 
 workflow run_subcell {
     

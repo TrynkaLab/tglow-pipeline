@@ -1,4 +1,6 @@
 #!/usr/bin/env nextflow
+include { prepare_manifest; fetch_raw } from '../processes/staging.nf'
+
 
 // Workflow to stage the data from NFS to lustre
 workflow stage {
