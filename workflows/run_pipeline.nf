@@ -15,7 +15,7 @@ workflow run_pipeline {
 
     main:
         //------------------------------------------------------------
-        // Defaults
+        // Defaults & sanity checks
         //------------------------------------------------------------
         if (params.rn_publish_dir == null) {
             error "rn_publish_dir file parameter is required: --rn_publish_dir"
@@ -24,6 +24,23 @@ workflow run_pipeline {
         if (params.rn_manifest == null) {
             error "rn_manifest file parameter is required: --rn_manifest"
         }
+        
+        if (params.rn_cache_images & !(params.rn_max_project | params.rn_hybrid)) {
+            warning "Caching images in 3d mode can take up a lot of space, are you sure this is what you want?"
+        }
+        
+        if (!params.rn_autoscale & params.rn_control_list == null) {
+            error "provided --rn_control_list but --rn_autoscale false. Either drop --rn_control_list or set --rn_autoscale true"
+        }
+        
+        if (params.rn_manualscale & params.rn_manifest_registration == null) {
+            error "manual scaling and registration are not currently compatible"
+        }
+
+        if (params.rn_manualscale & params.rn_autoscale) {
+            warning "Both rn_autoscale and rn_manualscale are provided, rn_manualscale will be overridden"
+        }
+
 
         // Set runtime defaults, these are overidden when specified on commandline
         params.rn_image_dir = params.rn_publish_dir + "/images"
@@ -366,9 +383,9 @@ workflow run_pipeline {
             // re-key output
             registration_out = registration_out.map{row -> tuple(row[0] + ":" + row[1], row[4], row[5])} // key, merge plates, path
             // merge
-            cellprofiler_in = cellpose_out.join(registration_out, by: 0)                
+            finalize_in = cellpose_out.join(registration_out, by: 0)                
         } else {
-            cellprofiler_in = cellpose_out.map{row -> tuple(
+            finalize_in = cellpose_out.map{row -> tuple(
                 row[0], // key
                 row[1], // plate
                 row[2], // well
@@ -389,7 +406,7 @@ workflow run_pipeline {
                 row[0] // plate
             )}
 
-            cellprofiler_in = cellprofiler_in.combine(remapped_manifest, by: 1).map{row -> tuple(
+            finalize_in = finalize_in.combine(remapped_manifest, by: 1).map{row -> tuple(
                 row[0], // plate
                 row[1], // key
                 row[2], // well
@@ -403,7 +420,7 @@ workflow run_pipeline {
             )}
             
         } else {
-            cellprofiler_in = cellprofiler_in.map{row -> tuple(
+            finalize_in = finalize_in.map{row -> tuple(
                 row[0], // plate
                 row[1], // key
                 row[2], // well
@@ -417,20 +434,24 @@ workflow run_pipeline {
             )}
         }
         
-        
-        // Run cellprofiler either caching images or not caching images
+        // Cache the final images for feature extraction
         if (params.rn_cache_images) {
-            finalize_out = finalize(cellprofiler_in, flatfield_out_string, scaling_channel)[0]
+            finalize_out = finalize(finalize_in, flatfield_out_string, scaling_channel)[0]
             
             // Create the plate manfiests once finalize is done
             index_imagedir("processed_images", finalize_out.last(), finalize_out.map{row -> row[0]}.unique())
         }
         
+        //------------------------------------------------------------
+        //                       Cellprofiler
+        //------------------------------------------------------------
         // Run cellprofiler
         if (params.cpr_run & params.rn_cache_images) {
+            // Run cellprofiler on cached images
             cellprofiler_out = cellprofiler(finalize_out)
         } else if (params.cpr_run) {
-            cellprofiler_out = finalize_and_cellprofiler(cellprofiler_in, flatfield_out_string, scaling_channel)
+            // This does not cache images
+            cellprofiler_out = finalize_and_cellprofiler(finalize_in, flatfield_out_string, scaling_channel)
         }      
 }
 

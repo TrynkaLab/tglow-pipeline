@@ -9,11 +9,15 @@ include { index_imagedir } from '../processes/staging.nf'
 workflow run_subcell {
     
     main:
-
+        
+        if( !file("$params.rn_publish_dir/processed_images").exists() ) {
+            error "$params.rn_publish_dir/processed_images does not exist. Please run '-entry run_pipeline' with --rn_cache_images true"
+        }
+            
         // Fetch the model
-        model_channel = fetch_model("rybg",
-                                    "mae_contrast_supcon_model", 
-                                    Channel.fromPath("${projectDir}/assets/subcell/models/rybg/mae_contrast_supcon_model/model_config.yaml", checkIfExists: true),
+        model_channel = fetch_model(params.sc_model_ref_channels,
+                                    params.sc_model, 
+                                    Channel.fromPath("${projectDir}/assets/subcell/models/${params.sc_model_ref_channels}/${params.sc_model}/model_config.yaml", checkIfExists: true),
                                     Channel.fromPath("${projectDir}/assets/subcell/models_urls.yaml", checkIfExists: true))
                         .first()
     
