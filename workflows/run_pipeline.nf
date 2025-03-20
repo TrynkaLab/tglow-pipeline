@@ -26,19 +26,19 @@ workflow run_pipeline {
         }
         
         if (params.rn_cache_images & !(params.rn_max_project | params.rn_hybrid)) {
-            warning "Caching images in 3d mode can take up a lot of space, are you sure this is what you want?"
+            log.warn "Caching images in 3d mode can take up a lot of space, are you sure this is what you want?"
         }
         
         if (!params.rn_autoscale & params.rn_control_list == null) {
-            error "provided --rn_control_list but --rn_autoscale false. Either drop --rn_control_list or set --rn_autoscale true"
+            error "Provided --rn_control_list but --rn_autoscale false. Either drop --rn_control_list or set --rn_autoscale true"
         }
         
         if (params.rn_manualscale & params.rn_manifest_registration == null) {
-            error "manual scaling and registration are not currently compatible"
+            error "Manual scaling and registration are not currently compatible"
         }
 
         if (params.rn_manualscale & params.rn_autoscale) {
-            warning "Both rn_autoscale and rn_manualscale are provided, rn_manualscale will be overridden"
+            log.warn "Both rn_autoscale and rn_manualscale are provided, rn_manualscale will be overridden"
         }
 
 
@@ -177,7 +177,6 @@ workflow run_pipeline {
             log.info("Running flatfield estimation")
             if (params.bp_global_flatfield) {
 
-                flatfield_in_global.view()
                 // Runs only one model per plate
                 global_flatfield = estimate_flatfield(flatfield_in_global, blacklist_channel).flatfield_out
                 
