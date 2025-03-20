@@ -49,3 +49,25 @@ process prepare_manifest {
         """
         cmd    
 }
+
+// Create a manifest for a dir of images if it does not exist yet
+process index_imagedir {
+    label "normal"
+    conda params.tg_conda_env
+    //storeDir "${params.rn_publish_dir}/$input_dir/", saveAs: { filename -> filename.split('/')[-1] }
+    storeDir "${params.rn_publish_dir}/$input_dir"
+
+    input:
+        val input_dir
+        val x
+        val plate
+    output:
+        path "$plate/manifest.tsv"
+    script:
+    """
+    index_folder.py \
+    --input ${params.rn_publish_dir}/$input_dir/ \
+    --plates $plate \
+    --output ./
+    """
+}

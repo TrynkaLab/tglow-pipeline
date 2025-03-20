@@ -40,7 +40,7 @@ from transformers.models.vit.modeling_vit import (
 os.environ["DEVICE_ORDER"] = "PCI_BUS_ID"
 os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
 
-def get_crops(img, msk, outdim=640):
+def get_crops(img, msk, outdim=640, dont_mask=False):
     regions = measure.regionprops(msk)
     
     crops = {}
@@ -77,6 +77,10 @@ def get_crops(img, msk, outdim=640):
             minc == x - (maxr-x)
         
         curd = img[:,minr:maxr, minc:maxc]
+
+        # Mask the area outside the cell
+        if not dont_mask:
+            curd = curd * (msk[:,minr:maxr, minc:maxc] == i+1)
         
         large_center = np.array(crop.shape) // 2
         small_center = np.array(curd.shape) // 2
@@ -508,7 +512,7 @@ class ViTPoolClassifier(nn.Module):
         classifier_paths: Union[str, List[str]],
         device="cpu",
     ):
-        checkpoint = torch.load(encoder_path, map_location=device)
+        checkpoint = torch.load(encoder_path, map_location=device, weights_only=True)
         encoder_ckpt = {
             k[len("encoder.") :]: v for k, v in checkpoint.items() if "encoder." in k
         }
@@ -535,7 +539,7 @@ class ViTPoolClassifier(nn.Module):
             [self.make_classifier() for _ in range(len(classifier_paths))]
         )
         for i, classifier_path in enumerate(classifier_paths):
-            classifier_ckpt = torch.load(classifier_path, map_location=device)
+            classifier_ckpt = torch.load(classifier_path, map_location=device, weights_only=True)
             classifier_ckpt = {
                 k.replace("3.", "2."): v for k, v in classifier_ckpt.items()
             }
@@ -600,40 +604,49 @@ if __name__ == "__main__":
     parser.add_argument('-o','--output', help='Output prefix', default="./")
     parser.add_argument('-p','--plate', help='Subfolder in raw dir to process', required=True)
     parser.add_argument('-w','--well', help='Subfolder in raw dir to process', required=True)
+    parser.add_argument('--model', help='Model dir', default="./")
     parser.add_argument('--ch_nucl', help='Nucleus channel', required=True)
     parser.add_argument('--ch_er', help='ER channel', required=True)
     parser.add_argument('--ch_tub', help='Tublin channel', required=True)
-    parser.add_argument('--model', help='Model dir', default="./")
+    parser.add_argument('--channels', help='Channels to infer localization for. <name>=<channel> [<name>=<channel>]', required=True, nargs="+")
     parser.add_argument('--scale_factor', help="The scale factor to get to 80nm per pixel", default=149/80)
-    parser.add_argument('--gpu', help='Use gpu, uses the first device', default=False, action="Store true")
+    parser.add_argument('--gpu', help='Use gpu, uses the first device', default=False, action="store_true")
     parser.add_argument('--mask_pattern', help="The pattern to discover masks, defaults to match run_cellpose.py cell. <pattern>.tiff", default="*_cell_mask_*_cp_masks.tiff")
-
-    # #parser.add_argument('--mask_dir', help="Path to mask root storing masks <plate>/<row>/<col>/<field><mask_pattern>.tiff", default=None)
-    # parser.add_argument('--scale_factor', help="The scale factor to get to 80nm per pixel", default=149/80)
-    #parser.add_argument('--fields', help='Fields to use. <field #1> | [<field #1> <field #2> <field #n>]', nargs='+', default=None)
-    #parser.add_argument('--planes', help='Z planes to use. <plane #1> | [<plane #1> <plane #2> <plane #n>]', nargs='+', default=None)
-    
-    #cd /lustre/scratch125/humgen/projects/cell_activation_tc/projects/DRUG_PERTURB/pipeline/results/test_subcell
+    parser.add_argument('--save_embeddings', help='Save the embeddings', default=False, action="store_true")
+    parser.add_argument('--dont_mask', help='Do not mask the range outside the cell in the crop', default=False, action="store_true")
     args = parser.parse_args()
-    args.output="/lustre/scratch125/humgen/projects/cell_activation_tc/projects/DRUG_PERTURB/pipeline/results/test_subcell2"
-    args.input="/lustre/scratch125/humgen/projects/cell_activation_tc/projects/DRUG_PERTURB/pipeline/results/processed_images"
-    args.well = "C10"
-    args.plate = "mo13_240518_TGlow_drugperturb_72h_plate1_cycle1"
-    args.scale_factor=149/80
-    args.model="/lustre/scratch125/humgen/projects/cell_activation_tc/projects/DRUG_PERTURB/pipeline/results/models/rybg/mae_contrast_supcon_model"
-    args.gpu = False
-    args.mask_pattern = "*_cell_mask_*_cp_masks.tiff"
-    args.channels = [0, 10, 11]
-    args.ch_nucl = 7
-    args.ch_er = 5
-    args.ch_tub = 8
+    
+    # # #cd /lustre/scratch125/humgen/projects/cell_activation_tc/projects/DRUG_PERTURB/pipeline/results/test_subcell
+    
+    # parser = argparse.ArgumentParser(description="Run subcell inference on a plate/row/col/field.ome.tiff and associated masks ")
+    # args = parser.parse_args()
+    # args.output="/lustre/scratch125/humgen/projects/cell_activation_tc/projects/DRUG_PERTURB/pipeline/results/test_subcell2"
+    # args.input="/lustre/scratch125/humgen/projects/cell_activation_tc/projects/DRUG_PERTURB/pipeline/results/processed_images"
+    # args.well = "C10"
+    # args.plate = "mo13_240518_TGlow_drugperturb_72h_plate1_cycle1"
+    # args.scale_factor=149/80
+    # args.model="/lustre/scratch125/humgen/projects/cell_activation_tc/projects/DRUG_PERTURB/pipeline/results/models/rybg/mae_contrast_supcon_model"
+    # args.gpu = False
+    # args.save_embeddings = False
+    # args.mask_pattern = "*_cell_mask_*_cp_masks.tiff"
+    # args.ch_nucl = 7
+    # args.ch_er = 5
+    # args.ch_tub = 8
+    # args.channels = ['cd25_ki67=0', 'ki67=10', 'cd25=11', 'mito=1', 'actin=3']
+    # args.dont_mask = False
     
     # Covert channels to int
-    args.channels = [int(x) for x in args.channels]
+    tmp_channels = {}
+    for channel in args.channels:
+        key, value = channel.split("=")
+        tmp_channels[key] = int(value)
+    args.channels = tmp_channels
+    log.info(f"Running SubCell localization for channels: {args.channels}")
+    
     args.ch_nucl = int(args.ch_nucl)
     args.ch_er = int(args.ch_er)
     args.ch_tub = int(args.ch_tub)
-
+    args.scale_factor = float(args.scale_factor)
     
     #--------------------------------------------------------------------------------------
     # Setup the image readers
@@ -676,86 +689,118 @@ if __name__ == "__main__":
       
     model.to(device)
     #--------------------------------------------------------------------------------------
-    
     # Setup the output DFs
-    out_header = ["SubCell_ObjectNumber", "SubCell_ImageNumber", "SubCell_Pos_x", "SubCell_Pos_y"]
-    out_header.extend([f"SubCell_Loc_{CLASS2NAME[x].title().replace(' ', '')}" for x in range(0, len(CLASS2NAME))])
-    out_header.extend([f"SubCell_Emb_{x}" for x in range(0, 1536)])
+    #out_header = ["ObjectNumber", "ImageNumber", "Parent_cell", "Location_x", "Location_y"]
+    #out_header = ["ObjectNumber", "ImageNumber", "Parent_cell"]
+    out_header = []
+    out_header.extend([f"Localization_{CLASS2NAME[x].title().replace(' ', '')}" for x in range(0, len(CLASS2NAME))])
+    
+    if args.save_embeddings:
+        out_header.extend([f"Embedding_{x}" for x in range(0, 1536)])
   
-    out_df = pd.DataFrame(columns=out_header)
+    #out_df = pd.DataFrame(columns=out_header)
   
-    meta_header = [f"Metadata_SubCell_{x}" for x in ["ImageNumber", 'plate', 'well', 'row', 'col', 'field']]
+    meta_header = ["ImageNumber"] + [f"Metadata_SubCell_{x}" for x in ['plate', 'well', 'row', 'col', 'field']]
     meta_df = pd.DataFrame(columns=meta_header)
+    cell_df = pd.DataFrame(columns=["ObjectNumber", "ImageNumber", "Location_x", "Location_y"])
+    locl_df = {}
 
     # Start the extraction loop
     row, col = ImageQuery.well_id_to_index(args.well)
     
     log.info("-----------------------------------------------------------")
-    args.output = f"{args.output}/{args.plate}/{ImageQuery.ID_TO_ROW[row]}/{col}/"
+    args.output = f"{args.output}/{args.plate}/{ImageQuery.ID_TO_ROW[str(row)]}/{col}/"
     
     if not os.path.exists(args.output):
         os.makedirs(args.output)
         log.info(f"Folder created: {args.output}")
-    
-    log.info("-----------------------------------------------------------")
-    
+        log.info("-----------------------------------------------------------")
+
     
     pb = tqdm(range(len(img_reader.fields[args.plate]) * len(args.channels)))
     
     img_id = 0
+    cell_id = 0
     for field in img_reader.fields[args.plate]:
         iq = ImageQuery(args.plate, row, col, field)
         
+        pb.set_description(f"Reading field {field}")
         # Assume images are already MP, so drop the Z plate
         img = img_reader.read_stack(iq)[:,0,:,:]
         msk = msk_reader.read_stack(iq)[:,0,:,:]
         
+        pb.set_description(f"Scaling field {field}")
         # Rescale to the right factor
         img = rescale(img, args.scale_factor, channel_axis=0, order=0)   
-        msk = rescale(msk, args.scale_factor, channel_axis=0, order=0)   
-    
-        crops = get_crops(img, msk)    
+        msk = rescale(msk, args.scale_factor, channel_axis=0, order=0)       
+        crops = get_crops(img, msk, dont_mask=args.dont_mask)    
+        
+        
+        
+        # Add to the image level df
+        meta_df.loc[img_id] = [img_id+1, iq.plate, iq.get_well_id(), iq.get_row_letter(), iq.col, iq.field]
 
-        meta_df.loc[img_id] = [img_id, iq.plate, iq.get_well_id(), iq.get_row_letter(), iq.col, iq.field]
-  
-        for channel in args.channels:
+        # Get the list of crop keys, so order is maintained
+        cell_keys = [x for x in crops.keys()]
     
-            cur_out_df = copy.deepcopy(out_df)
-    
+        j = cell_id
+        for key in cell_keys:
+            x, y = [int(x) for x in key.split(":")]
+            cell_df.loc[j] = [j+1, img_id+1, x, y]
+            j += 1
+        
+        # Loop over the channels        
+        for channel_name in args.channels.keys():
+            
+            if channel_name not in locl_df.keys():
+                cur_header = copy.deepcopy(out_header)
+                cur_header = [f"{x}_{channel_name}" for x in cur_header]  
+                locl_df[channel_name] = pd.DataFrame(columns=cur_header)
+                
+            cur_out_df = locl_df[channel_name]
+            channel = args.channels[channel_name]
+            
+            pb.set_description(f"Processing {channel_name} field {field}")
             # Loop over images here
-            j = 0
-            for key in crops.keys():
-                x, y = [int(x) for x in key.split(":")]
+            j = cell_id
+            for key in cell_keys:
+                
+                pb.set_description(f"Processing {channel_name} field {field} cell {key}")
                 #cell_data=crops[key][np.newaxis,([args.ch_nucl, args.ch_er, args.ch_tub] + args.channels), :,:]
                 cell_data=crops[key][np.newaxis,(args.ch_tub, args.ch_er, args.ch_nucl,  channel), :,:]
                 embedding, probabilities = run_model(
                     model,
                     cell_data,
                     device
-                )
-                
-                cur_out_df.loc[j] = [j, img_id, x, y] + probabilities.tolist() + embedding.tolist()                
-                j+=1
-            cur_out_df.to_csv(f'{args.output}/SubCell_ch{channel}.txt', sep="\t", index=False)   
-            pb.update(1) 
-                
+                )                
+                if args.save_embeddings:
+                    cur_out_df.loc[j] = probabilities.tolist() + embedding.tolist()
+                else:
+                    cur_out_df.loc[j] = probabilities.tolist()
+                j += 1   
+            pb.update(1)
+            
+        cell_id = j
         img_id += 1
     pb.close()
     
     log.info("Done extracting, saving")
     meta_df.to_csv(f'{args.output}/SubCell_Image.txt', sep="\t", index=False)    
+    
+    # Bind the cell dfs together
+    df_out  = pd.concat([cell_df] + [x for x in locl_df.values()], axis=1)
+    df_out.to_csv(f'{args.output}/SubCell_cell.txt', sep="\t", index=False)    
 
     # Write all items in the Namespace to a file
-    with open("SubCell_Experiment.txt", "w") as f:
+    with open(f'{args.output}/SubCell_Experiment.txt', "w") as f:
         for key, value in vars(args).items():
             f.write(f"{key}: {value}\n")
             
-            
         
         
-        
-        
-        
+    # for channel_name in args.channels.keys():
+    #     channel = args.channels[channel_name]
+    #     locl_df[channel_name].to_csv(f'{args.output}/SubCell_cellCh{channel}.txt', sep="\t", index=False)   
         
     # curr_probs_l = probabilities.tolist()
     # max_location_class = curr_probs_l.index(max(curr_probs_l))

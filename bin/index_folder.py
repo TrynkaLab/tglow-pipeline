@@ -41,7 +41,7 @@ if __name__ == "__main__":
         writer = csv.writer(outfile, delimiter="\t")
         for well in cur_plate:
             row, col = ImageQuery.well_id_to_index(well)
-            writer.writerow([well, row, col, plate, "none"])
+            writer.writerow([well, ImageQuery.ID_TO_ROW[str(row)], col, plate, "none"])
             
         outfile.flush()
         outfile.close()

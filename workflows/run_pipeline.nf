@@ -7,6 +7,7 @@ include { register } from '../processes/registration.nf'
 include { calculate_scaling_factors; calculate_plate_offsets } from '../processes/scaling.nf'
 include { cellpose } from '../processes/segmentation.nf'
 include { cellprofiler; finalize; finalize_and_cellprofiler } from '../processes/features.nf'
+include { index_imagedir } from '../processes/staging.nf'
 
 
 // Main workflow
@@ -343,91 +344,94 @@ workflow run_pipeline {
 
 
         //------------------------------------------------------------
-        // Cellprofiler / get_features
+        // Finalize
         //------------------------------------------------------------
         // TODO: BUG! Need to make sure the merge plate is done as well BEFORE adding into channel
-        if (params.cpr_run) {
                         
-            // Start with cellpose output
-            // re-key channels
-            cellpose_out = cellpose_out.map{row -> tuple(
-                    row[0] + ":" + row[1], // key
-                    row[0], // plate
-                    row[1], // well
-                    row[2], // row
-                    row[3], // col
-                    row[4], // cell masks
-                    row[5]  // nucl masks
+        // Start with cellpose output
+        // re-key channels
+        cellpose_out = cellpose_out.map{row -> tuple(
+                row[0] + ":" + row[1], // key
+                row[0], // plate
+                row[1], // well
+                row[2], // row
+                row[3], // col
+                row[4], // cell masks
+                row[5]  // nucl masks
+        )}
+
+        //--------------------------------------------------------------------
+        // Add registration
+        if (registration_out != null) {
+            // re-key output
+            registration_out = registration_out.map{row -> tuple(row[0] + ":" + row[1], row[4], row[5])} // key, merge plates, path
+            // merge
+            cellprofiler_in = cellpose_out.join(registration_out, by: 0)                
+        } else {
+            cellprofiler_in = cellpose_out.map{row -> tuple(
+                row[0], // key
+                row[1], // plate
+                row[2], // well
+                row[3], // row
+                row[4], // col
+                row[5], // cell masks,
+                row[6], // nucl masks,
+                null,   // merge plates
+                file('NO_REGISTRATION')   // registration path
+            )}
+        }
+                    
+        //--------------------------------------------------------------------
+        // for in hybrid mode
+        if (params.rn_hybrid) {
+            remapped_manifest = manifest.map{ row -> tuple(
+                row[8], // scale channels
+                row[0] // plate
             )}
 
-            //--------------------------------------------------------------------
-            // Add registration
-            if (registration_out != null) {
-                // re-key output
-                registration_out = registration_out.map{row -> tuple(row[0] + ":" + row[1], row[4], row[5])} // key, merge plates, path
-                // merge
-                cellprofiler_in = cellpose_out.join(registration_out, by: 0)                
-            } else {
-                cellprofiler_in = cellpose_out.map{row -> tuple(
-                    row[0], // key
-                    row[1], // plate
-                    row[2], // well
-                    row[3], // row
-                    row[4], // col
-                    row[5], // cell masks,
-                    row[6], // nucl masks,
-                    null,   // merge plates
-                    file('NO_REGISTRATION')   // registration path
-                )}
-            }
-                        
-            //--------------------------------------------------------------------
-            // for in hybrid mode
-            if (params.rn_hybrid) {
-                remapped_manifest = manifest.map{ row -> tuple(
-                    row[8], // scale channels
-                    row[0] // plate
-                )}
-
-                cellprofiler_in = cellprofiler_in.combine(remapped_manifest, by: 1).map{row -> tuple(
-                    row[0], // plate
-                    row[1], // key
-                    row[2], // well
-                    row[3], // row
-                    row[4], // col
-                    row[5], // cell masks
-                    row[6], // nucl masks
-                    row[7], // merge plates
-                    row[8], // registration path
-                    (row[9] == "none") ? "none" : row[9].collect{it -> row[0] + "=" + (it.toInteger() -1).toString()}.join(" ") // mask channels   
-                )}
-                
-            } else {
-                cellprofiler_in = cellprofiler_in.map{row -> tuple(
-                    row[0], // plate
-                    row[1], // key
-                    row[2], // well
-                    row[3], // row
-                    row[4], // col
-                    row[5], // cell masks
-                    row[6], // nucl masks
-                    row[7], // merge plates
-                    row[8], // registration path
-                    null // mask channels
-                )}
-            }
+            cellprofiler_in = cellprofiler_in.combine(remapped_manifest, by: 1).map{row -> tuple(
+                row[0], // plate
+                row[1], // key
+                row[2], // well
+                row[3], // row
+                row[4], // col
+                row[5], // cell masks
+                row[6], // nucl masks
+                row[7], // merge plates
+                row[8], // registration path
+                (row[9] == "none") ? "none" : row[9].collect{it -> row[0] + "=" + (it.toInteger() -1).toString()}.join(" ") // mask channels   
+            )}
             
-            // Run cellprofiler either caching images or not caching images
-            if (params.cpr_cache_images) {
-                
-                finalize_out = finalize(cellprofiler_in, flatfield_out_string, scaling_channel)[0]
-                cellprofiler_out = cellprofiler(finalize_out)
-                
-            } else {
-                cellprofiler_out = finalize_and_cellprofiler(cellprofiler_in, flatfield_out_string, scaling_channel)
-            }
+        } else {
+            cellprofiler_in = cellprofiler_in.map{row -> tuple(
+                row[0], // plate
+                row[1], // key
+                row[2], // well
+                row[3], // row
+                row[4], // col
+                row[5], // cell masks
+                row[6], // nucl masks
+                row[7], // merge plates
+                row[8], // registration path
+                null // mask channels
+            )}
+        }
         
-        }   
+        
+        // Run cellprofiler either caching images or not caching images
+        if (params.rn_cache_images) {
+            finalize_out = finalize(cellprofiler_in, flatfield_out_string, scaling_channel)[0]
+            
+            // Create the plate manfiests once finalize is done
+            index_imagedir("processed_images", finalize_out.last(), finalize_out.map{row -> row[0]}.unique())
+        }
+        
+        // Run cellprofiler
+        if (params.cpr_run & params.rn_cache_images) {
+            cellprofiler_out = cellprofiler(finalize_out)
+        } else if (params.cpr_run) {
+            cellprofiler_out = finalize_and_cellprofiler(cellprofiler_in, flatfield_out_string, scaling_channel)
+        }      
 }
 
 
