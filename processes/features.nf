@@ -9,7 +9,7 @@ process finalize_and_cellprofiler {
     scratch params.rn_scratch
 
     input:
-        tuple val(plate), val(key), val(well), val(row), val(col), path(cell_masks), path(nucl_masks), val(merge_plates), path(registration, stageAs:"registration/*"), val(mask_channels)
+        tuple val(plate), val(key), val(well), val(row), val(col), path(cell_masks), path(nucl_masks), val(merge_plates), path(registration, stageAs:"registration_tmp/*"), val(mask_channels)
         val basicpy_string
         val scaling_string
     output:
@@ -22,6 +22,13 @@ process finalize_and_cellprofiler {
         if (!nucl_masks[0].name.startsWith("NO_NUCL_MASK")) {
             cmd += "\nmv " + nucl_masks.join(" ") + " ./masks/$plate/$row/$col/"
         }
+    
+        // Stage the registration 
+        cmd += 
+        """
+        mkdir -p registration/$plate/$row/
+        mv registration_tmp/* registration/$plate/$row/
+        """
     
         // Outputs the cp files into ./images
         cmd += 
@@ -139,7 +146,7 @@ process finalize {
     scratch params.rn_scratch
 
     input:
-        tuple val(plate), val(key), val(well), val(row), val(col), path(cell_masks), path(nucl_masks), val(merge_plates), path(registration, stageAs:"registration/*"), val(mask_channels)
+        tuple val(plate), val(key), val(well), val(row), val(col), path(cell_masks), path(nucl_masks), val(merge_plates), path(registration, stageAs:"registration_tmp/*"), val(mask_channels)
         val basicpy_string
         val scaling_string
     output:
@@ -153,7 +160,14 @@ process finalize {
         if (!nucl_masks[0].name.startsWith("NO_NUCL_MASK")) {
             cmd += "\nmv " + nucl_masks.join(" ") + " ./masks/$plate/$row/$col/"
         }
-    
+        
+        // Stage the registration 
+        cmd += 
+        """
+        mkdir -p registration/$plate/$row/
+        mv registration_tmp/* registration/$plate/$row/
+        """
+        
         // Outputs the proccessed images
         cmd += 
         """

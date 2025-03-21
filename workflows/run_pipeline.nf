@@ -29,7 +29,7 @@ workflow run_pipeline {
             log.warn "Caching images in 3d mode can take up a lot of space, are you sure this is what you want?"
         }
         
-        if (!params.rn_autoscale & params.rn_control_list == null) {
+        if (!params.rn_autoscale & params.rn_control_list != null) {
             error "Provided --rn_control_list but --rn_autoscale false. Either drop --rn_control_list or set --rn_autoscale true"
         }
         
@@ -202,7 +202,7 @@ workflow run_pipeline {
             flatfield_out_string = flatfield_out.map{ row -> (row[2] + "_ch" + row[4] + "=" + row[5])}.collect().map{it.join(" ")}
 
         } else {
-            flatfield_out_string = Channel.empty()
+            flatfield_out_string = Channel.value(false)
             log.info("No manifest entries or --bp_channels provided, so skipping flatfield estimation")
         }
          
@@ -286,6 +286,8 @@ workflow run_pipeline {
                 row[6].split(',').collect{it -> (it.toInteger() -1).toString()}.join(" ")  // query_channels
             )} 
 
+            //registration_in.view()
+
             // Run registration
             registration_out = register(registration_in)
                           
@@ -306,7 +308,11 @@ workflow run_pipeline {
         // Cellpose
         //------------------------------------------------------------
         // Run cellpose
-        cellpose_out = cellpose(cellpose_in)
+        if (params.cp_run) {
+            cellpose_out = cellpose(cellpose_in)
+        } else {
+            cellpose_out = Channel.empty()
+        }
     
     
         //------------------------------------------------------------
@@ -317,7 +323,6 @@ workflow run_pipeline {
         // which map the images onto the full dynamic range of the 16 bit uint
         // Alternatively, if control scaling is provided, wait for cellpose and run the controls.
         if (params.rn_autoscale) {
-          
             // Channel <plate> <mask_channel1 mask_channel2 mask_channelN>
             scaling_in = manifest.map{
                 row -> tuple(row[0],
@@ -420,8 +425,8 @@ workflow run_pipeline {
             
         } else {
             finalize_in = finalize_in.map{row -> tuple(
-                row[0], // plate
-                row[1], // key
+                row[1], // plate
+                row[0], // key
                 row[2], // well
                 row[3], // row
                 row[4], // col
@@ -435,6 +440,9 @@ workflow run_pipeline {
         
         // Cache the final images for feature extraction
         if (params.rn_cache_images) {
+            
+            scaling_channel.view()
+            flatfield_out_string.view()
             finalize_out = finalize(finalize_in, flatfield_out_string, scaling_channel)[0]
             
             // Create the plate manfiests once finalize is done

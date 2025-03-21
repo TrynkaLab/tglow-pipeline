@@ -9,7 +9,7 @@ process register {
     input:
         tuple val(plate), val(well), val(row), val(col), val(reference_channel), val(query_plates), val(query_channels)
     output:
-        tuple val(plate), val(well), val(row), val(col), val(query_plates), path("${plate}")
+        tuple val(plate), val(well), val(row), val(col), val(query_plates), path("${plate}/${row}/${col}")
     script:
         cmd =
         """
@@ -25,6 +25,14 @@ process register {
         
         if (params.rg_plot) {
             cmd += " --plot"
+        }
+        
+        if (params.rg_offset_x) {
+            cmd += " --offset_x $params.rg_offset_x"
+        }
+        
+        if (params.rg_offset_y) {
+            cmd += " --offset_y $params.rg_offset_y"
         }
         
         if (params.rg_eval) {
