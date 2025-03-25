@@ -400,8 +400,8 @@ class FlatFieldTrainer():
             # Upsize with bilinear interpolation
             final_fit = resize(fit_avg,
                             training_imgs[0].shape,
-                            order=2,
-                            mode="reflect")
+                            order=1,
+                            mode="edge")
 
         # Normalize flatfield to mean
         flatfield = final_fit / np.mean(final_fit)
@@ -500,10 +500,13 @@ class FlatFieldTrainer():
                 float32max = np.finfo(thresh_img.dtype).max
                 
                 thresh_img = (thresh_img/unit16max)*float32max
-                thresh_raw = threshold_multiotsu(thresh_img, classes=3, nbins=5000)[0]
+                thresh_raw = threshold_multiotsu(thresh_img, classes=2, nbins=5000)[0]
                 thresh = (thresh_raw/float32max) * unit16max
+
+                # Scale down the threshold by 2x to make it more lenient
+                thresh = thresh/4
                 
-                #log.info(f"Otsu tresh: {thresh} ({thresh_raw})")
+                #log.info(f"Otsu tresh/4: {thresh} ({thresh_raw})")
                 
                 # Regular otsu
                 #thresh = threshold_otsu(training_imgs[i])
@@ -591,13 +594,24 @@ class FlatFieldTrainer():
             log.info(f"Log2 transforming intensity values")
             z = np.log2(z)
     
-        # The cellprofiler model
-        # 1 + x2 + y2  + x*y + x + y 
-        #design_matrix = np.column_stack((np.ones(len(x)), x*x, y*y, x*y, x, y))
+        if degree <= 0:
+            # The cellprofiler model
+            # 1 + x2 + y2  + x*y + x + y 
+            #design_matrix = np.column_stack((np.ones(len(x)), x*x, y*y, x*y, x, y))
+            
+            # 4 degree poly PE
+            # sourced: https://forum.image.sc/t/how-to-use-illumination-correction-file-from-perkin-elmer-operetta-microscope-outside-of-harmony-in-imagej-or-cellprofiler-instead/31650/8
+            # 1 + [x + y] + [xy + x^2 + y^2] + [x^3 + x^2*y + y^2*x + y^3] + [x^4 + x^3*y + x^2*y^2 + y^3*x + y^4]
+            design_matrix = np.column_stack((np.ones(len(x)),
+                                            x, y, 
+                                            x*y, x**2, y**2,
+                                            x**3, (x**2)*y, (y**2)*x, y**3,
+                                            x**4, (x**3)*y, (x**2)*(y**2), (y**3)*x, y**4))
+        else:
+            # Alternative full model, has all possible permutations
+            # 1 + y + y^2 + x + x*y + x*y^2 + x^2 + x^2*y + x^2*y^2 ...
+            design_matrix = P.polyvander2d(x, y, [degree, degree])
         
-        # Alternative full model
-        # 1 + y + y^2 + x + x*y + x*y^2 + x^2 + x^2*y + x^2*y^2
-        design_matrix = P.polyvander2d(x, y, [degree, degree])
         if use_ridge:
             model = RidgeCV(alphas=np.logspace(-6, 6, 13), cv=10, fit_intercept=False)
             fit = model.fit(design_matrix, z)
@@ -607,6 +621,7 @@ class FlatFieldTrainer():
             # OLS    
             coef_tmp, residuals, rank, s = np.linalg.lstsq(design_matrix, z, rcond=None)
 
+        # CPR 2d poly
         # 2D matrix, where rows are the power of X and cols are the power of Y
         #coeffs = np.zeros((3, 3))
         #coeffs[0,0] = coef_tmp[0]
@@ -615,9 +630,29 @@ class FlatFieldTrainer():
         #coeffs[1,1] = coef_tmp[3]
         #coeffs[1,0] = coef_tmp[4]
         #coeffs[0,1] = coef_tmp[5]
-        
-        # OR when using full model
-        coeffs = coef_tmp.reshape((degree + 1, degree + 1))
+
+        if degree <= 0:
+            # PE 4d poly
+            # 1 + [x + y] + [xy + x^2 + y^2] + [x^3 + x^2*y + y^2*x + y^3] + [x^4 + x^3*y + x^2*y^2 + y^3*x + y^4]
+            coeffs = np.zeros((5, 5))
+            coeffs[0,0] = coef_tmp[0] # intercept
+            coeffs[1,0] = coef_tmp[1] # x
+            coeffs[0,1] = coef_tmp[2] # y
+            coeffs[1,1] = coef_tmp[3] # xy
+            coeffs[2,0] = coef_tmp[4] # x^2
+            coeffs[0,2] = coef_tmp[5] # y^2
+            coeffs[3,0] = coef_tmp[6] # x^3
+            coeffs[2,1] = coef_tmp[7] # x^2*y 
+            coeffs[1,2] = coef_tmp[8] # y^2*x 
+            coeffs[0,3] = coef_tmp[9] # y^3
+            coeffs[4,0] = coef_tmp[10] # x^4  
+            coeffs[3,1] = coef_tmp[11] # x^3*y
+            coeffs[2,2] = coef_tmp[12] # x^2*y^2
+            coeffs[1,3] = coef_tmp[13] # y^3*x
+            coeffs[0,4] = coef_tmp[14] # y^4
+        else:
+            # OR when using full model
+            coeffs = coef_tmp.reshape((degree + 1, degree + 1))
 
         return(coeffs)
 
@@ -771,7 +806,7 @@ if __name__ == "__main__":
     parser.add_argument('--ridge', help="Use ridge regression instead of OLS for POLY", action='store_true', default=False)
     parser.add_argument('--bins', help="The number of 2d bins to use in validating. Reccomend 10-50, use lower number for sparse images", default=20, required=False)
     parser.add_argument('--pe_index', help="PerkinElmer index.xml file to extract flatfiels when --mode PE", default=None, required=False)
-    parser.add_argument('--degree', help="[POLY only] The degree for the polynomial", default=3)
+    parser.add_argument('--degree', help="[POLY only] The degree for the polynomial. If set to zero, uses PE poly (see docs)", default=0)
     parser.add_argument('--onemodel', help="[POLY only] Combine all images into one flat vector and fit on that", action='store_true', default=False)
     parser.add_argument('--flatfield', help="[TEST] Path to previous results", default=None)
 

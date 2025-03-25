@@ -35,6 +35,10 @@ process register {
             cmd += " --offset_y $params.rg_offset_y"
         }
         
+        if (params.rg_mode) {
+            cmd += " --mode $params.rg_mode"
+        }
+        
         if (params.rg_eval) {
             cmd +=
             """ \

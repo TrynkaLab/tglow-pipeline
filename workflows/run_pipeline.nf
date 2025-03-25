@@ -326,12 +326,13 @@ workflow run_pipeline {
             // Channel <plate> <mask_channel1 mask_channel2 mask_channelN>
             scaling_in = manifest.map{
                 row -> tuple(row[0],
-                (row[8][0] == "none") ? "none" : row[8].collect{it -> (it.toInteger() -1).toString()}.join(" "))
+                (row[8][0] == "none") ? "none" : row[8].collect{it -> (row[0] + "=" + (it.toInteger() -1).toString())}.join(" "),
+                null)
             }
             
             // Filter to reference plates only as we want scaling factors to be in final dimension
             if (params.rn_manifest_registration != null){
-                scaling_in = scaling_in.combine(manifest_registration, by: 0).map{row -> tuple(row[0], row[1], row[3].split(',').join(" "))}
+                scaling_in = scaling_in.combine(manifest_registration, by: 0).map{row -> tuple(row[0], row[1], row[4].split(',').join(" "))}
             }
             
             if (params.rn_control_list) {

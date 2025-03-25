@@ -20,8 +20,19 @@ class ScalingCalculator():
     def __init__(self, path, pattern, output, path_control=None, pattern_control=None, plate=None, blacklist=None, plate_groups=None, mask_channels=None):
         
         self.output=output
-        self.mask_channels=mask_channels
-        
+
+        if mask_channels is not None:
+            self.mask_channels = {}
+            
+            for val in mask_channels:
+                keypair = val.split("=")
+                log.info(f"Adding channel mask {keypair}")
+                if keypair[0] not in self.mask_channels:
+                    self.mask_channels[keypair[0]]=set()
+                self.mask_channels[keypair[0]].add(int(keypair[1]))    
+        else:
+            self.mask_channels = None    
+
         # Build list of files
         files = glob.glob(f"{path}/**/{pattern}", recursive=True)
         
@@ -215,7 +226,7 @@ class ScalingCalculator():
                         
             # If there are channel to mask
             if self.mask_channels is not None:
-                for mask_channel in self.mask_channels:
+                for mask_channel in self.mask_channels[plate]:
                         mask_channel = int(mask_channel)
                         df.at[channel_id, "ref_plate"] = df.iloc[mask_channel]["ref_plate"]
                         df.at[channel_id, "plate"] = df.iloc[mask_channel]["plate"]

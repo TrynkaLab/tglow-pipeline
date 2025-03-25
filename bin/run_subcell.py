@@ -40,7 +40,7 @@ from transformers.models.vit.modeling_vit import (
 os.environ["DEVICE_ORDER"] = "PCI_BUS_ID"
 os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
 
-def get_crops(img, msk, outdim=640, dont_mask=False):
+def get_crops(img, msk, outdim=640, dont_mask=False, scale_factor=None):
     regions = measure.regionprops(msk)
     
     crops = {}
@@ -49,8 +49,8 @@ def get_crops(img, msk, outdim=640, dont_mask=False):
 
     for i, region in enumerate(regions):
         z, y, x = region.centroid
-    
-        id = f"{int(y)}:{int(x)}"
+
+        id = f"{int(y / scale_factor)}:{int(x / scale_factor)}"
     
         crop = np.zeros((img.shape[0], 640, 640))
     

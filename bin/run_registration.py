@@ -18,6 +18,9 @@ from skimage.morphology import closing, square
 from scipy.ndimage import shift
 from skimage.segmentation import clear_border
 from skimage.registration import phase_cross_correlation
+from matplotlib import pyplot as plt
+import numpy as np
+from skimage import data, util, transform, feature, measure, filters, metrics
 
 import pickle
 import copy
@@ -128,7 +131,7 @@ class Registration:
         log.info(f"Running alignment between plates on max projections")
         
         if self.eval_merge:
-            cols = ['well', 'row', 'col', 'field', 'ref_plate', 'qry_plate', 'ref_ch', 'qry_ch', 'offset_x', "offset_y", 'r_b', 'r_a', 'n_ref', 'n_qry', 'n_qry_a', 'pobj_ba', 'ppix_ba']
+            cols = ['well', 'row', 'col', 'field', 'ref_plate', 'qry_plate', 'ref_ch', 'qry_ch', 'offset_x', "offset_y", 'r_b', 'r_a', 'nobj_ref', 'nobj_qry', 'nobj_qry_a', 'pobj_ba', 'ppix_ba', 'ppix_ab']
             self.eval_data = pd.DataFrame(columns=cols)
         
         for field in self.fields:
@@ -182,18 +185,20 @@ class Registration:
 
             # Calculate threshold and mask only pos region in ref to align
             ref_mask = ref_stack > threshold_otsu(ref_stack)
-            
+            qry_mask = qry_stack > threshold_otsu(qry_stack)
+
             #ref_stack = ref_stack * (ref_stack > threshold_otsu(ref_stack))
             #qry_stack_in = qry_stack_in * (qry_stack_in > threshold_otsu(qry_stack_in))
             if self.mode == "STACKREG":
                 # Calculate the offsets
                 sr = StackReg(self.transform)
                 align_mat = sr.register(ref_stack, qry_stack_in)
-            if self.mode == "CROSS":
+            elif self.mode == "CROSS":
                 align_mat = np.eye(3, dtype=np.float64)
-                offset, _, _ = phase_cross_correlation(ref_stack, qry_stack_in, reference_mask=ref_mask, return_error='always')
+                #offset, _, _ = phase_cross_correlation(ref_stack, qry_stack_in, reference_mask=ref_mask, return_error='always')
+                offset, _, _ = phase_cross_correlation(ref_stack, qry_stack_in, reference_mask=ref_mask, moving_mask=qry_mask, return_error='always')
                 align_mat[0,2] = -offset[1]
-                align_mat[1,2] = -offset[0]
+                align_mat[1,2] = -offset[0]                                    
             else:
                 raise ValueError(f"--mode must be STACKREG | CROSS not {self.mode}")
 
@@ -247,6 +252,8 @@ class Registration:
             ab_ol = (abin * bbin)
             ab_ol_perc = (np.sum(ab_ol) / np.sum(abin)) *100
 
+            ba_ol_perc = (np.sum(ab_ol) / np.sum(bbin)) *100
+            
             ac_ol = (abin * cbin)
             ac_ol_perc = (np.sum(ac_ol) / np.sum(abin)) *100
             log.info(f"before/after {round(ac_ol_perc, 2)}/{round(ab_ol_perc, 2)}% of pixels in query mask overlap with ref")
@@ -270,12 +277,13 @@ class Registration:
             self.eval_data.at[i, "offset_y"] = alignment_mats[plate_merge][1, 2]  
             self.eval_data.at[i, "r_b"] = apcc
             self.eval_data.at[i, "r_a"] = bpcc
-            self.eval_data.at[i, "n_ref"] = np.max(alab)
-            self.eval_data.at[i, "n_qry"] = np.max(clab)
-            self.eval_data.at[i, "n_qry_a"] = np.max(blab)
+            self.eval_data.at[i, "nobj_ref"] = np.max(alab)
+            self.eval_data.at[i, "nobj_qry"] = np.max(clab)
+            self.eval_data.at[i, "nobj_qry_a"] = np.max(blab)
             self.eval_data.at[i, "pobj_ba"] = (np.max(blab)/np.max(alab))*100
             self.eval_data.at[i, "ppix_ba"] = ab_ol_perc
-
+            self.eval_data.at[i, "ppix_ab"] = ba_ol_perc
+            
             i+=1
             # line=f"{iq.get_well_id()}\t{iq.row}\t{iq.col}\t{iq.field}\t{self.ref_plate}\t{plate_merge}\t{self.ref_channel_eval}\t{self.qry_channel_eval[plate_merge]}\t{self.ref_channel}\t{self.qry_channel[plate_merge]}\t{apcc}\t{apval}\t{bpcc}\t{bpval}\n"
             # file = open(outfile, 'a')
