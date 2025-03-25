@@ -9,11 +9,12 @@ from tglow.io.tglow_io import AICSImageReader
 from tglow.io.image_query import ImageQuery
 from tglow.utils.tglow_utils import float_to_16bit_unint
 from skimage.morphology import disk, ball, closing, binary_erosion
-from skimage.filters import threshold_otsu, median
+from skimage.filters import threshold_otsu, median, rank, threshold_sauvola
 from skimage.transform import downscale_local_mean, resize
 import os
 import math
 import tifffile
+import skimage.morphology as mp
 
 # Cellpose logger
 #logger = io.logger_setup()
@@ -285,7 +286,10 @@ class CellposeRunner():
             # Close up small gaps when raising to a power
             if self.post_process and self.do_3d:
                 # Set a global threshold for nuclei, to remove bits where cellpose fits to the background
-                nucl_thresh = (nucl > threshold_otsu(nucl)).astype(np.uint16)       
+                #nucl_thresh = (nucl > threshold_otsu(nucl)).astype(np.uint16)       
+                # Replaced this with a local threshold instead
+                nucl_thresh =(nucl > threshold_sauvola(nucl, 51)).astype(np.uint16)
+                
                 disk_size = 10 if self.downsample is None else math.floor(10/self.downsample)
 
                 # Run a 2d closing operation on the threshold mask

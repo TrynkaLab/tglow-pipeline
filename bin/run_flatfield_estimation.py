@@ -116,8 +116,10 @@ def plot_flatfield_evaluation(flatfield, image, image_corrected, filename):
 
     tmp = Z / np.mean(Z)
 
-    im = ax[1,0].imshow(X/tmp, cmap='inferno')
+    im = ax[1,0].imshow(tmp, cmap='inferno')
+    #im = ax[1,0].imshow(X/tmp, cmap='inferno')
     ax[1,0].set_title('Flatfield / (corr / mean(corr))')
+    #ax[1,0].set_title('corr / mean(corr)')
     f.colorbar(im, ax=ax[1,0])
 
     # Uncorrected vs flatfield
@@ -320,7 +322,7 @@ class FlatFieldTrainer():
 
         if one_model:
             
-            tmp = downscale_local_mean(training_imgs[0], (4, 4))
+            tmp = downscale_local_mean(training_imgs[0], (2, 2))
             Y, X = np.mgrid[:tmp.shape[0], :tmp.shape[1]]
             y_flat = Y.flatten()
             x_flat = X.flatten()
@@ -339,10 +341,10 @@ class FlatFieldTrainer():
             
             start = 0
             i =0
-            log.debug("Downscaling images by 4x")
+            log.debug("Downscaling images by 2x")
             for img in training_imgs:
                 #log.info(f"Processing {i}")
-                cur_img = downscale_local_mean(img, (4, 4))
+                cur_img = downscale_local_mean(img, (2, 2))
                 #cur_flat = cur_img.flatten()
                 
                 #keep = cur_flat!=0
@@ -383,7 +385,7 @@ class FlatFieldTrainer():
             i =0
             for img in training_imgs:
                 log.info(f"Fitting poly to image {i}")
-                cur_img = downscale_local_mean(img, (4, 4))
+                cur_img = downscale_local_mean(img, (2, 2))
                 
                 cur_ff = self.fit_poly_img(cur_img, use_ridge=use_ridge, remove_zeroes=self.threshold, degree=degree, trim_quantile=0, log_trans=log_trans)
                 #if fit_sum is None:
