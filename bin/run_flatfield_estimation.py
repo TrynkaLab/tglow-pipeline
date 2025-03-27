@@ -118,8 +118,8 @@ def plot_flatfield_evaluation(flatfield, image, image_corrected, filename):
 
     im = ax[1,0].imshow(tmp, cmap='inferno')
     #im = ax[1,0].imshow(X/tmp, cmap='inferno')
-    ax[1,0].set_title('Flatfield / (corr / mean(corr))')
-    #ax[1,0].set_title('corr / mean(corr)')
+    #ax[1,0].set_title('Flatfield / (corr / mean(corr))')
+    ax[1,0].set_title('corr / mean(corr)')
     f.colorbar(im, ax=ax[1,0])
 
     # Uncorrected vs flatfield
@@ -316,13 +316,15 @@ class FlatFieldTrainer():
             self.evaluate_flatfield(flatfield, self.bins)
         
         
-    def train_polynomial(self, use_ridge, degree=2, one_model=False, log_trans=True):
+    def train_polynomial(self, use_ridge, degree=3, one_model=False, log_trans=False):
     
         training_imgs = self.fetch_images(self.provider)
 
+        downscale=4
+
         if one_model:
             
-            tmp = downscale_local_mean(training_imgs[0], (2, 2))
+            tmp = downscale_local_mean(training_imgs[0], (downscale, downscale))
             Y, X = np.mgrid[:tmp.shape[0], :tmp.shape[1]]
             y_flat = Y.flatten()
             x_flat = X.flatten()
@@ -341,10 +343,13 @@ class FlatFieldTrainer():
             
             start = 0
             i =0
-            log.debug("Downscaling images by 2x")
             for img in training_imgs:
                 #log.info(f"Processing {i}")
-                cur_img = downscale_local_mean(img, (2, 2))
+                if downscale > 1:
+                    log.debug(f"Downscaling images by {downscale}x")
+                    cur_img = downscale_local_mean(img, (downscale, downscale))
+                else:
+                    cur_img = img
                 #cur_flat = cur_img.flatten()
                 
                 #keep = cur_flat!=0
@@ -376,16 +381,24 @@ class FlatFieldTrainer():
             if log_trans:
                 z_fit = np.power(2, z_fit, out=z_fit)
 
-            final_fit = resize(z_fit,
-                training_imgs[0].shape,
-                order=2,
-                mode="reflect")
+            if downscale > 1:
+                final_fit = resize(z_fit,
+                    training_imgs[0].shape,
+                    order=1,
+                    mode="edge")
+            else:
+                final_fit = z_fit
         else:
             fit_sum = None
             i =0
             for img in training_imgs:
                 log.info(f"Fitting poly to image {i}")
-                cur_img = downscale_local_mean(img, (2, 2))
+                
+                if downscale > 1:
+                    log.debug(f"Downscaling images by {downscale}x")
+                    cur_img = downscale_local_mean(img, (downscale, downscale))
+                else:
+                    cur_img = img
                 
                 cur_ff = self.fit_poly_img(cur_img, use_ridge=use_ridge, remove_zeroes=self.threshold, degree=degree, trim_quantile=0, log_trans=log_trans)
                 #if fit_sum is None:
@@ -399,11 +412,14 @@ class FlatFieldTrainer():
             # Calculate the average over the images
             fit_avg = fit_sum / len(training_imgs)
             
-            # Upsize with bilinear interpolation
-            final_fit = resize(fit_avg,
-                            training_imgs[0].shape,
-                            order=1,
-                            mode="edge")
+            if downscale > 1:
+                # Upsize with bilinear interpolation
+                final_fit = resize(fit_avg,
+                                training_imgs[0].shape,
+                                order=1,
+                                mode="edge")
+            else:
+                final_fit = fit_avg
 
         # Normalize flatfield to mean
         flatfield = final_fit / np.mean(final_fit)
@@ -891,7 +907,7 @@ if __name__ == "__main__":
         trainer.train_mean_filter()
     elif (args.mode == "POLY"):
         #trainer.train_polynomial(int(args.degree))
-        trainer.train_polynomial(use_ridge=args.ridge, degree=int(args.degree), one_model=args.onemodel)
+        trainer.train_polynomial(use_ridge=args.ridge, degree=int(args.degree), one_model=args.onemodel, log_trans=False)
     elif (args.mode == "PE"):
         
         if args.pe_index is None:
