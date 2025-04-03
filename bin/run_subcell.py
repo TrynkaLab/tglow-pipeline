@@ -47,7 +47,8 @@ def get_crops(img, msk, outdim=640, dont_mask=False, scale_factor=None):
 
     padding=outdim/2
 
-    for i, region in enumerate(regions):
+    #for i, region in enumerate(regions):
+    for region in regions:
         z, y, x = region.centroid
 
         id = f"{int(y / scale_factor)}:{int(x / scale_factor)}"
@@ -80,7 +81,7 @@ def get_crops(img, msk, outdim=640, dont_mask=False, scale_factor=None):
 
         # Mask the area outside the cell
         if not dont_mask:
-            curd = curd * (msk[:,minr:maxr, minc:maxc] == i+1)
+            curd = curd * (msk[:,minr:maxr, minc:maxc] == region.label)
         
         large_center = np.array(crop.shape) // 2
         small_center = np.array(curd.shape) // 2
@@ -733,7 +734,7 @@ if __name__ == "__main__":
         # Rescale to the right factor
         img = rescale(img, args.scale_factor, channel_axis=0, order=0)   
         msk = rescale(msk, args.scale_factor, channel_axis=0, order=0)       
-        crops = get_crops(img, msk, dont_mask=args.dont_mask)    
+        crops = get_crops(img, msk, dont_mask=args.dont_mask, scale_factor=args.scale_factor)    
         
         
         
