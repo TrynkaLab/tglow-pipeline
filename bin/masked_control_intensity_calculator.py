@@ -7,8 +7,10 @@ import argparse
 import pandas as pd
 import glob
 import os
+import warnings
 
 from skimage.measure import regionprops_table
+from skimage.filters import threshold_otsu
 from tglow.io.processed_image_provider import ProcessedImageProvider
 from tglow.io.tglow_io import BlacklistReader, AICSImageReader, ControllistReader, ControlRecord
 from tqdm import tqdm
@@ -18,10 +20,14 @@ logging.basicConfig(format='%(asctime)s %(message)s')
 log = logging.getLogger(__name__)
 log.setLevel(logging.DEBUG)
 
+def intensity_mean_nan(mask, intensity):
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore", category=RuntimeWarning)
+        return np.nanmean(intensity[mask])
 
 class MaskedControlIntensityCalculator():
     
-    def __init__(self, controls, input, obj_mask_dir, obj_mask_pattern, output, max_project, plates=None, plate_merge=None, flatfields=None, registration_dir=None, mask_channels=None, mask_dir=None,mask_pattern=None, blacklist=None, uint32=False):
+    def __init__(self, controls, input, obj_mask_dir, obj_mask_pattern, output, max_project, plates=None, plate_merge=None, flatfields=None, registration_dir=None, mask_channels=None, mask_dir=None,mask_pattern=None, blacklist=None, uint32=False, threshold=False):
         
         self.controls = ControllistReader(controls, plates_filter=plates, blacklist=blacklist).read_controlist()
         self.provider = ProcessedImageProvider(path=input,
@@ -39,10 +45,11 @@ class MaskedControlIntensityCalculator():
         self.cell_mask_reader = AICSImageReader(path=obj_mask_dir, plates_filter=plates, blacklist=blacklist, pattern=obj_mask_pattern)
         self.max_project = max_project
         self.output=output
+        self.threshold=threshold
 
     def make_intensity_summary(self):
         
-        df = pd.DataFrame(columns=["plate", "channel", "nobjects", 'nfields', 'nfields_total', 'nwells', 'name', "mean_mean_object_intensity", "mean_integrated_object_intensity", "mean_max_object_intensity"])
+        df = pd.DataFrame(columns=["plate", "channel", "nobjects", 'nfields', 'nfields_total', 'nwells', 'name', 'mean_threshold', "mean_mean_object_intensity", "mean_integrated_object_intensity", "mean_max_object_intensity"])
         
         i = 0    
         for plate in self.object_intensity['plate'].unique():
@@ -61,7 +68,9 @@ class MaskedControlIntensityCalculator():
                 df.at[i, "nfields_total"] = len(cur_df['well_field'].unique())
                 df.at[i, "nwells"] = len(cur_df['well'].unique())
                 df.at[i, "name"] = ','.join(map(str, cur_df['name'].unique().tolist()))
-                df.at[i, "mean_mean_object_intensity"] = cur_df['intensity_mean'].mean()
+                df.at[i, "mean_threshold"] =  cur_df['threshold'].mean()
+                df.at[i, "mean_mean_object_intensity"] = cur_df['intensity_mean_nan'].mean()
+                df.at[i, "mean_mean_object_intensity_nothresh"] = cur_df['intensity_mean'].mean()
                 df.at[i, "mean_integrated_object_intensity"] = cur_df['intensity_integrated'].mean()
                 df.at[i, "mean_max_object_intensity"] =  cur_df['intensity_max'].mean()
                 i+=1
@@ -106,14 +115,31 @@ class MaskedControlIntensityCalculator():
                     mask = mask[0,]
                 
                 for channel in control.channels:
-                    props = regionprops_table(mask, img[channel,], properties=["label", "centroid", "area", "intensity_max", "intensity_mean", "intensity_min"])
-                    df = pd.DataFrame(props)
+                    
+                    if self.threshold:
+                        cur_img = img[channel,].astype(np.float32)
+                        thresh = threshold_otsu(cur_img)
+                        cur_img[cur_img < thresh] = np.nan
+                        
+                    else:
+                        thresh = 0
+                        cur_img = img[channel,]
+                    
+                    props = regionprops_table(mask,
+                                              cur_img,
+                                              properties=["label", "centroid", "area", "intensity_max", "intensity_mean", "intensity_min"],
+                                              extra_properties=[intensity_mean_nan])
+                    
+                    df = pd.DataFrame(props)                    
+                    log.info(f"Threshold for channel {channel} is {thresh} with {df.shape[0]} objects and mean intensity {df['intensity_mean_nan'].mean()}")
+                    #log.info(f"Identified {df.shape[0]} objects")
                     df['plate'] = control.plate
                     df['well'] = control.well
                     df['field'] = field
                     df['channel'] = channel
                     df['name'] = control.name
-                    
+                    df['threshold'] = thresh
+
                     if intensity_summary is None:
                         intensity_summary = df
                     else:
@@ -148,6 +174,7 @@ if __name__ == "__main__":
     parser.add_argument('--obj_mask_pattern', help="The pattern to object discover masks, defaults to match run_cellpose.py cell. <pattern>.tiff", default="*_cell_mask_*_cp_masks.tiff")
     parser.add_argument('--max_project', help="Calculate flatfields on max projections. Automatically activates --all_planes", action='store_true', default=False)
     parser.add_argument('--dummy_mode', help="Set all intensities to 1 (equal scaling)", action='store_true', default=False)
+    parser.add_argument('--threshold', help="Should background regions be ignored when calculating the object means", action='store_true', default=False)
 
     args = parser.parse_args()
 
@@ -172,7 +199,8 @@ if __name__ == "__main__":
                         registration_dir=args.registration_dir,
                         flatfields=args.flatfields,
                         uint32=args.uint32,
-                        max_project=args.max_project)
+                        max_project=args.max_project,
+                        threshold=args.threshold)
 
         if args.dummy_mode:
             scaler.fetch_dummy_object_intensity()

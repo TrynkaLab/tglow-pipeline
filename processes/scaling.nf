@@ -93,6 +93,10 @@ process calculate_plate_offsets {
             cmd += " --dummy_mode"
         }
         
+        if (params.rn_threshold) {
+            cmd += " --threshold"
+        }
+        
         if (params.rn_control_list) {
             cmd += " --controls $control_list"
         }

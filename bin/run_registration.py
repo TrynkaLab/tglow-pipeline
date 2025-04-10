@@ -29,7 +29,7 @@ import pandas as pd
 from tglow.io.tglow_io import AICSImageReader
 from tglow.io.image_query import ImageQuery
 from tglow.utils.tglow_plot import composite_images, plot_registration_imgs
-from tglow.utils.tglow_utils import float_to_16bit_unint
+from tglow.utils.tglow_utils import float_to_16bit_unint, apply_registration_cv
 
 # Logging
 logging.basicConfig(format='%(asctime)s %(message)s')
@@ -197,6 +197,7 @@ class Registration:
                 align_mat = np.eye(3, dtype=np.float64)
                 #offset, _, _ = phase_cross_correlation(ref_stack, qry_stack_in, reference_mask=ref_mask, return_error='always')
                 offset, _, _ = phase_cross_correlation(ref_stack, qry_stack_in, reference_mask=ref_mask, moving_mask=qry_mask, return_error='always')
+                # Offsets are inverted compared to stackreg
                 align_mat[0,2] = -offset[1]
                 align_mat[1,2] = -offset[0]                                    
             else:
@@ -212,10 +213,16 @@ class Registration:
             # Plot 
             if self.plot:
                 # Apply the offesets
-                sr = StackReg(self.transform)
-                qry_stack_reg = sr.transform(qry_stack, tmat=align_mat)
+                #sr = StackReg(self.transform)
+                #qry_stack_reg = sr.transform(qry_stack, tmat=align_mat)
                 #tform = transform.AffineTransform(matrix=align_mat)
                 #qry_stack_reg = transform.warp(qry_stack, tform, order=0, preserve_range=True)
+                
+                # It is a bit silly to now apply it again with the inverse, but following
+                # the stackreg convention, it should be inverted
+                # the above should all be identical, but this is what is used downstream, and the opencv version
+                # is way quicker then skimage
+                qry_stack_reg = apply_registration_cv(qry_stack, np.linalg.inv(align_mat))
                 
                 before_reg = composite_images([ref_stack, qry_stack])
                 after_reg = composite_images([ref_stack, qry_stack_reg])
@@ -235,9 +242,10 @@ class Registration:
             a = np.max(self.plate_reader.read_image(ImageQuery(self.ref_plate, iq.row, iq.col, iq.field, self.ref_channel_eval)), axis=0)
             c = np.max(self.plate_reader.read_image(ImageQuery(plate_merge, iq.row, iq.col, iq.field, self.qry_channel_eval[plate_merge])), axis=0)  
             
-            sr = StackReg(self.transform)
-            b = sr.transform(c, tmat=alignment_mats[plate_merge])
-            
+            #sr = StackReg(self.transform)
+            #b = sr.transform(c, tmat=alignment_mats[plate_merge])
+            b = apply_registration_cv(c, np.linalg.inv(alignment_mats[plate_merge]))
+
             a = float_to_16bit_unint(a)
             b = float_to_16bit_unint(b)
             c = float_to_16bit_unint(c)
