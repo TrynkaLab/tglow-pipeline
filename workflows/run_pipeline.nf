@@ -33,11 +33,13 @@ workflow run_pipeline {
             error "Provided --rn_control_list but --rn_autoscale false. Either drop --rn_control_list or set --rn_autoscale true"
         }
         
-        if (params.rn_manualscale & params.rn_manifest_registration == null) {
-            error "Manual scaling and registration are not currently compatible"
-        }
+        // [CLEAN]
+        // if (params.rn_manualscale & params.rn_manifest_registration == null) {
+        //     error "Manual scaling and registration are not currently compatible"
+        // }
+        // [/CLEAN]
 
-        if (params.rn_manualscale & params.rn_autoscale) {
+        if ((params.rn_manualscale != null) & params.rn_autoscale) {
             log.warn "Both rn_autoscale and rn_manualscale are provided, rn_manualscale will be overridden"
         }
 
@@ -60,8 +62,12 @@ workflow run_pipeline {
             row.cp_cell_channel,
             row.dc_channels,
             row.dc_psfs,
-            (row.mask_channels == null) ? "none" : tuple(row.mask_channels.split(',')),
-            (row.scaling_factors == null) ? "none" : tuple(row.scaling_factors.split(',')))}
+            (row.mask_channels == null) ? "none" : tuple(row.mask_channels.split(',')))}
+            
+            // [CLEAN]
+            // Removed scaling factors from manifest
+            //(row.scaling_factors == null) ? "none" : tuple(row.scaling_factors.split(',')))}
+            // [/CLEAN]
         
         // Build a value channel for the plates in the manifest
         // '<plate_1> <plate_2> <plate_N>'
@@ -82,19 +88,21 @@ workflow run_pipeline {
         } 
         
         //------------------------------------------------------------------------
+        // [CLEAN]
         // Build the value vhannel of manual scaling factors
         // '<plate_1>=<scale_1> <plate_2>=<scale_2> <plate_N>=<scale_N>'
-        if (params.rn_manualscale & !params.rn_autoscale) {
-            scaling_channel = manifest.map{row -> tuple(
-                row[0], // plate
-                row[9].collect{it -> (row[0] + "=" +(it.toInteger() -1).toString())}.join(" ")
-            )}.groupTuple(by:0).map{row[1].join(" ")}
+        // if (params.rn_manualscale & !params.rn_autoscale) {
+        //     scaling_channel = manifest.map{row -> tuple(
+        //         row[0], // plate
+        //         row[9].collect{it -> (row[0] + "=" +(it.toInteger() -1).toString())}.join(" ")
+        //     )}.groupTuple(by:0).map{row[1].join(" ")}
             
-            log.info("Read scaling factors from manifest: " + scaling_channel.view())
-        } else {
-            scaling_channel = Channel.value("none")
-        }
-        
+        //     log.info("Read scaling factors from manifest: " + scaling_channel.view())
+        // } else {
+        //     scaling_channel = Channel.value("none")
+        // }
+        // [/CLEAN]
+
         //------------------------------------------------------------------------
         // Blacklist channel, if missing just an empty channel
         if (params.rn_blacklist == null) {
@@ -286,8 +294,6 @@ workflow run_pipeline {
                 row[6].split(',').collect{it -> (it.toInteger() -1).toString()}.join(" ")  // query_channels
             )} 
 
-            //registration_in.view()
-
             // Run registration
             registration_out = register(registration_in)
                           
@@ -319,6 +325,13 @@ workflow run_pipeline {
         // Scaling
         //------------------------------------------------------------
         // Get scaling string
+        if (params.rn_manualscale != null) {
+            scaling_channel = Channel
+            .fromPath(params.rn_manualscale)
+            .map { file ->  file.text}
+            .first() // Makes sure it is a value channel
+        }
+        
         // When all deconvelution is done, or all data is staged, calculate the scaling factors
         // which map the images onto the full dynamic range of the 16 bit uint
         // Alternatively, if control scaling is provided, wait for cellpose and run the controls.
@@ -368,7 +381,7 @@ workflow run_pipeline {
         //------------------------------------------------------------
         // Finalize
         //------------------------------------------------------------
-        // TODO: BUG! Need to make sure the merge plate is done as well BEFORE adding into channel
+        // TODO: BUG! Need to make sure the merge plate decon is done as well BEFORE adding into channel
                         
         // Start with cellpose output
         // re-key channels

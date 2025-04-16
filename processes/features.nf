@@ -59,7 +59,7 @@ process finalize_and_cellprofiler {
             cmd += " --flatfields $basicpy_string"
         }
         
-        if ((params.rn_manualscale | params.rn_autoscale) & scaling_string != "none")  {
+        if ((params.rn_manualscale != null | params.rn_autoscale) & scaling_string != "none")  {
             cmd += " --scaling_factors $scaling_string"
         }
         
@@ -197,7 +197,7 @@ process finalize {
             cmd += " --flatfields $basicpy_string"
         }
         
-        if ((params.rn_manualscale | params.rn_autoscale) & scaling_string != "none")  {
+        if ((params.rn_manualscale != null | params.rn_autoscale) & scaling_string != "none")  {
             cmd += " --scaling_factors $scaling_string"
         }
         
