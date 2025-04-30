@@ -92,7 +92,8 @@ process stage_global_flatfield {
     label "tiny"
     conda params.tg_conda_env
     storeDir "${params.rn_publish_dir}/flatfields/${plate}/" //, mode: 'copy'
-
+    //publishDir "${params.rn_publish_dir}/flatfields/${plate}", mode: 'copy'
+    
     input:
         tuple val(key), val(cycle), val(plate), val(plates), val(img_channel),  path(refdir)
     output:

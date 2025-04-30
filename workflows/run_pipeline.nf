@@ -198,7 +198,7 @@ workflow run_pipeline {
                     row[2], // plate
                     row[3], // plates
                     row[4], // channel
-                    row[10] // reference path
+                    row[10].findAll{it.fileName.name.startsWith("global_refplate")} // reference path
                 )}                
                 flatfield_out = stage_global_flatfield(global_flatfield_in).flatfield_out
             } else {
