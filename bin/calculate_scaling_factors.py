@@ -14,6 +14,43 @@ logging.basicConfig(format='%(asctime)s %(message)s')
 log = logging.getLogger(__name__)
 log.setLevel(logging.DEBUG)
 
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy.stats import gaussian_kde
+
+def plot_grouped_density(df, group_col, value_col, filename, vline=None):
+    """
+    Plots density (KDE) curves for each group in a DataFrame using matplotlib.
+
+    Parameters:
+        df (pd.DataFrame): The input DataFrame.
+        group_col (str): The column name to group by.
+        value_col (str): The column name to plot the density of.
+    """
+    groups = df[group_col].unique()
+    plt.figure(figsize=(10, 6))
+
+    for group in groups:
+        data = df[df[group_col] == group][value_col].dropna()
+        if len(data) < 2:
+            continue  # KDE needs at least 2 data points
+        kde = gaussian_kde(data)
+        x_min, x_max = data.min(), data.max()
+        x_vals = np.linspace(x_min, x_max, 200)
+        plt.plot(x_vals, kde(x_vals), label=str(group))
+
+    if vline is not None:
+        plt.axvline(x=vline, color='black', linestyle='--', linewidth=2)
+
+    plt.xlabel(value_col)
+    plt.ylabel('Density')
+    plt.title(f'Density Plot of {value_col} Grouped by {group_col}')
+    plt.legend(title=group_col)
+    plt.tight_layout()
+    plt.savefig(filename)
+
+
+
 class ScalingCalculator():
     
     
@@ -267,7 +304,34 @@ class ScalingCalculator():
         info_file.write(" ".join(scaling_factors))
         info_file.flush()
         info_file.close()
+    
+    
+    def apply_scaling_factor(self, plot_col, scale):
         
+        lookup = {}
+        for index, row in self.channel_index.iterrows():
+            lookup[f"{row['plate']}_ch{row['orig_channel']}"] = row[scale]
+            
+        self.main_df['lookup_key'] = self.main_df['plate'].astype(str) + "_ch" + self.main_df['channel'].astype(str)
+        self.main_df['scale_value'] = self.main_df['lookup_key'].map(lookup)
+        self.main_df[plot_col + "_scaled"] = self.main_df[plot_col] / self.main_df['scale_value']
+    
+    def save_density_plots(self, plot_col, vline=None):
+        
+        if not os.path.exists(f"{self.output}/histograms/{plot_col}"):
+            os.makedirs(f"{self.output}/histograms/{plot_col}")
+            log.info(f"Folder created: {self.output}/histograms/{plot_col}")
+                
+        for cycle in self.channel_index['cycle'].unique():
+            plates = self.channel_index[self.channel_index['cycle'] == cycle]['plate'].unique()
+        
+            df = self.main_df[self.main_df['plate'].isin(plates)]
+            
+            for channel in df['channel'].unique():                
+                cur_df = df[df['channel'] == channel]
+                plot_grouped_density(cur_df, "plate", plot_col, f"{self.output}/histograms/{plot_col}/cycle{cycle}_ch{channel}_{plot_col}_intensity_histograms.png", vline=vline)
+            
+    
     def calculate_quantile_scaling_factors(self, q1, q2, scale_max):
 
         log.info("Considering plate groups:")
@@ -430,6 +494,7 @@ if __name__ == "__main__":
         calculator.calculate_plate_offsets(args.q1, args.q2)
     
     calculator.save_channel_index()
+    calculator.save_density_plots(args.q1)
     
     if args.control_dir is not None:
         if calculator.channel_index['plate'].isnull().values.any():
@@ -444,5 +509,13 @@ if __name__ == "__main__":
             log.error(msg)
             raise RuntimeError(msg)     
         calculator.save_scaling_factors("max_scale_total")
+    
+    calculator.apply_scaling_factor(args.q1, "scale_factor")
+    calculator.save_density_plots(args.q1+"_scaled", vline=np.iinfo(np.uint16).max)
+
+    #calculator.apply_scaling_factor("q99", "scale_factor")
+    #calculator.save_density_plots("q99_scaled", vline=np.iinfo(np.uint16).max)
+
+
 
     #calculator.channel_index[["cycle","channel","max_scale_total","plate_offset", "scale_factor"]]

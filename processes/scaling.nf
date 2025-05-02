@@ -19,6 +19,7 @@ process calculate_scaling_factors {
         path "raw_scaling_factors.txt"
         path "intensity_summary.tsv"
         path "channel_index_with_scaling.tsv"
+        path "histograms"
     script:
         cmd = 
         """

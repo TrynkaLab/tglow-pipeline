@@ -454,9 +454,6 @@ workflow run_pipeline {
         
         // Cache the final images for feature extraction
         if (params.rn_cache_images) {
-            
-            scaling_channel.view()
-            flatfield_out_string.view()
             finalize_out = finalize(finalize_in, flatfield_out_string, scaling_channel)[0]
             
             // Create the plate manfiests once finalize is done
