@@ -33,12 +33,6 @@ workflow run_pipeline {
             error "Provided --rn_control_list but --rn_autoscale false. Either drop --rn_control_list or set --rn_autoscale true"
         }
         
-        // [CLEAN]
-        // if (params.rn_manualscale & params.rn_manifest_registration == null) {
-        //     error "Manual scaling and registration are not currently compatible"
-        // }
-        // [/CLEAN]
-
         if ((params.rn_manualscale != null) & params.rn_autoscale) {
             log.warn "Both rn_autoscale and rn_manualscale are provided, rn_manualscale will be overridden"
         }
@@ -63,11 +57,6 @@ workflow run_pipeline {
             row.dc_channels,
             row.dc_psfs,
             (row.mask_channels == null) ? "none" : tuple(row.mask_channels.split(',')))}
-            
-            // [CLEAN]
-            // Removed scaling factors from manifest
-            //(row.scaling_factors == null) ? "none" : tuple(row.scaling_factors.split(',')))}
-            // [/CLEAN]
         
         // Build a value channel for the plates in the manifest
         // '<plate_1> <plate_2> <plate_N>'
@@ -86,23 +75,7 @@ workflow run_pipeline {
                 row.query_channels
             )}               
         } 
-        
-        //------------------------------------------------------------------------
-        // [CLEAN]
-        // Build the value vhannel of manual scaling factors
-        // '<plate_1>=<scale_1> <plate_2>=<scale_2> <plate_N>=<scale_N>'
-        // if (params.rn_manualscale & !params.rn_autoscale) {
-        //     scaling_channel = manifest.map{row -> tuple(
-        //         row[0], // plate
-        //         row[9].collect{it -> (row[0] + "=" +(it.toInteger() -1).toString())}.join(" ")
-        //     )}.groupTuple(by:0).map{row[1].join(" ")}
-            
-        //     log.info("Read scaling factors from manifest: " + scaling_channel.view())
-        // } else {
-        //     scaling_channel = Channel.value("none")
-        // }
-        // [/CLEAN]
-
+    
         //------------------------------------------------------------------------
         // Blacklist channel, if missing just an empty channel
         if (params.rn_blacklist == null) {
@@ -330,6 +303,8 @@ workflow run_pipeline {
             .fromPath(params.rn_manualscale)
             .map { file ->  file.text}
             .first() // Makes sure it is a value channel
+        } else {
+            scaling_channel = Channel.value("none")
         }
         
         // When all deconvelution is done, or all data is staged, calculate the scaling factors
