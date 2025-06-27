@@ -155,6 +155,11 @@ workflow run_pipeline {
             flatfield_in = Channel.from(params.bp_channels)
         }
         
+        if (!params.bp_run) {
+            log.info("Not running flatfield estimation, --bp_run false")
+            run_flatfield=false
+        }
+        
         if (run_flatfield) {
             log.info("Running flatfield estimation")
             if (params.bp_global_flatfield) {
