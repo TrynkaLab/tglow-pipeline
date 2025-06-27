@@ -142,6 +142,7 @@ workflow run_pipeline {
                 .map{row -> tuple(row[3] + ":" + row[1], row[3], row[0], [row[0]],row[1], row[2])} // key, cycle, plate, plate(s), channel, index xml
                                 
             } else {
+                
                 flatfield_in_global = flatfield_in_global
                 .combine(plates_channel)
                 .map{row -> tuple( "0:" + row[1], 0, row[0], row[3].split(" "), row[1], row[2])} // key, cycle, plates, channel, index_xml
@@ -171,8 +172,16 @@ workflow run_pipeline {
                     row[2], // plate
                     row[3], // plates
                     row[4], // channel
-                    row[10].findAll{it.fileName.name.startsWith("global_refplate")} // reference path
-                )}                
+                    (row[10] instanceof List) ? row[10].findAll{it.fileName.name.startsWith("global_refplate")} : row[10] // reference path
+                )}        
+                
+                // I THINK THE BELOW IS FIXED NOW
+                // This was the old way before, I don't remember exactly why I did this, but its giving issues when not registering
+                // I think this was to avoid cases where there has been a previous pipeline run
+                // Need to make this check conditional on the case there is a multi return
+                //  row[10].findAll{it.fileName.name.startsWith("global_refplate")} // reference path
+                //global_flatfield_in.view()        
+                
                 flatfield_out = stage_global_flatfield(global_flatfield_in).flatfield_out
             } else {
                 log.info("Estimating one flatfield per channel")
@@ -181,7 +190,6 @@ workflow run_pipeline {
             
             // Concat to plate string format // plate : channel = path
             flatfield_out_string = flatfield_out.map{ row -> (row[2] + "_ch" + row[4] + "=" + row[5])}.collect().map{it.join(" ")}
-
         } else {
             flatfield_out_string = Channel.value(false)
             log.info("No manifest entries or --bp_channels provided, so skipping flatfield estimation")
