@@ -406,7 +406,7 @@ workflow run_pipeline {
                 row[8], // scale channels
                 row[0] // plate
             )}
-
+            
             finalize_in = finalize_in.combine(remapped_manifest, by: 1).map{row -> tuple(
                 row[0], // plate
                 row[1], // key
@@ -417,7 +417,7 @@ workflow run_pipeline {
                 row[6], // nucl masks
                 row[7], // merge plates
                 row[8], // registration path
-                (row[9] == "none") ? "none" : row[9].collect{it -> row[0] + "=" + (it.toInteger() -1).toString()}.join(" ") // mask channels   
+                (row[9][0] == "none") ? "none" : row[9].collect{it -> row[0] + "=" + (it.toInteger() -1).toString()}.join(" ") // mask channels   
             )}
             
         } else {
