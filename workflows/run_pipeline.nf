@@ -188,8 +188,14 @@ workflow run_pipeline {
                 flatfield_out = estimate_flatfield(flatfield_in, blacklist_channel).flatfield_out
             }
             
+            
             // Concat to plate string format // plate : channel = path
-            flatfield_out_string = flatfield_out.map{ row -> (row[2] + "_ch" + row[4] + "=" + row[5])}.collect().map{it.join(" ")}
+            flatfield_out_string = flatfield_out.map{ row -> (
+                row[2] + "_ch" + row[4] + "=" + ((row[5] instanceof List) ? row[5].findAll{!it.fileName.name.startsWith("global_refplate")}[0] : row[5])
+            )
+            }.collect().map{it.join(" ")}
+            //flatfield_out_string.view()
+            
         } else {
             flatfield_out_string = Channel.value(false)
             log.info("No manifest entries or --bp_channels provided, so skipping flatfield estimation")
