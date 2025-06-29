@@ -79,7 +79,7 @@ workflow run_pipeline {
         //------------------------------------------------------------------------
         // Blacklist channel, if missing just an empty channel
         if (params.rn_blacklist == null) {
-            log.info("No blacklist provided")
+            //log.info("No blacklist provided")
             blacklist_channel = Channel.value(file('NO_BLACKLIST'))
         } else {
             blacklist_channel = Channel.value(file(params.rn_blacklist))
@@ -88,7 +88,7 @@ workflow run_pipeline {
         //------------------------------------------------------------------------
         // Control list channel, if missing just an empty channel
         if (params.rn_control_list == null) {
-            log.info("No controlist provided")
+            //log.info("No controlist provided")
             control_list_channel = Channel.value(file('NO_CONTROL_LIST'))
         } else {
             control_list_channel = Channel.value(file(params.rn_control_list))
@@ -97,7 +97,7 @@ workflow run_pipeline {
         //------------------------------------------------------------------------
         // Registration manifest, if missing just an empty channel
         if (params.rn_manifest_registration == null) {
-            log.info("No registration provided")
+            //log.info("No registration provided")
             manifest_registration_channel = Channel.value(file('NO_REGISTRATION_MANIFEST'))
         } else {
             manifest_registration_channel = Channel.value(file(params.rn_manifest_registration))
@@ -119,7 +119,7 @@ workflow run_pipeline {
             flatfield_in_global = Channel.from(flatfield_channels[1])
                             
             if (params.rn_manifest_registration) {
-                log.info("Estimating one global flatfield per cycle")
+                //log.info("Estimating one global flatfield per cycle")
                 
                 // Create a flat [<plate> <cycle>] channel
                 plate_cycle = manifest_registration
@@ -156,12 +156,12 @@ workflow run_pipeline {
         }
         
         if (!params.bp_run) {
-            log.info("Not running flatfield estimation, --bp_run false")
+            //log.info("Not running flatfield estimation, --bp_run false")
             run_flatfield=false
         }
         
         if (run_flatfield) {
-            log.info("Running flatfield estimation")
+            //log.info("Running flatfield estimation")
             if (params.bp_global_flatfield) {
 
                 // Runs only one model per plate
@@ -189,7 +189,7 @@ workflow run_pipeline {
                 
                 flatfield_out = stage_global_flatfield(global_flatfield_in).flatfield_out
             } else {
-                log.info("Estimating one flatfield per channel")
+                //log.info("Estimating one flatfield per channel")
                 flatfield_out = estimate_flatfield(flatfield_in, blacklist_channel).flatfield_out
             }
             
@@ -203,7 +203,7 @@ workflow run_pipeline {
             
         } else {
             flatfield_out_string = Channel.value(false)
-            log.info("No manifest entries or --bp_channels provided, so skipping flatfield estimation")
+            //log.info("No manifest entries or --bp_channels provided, so skipping flatfield estimation")
         }
          
         //------------------------------------------------------------
@@ -231,7 +231,8 @@ workflow run_pipeline {
         if (params.rn_wells != null) {
             wells = params.rn_wells.split(",")
             well_channel = well_channel.filter(row -> {row.well in wells})
-            log.info("Selecting " + wells.size() + " wells: " + wells)
+            //log.info("Selecting " + wells.size() + " wells: " + wells)
+            //log.info("Selecting " + wells.size() + " wells: " + wells)
         }                  
     
         // Re-order the well channel for later merging
