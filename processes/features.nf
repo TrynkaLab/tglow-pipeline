@@ -11,7 +11,10 @@ process finalize_and_cellprofiler {
     input:
         tuple val(plate), val(key), val(well), val(row), val(col), path(cell_masks), path(nucl_masks), val(merge_plates), path(registration, stageAs:"registration_tmp/*"), val(mask_channels)
         val basicpy_string
-        val scaling_string
+        path scaling_file
+        path slope_file
+        path bias_file
+
     output:
         path "features/$plate/$row/$col/*"
     script:
@@ -59,9 +62,18 @@ process finalize_and_cellprofiler {
             cmd += " --flatfields $basicpy_string"
         }
         
-        if ((params.rn_manualscale != null | params.rn_autoscale) & scaling_string != "none")  {
-            cmd += " --scaling_factors $scaling_string"
+        if ((params.rn_manualscale != null | params.rn_autoscale) & scaling_file.name != "NO_SCALE")  {
+            cmd += " --scaling_factors $scaling_file"
         }
+        
+        if (slope_file.name != "NO_SLOPE")  {
+            cmd += " --scaling_slope $slope_file"
+        }  
+                
+        if (bias_file.name != "NO_BIAS")  {
+            cmd += " --scaling_bias $bias_file"
+        }
+        
         
         if (params.rn_max_project | params.rn_hybrid) {
             cmd += " --max_project --no_zstack"
@@ -148,7 +160,9 @@ process finalize {
     input:
         tuple val(plate), val(key), val(well), val(row), val(col), path(cell_masks), path(nucl_masks), val(merge_plates), path(registration, stageAs:"registration_tmp/*"), val(mask_channels)
         val basicpy_string
-        val scaling_string
+        path scaling_file
+        path slope_file
+        path bias_file
     output:
         tuple val(plate), val(key), val(well), val(row), val(col), path("$plate/$row/$col/*.tiff")
         path "$plate/channel_indices.tsv"
@@ -197,8 +211,16 @@ process finalize {
             cmd += " --flatfields $basicpy_string"
         }
         
-        if ((params.rn_manualscale != null | params.rn_autoscale) & scaling_string != "none")  {
-            cmd += " --scaling_factors $scaling_string"
+        if ((params.rn_manualscale != null | params.rn_autoscale) & scaling_file.name != "NO_SCALE")  {
+            cmd += " --scaling_factors $scaling_file"
+        }
+        
+        if (slope_file.name != "NO_SLOPE")  {
+            cmd += " --scaling_slope $slope_file"
+        }  
+                
+        if (bias_file.name != "NO_BIAS")  {
+            cmd += " --scaling_bias $bias_file"
         }
         
         if (params.rn_max_project | params.rn_hybrid) {

@@ -151,7 +151,7 @@ class ScalingCalculator():
     def read_control_intensities(self):
         
         if self.control_files is None:
-            raise ValueError("Must provide control filtes to read control files")
+            raise ValueError("Must provide control_files to read control files")
         
         for file in self.control_files:
             cur_df = pd.read_csv(file, sep="\t")
@@ -305,7 +305,6 @@ class ScalingCalculator():
         info_file.flush()
         info_file.close()
     
-    
     def apply_scaling_factor(self, plot_col, scale):
         
         lookup = {}
@@ -331,7 +330,6 @@ class ScalingCalculator():
                 cur_df = df[df['channel'] == channel]
                 plot_grouped_density(cur_df, "plate", plot_col, f"{self.output}/histograms/{plot_col}/cycle{cycle}_ch{channel}_{plot_col}_intensity_histograms.png", vline=vline)
             
-    
     def calculate_quantile_scaling_factors(self, q1, q2, scale_max):
 
         log.info("Considering plate groups:")

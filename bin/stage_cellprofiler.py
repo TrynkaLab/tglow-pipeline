@@ -16,6 +16,25 @@ logging.basicConfig(format='%(asctime)s %(message)s')
 log = logging.getLogger(__name__)
 log.setLevel(logging.DEBUG)
 
+
+def read_and_split_file(filepath, param):
+    """
+    Reads a file containing a single line of text separated by spaces,
+    and returns a list of the items split on the space character.
+
+    Parameters:
+        filepath (str): Path to the file.
+
+    Returns:
+        list: A list of strings split by space.
+    """
+    if not os.path.isfile(filepath):
+        log.warning(f"{param} file not found, returning None. File: {filepath}")
+        return None
+    with open(filepath, 'r') as file:
+        line = file.readline()
+        return line.strip().split()
+
 #------------------------------------------------------------------
 # Main runner
 class MergeAndAlign:
@@ -34,20 +53,20 @@ class MergeAndAlign:
         if (self.write_max_projection):
             self.write_zstack=False
             log.info("Writing max projection as individual files, not saving z-stacks")
-        
+
         self.provider = ProcessedImageProvider(path=args.input,
                                                blacklist=args.blacklist,
                                                plate=args.plate,
                                                plate_merge=args.plate_merge,
                                                registration_dir=args.registration_dir,
                                                flatfields=args.flatfields,
-                                               scaling_factors=args.scaling_factors,
+                                               scaling_factors=read_and_split_file(args.scaling_factors, "--scaling_factors"),
                                                mask_channels=args.mask_channels,
                                                mask_dir=args.mask_dir,
                                                mask_pattern=args.mask_pattern,
                                                uint32=args.uint32,
-                                               scaling_bias=args.scaling_bias,
-                                               scaling_slope=args.scaling_slope)
+                                               scaling_bias=read_and_split_file(args.scaling_bias, "--scaling_bias"),
+                                               scaling_slope=read_and_split_file(args.scaling_slope, "--scaling_slope"))
 
         self.aics_writer = AICSImageWriter(self.output)
         self.output_format=args.output_format
@@ -194,9 +213,9 @@ if __name__ == "__main__":
     parser.add_argument('--uint32', help="Write as 32 bit unsigned integer instead of clipping to 16 bit uint after applying basicpy model", action='store_true', default=False)
 
     # Specific arguments
-    parser.add_argument('--scaling_factors', help='Divide each channel by this constant factor. Apply this if images are using a small portion of the 16/32 bit space. <plate>_ch<channel>=<factor>', nargs='+', default=None)
-    parser.add_argument('--scaling_bias', help='Controls the intensity range to which scaling is applied (bias of a sigmoid curve). Bias is only applied if this is provided. <plate>_ch<channel>=<factor>', nargs='+', default=None)
-    parser.add_argument('--scaling_slope', help='Controls the slope of the sigmoid curve. Ignored if scaling_bias=None', default=0.001)
+    parser.add_argument('--scaling_factors', help='Divide each channel by this constant factor. Apply this if images are using a small portion of the 16/32 bit space. <plate>_ch<channel>=<factor>', default=None)
+    parser.add_argument('--scaling_bias', help='Controls the intensity range to which scaling is applied (bias of a sigmoid curve). Bias is only applied if this is provided. <plate>_ch<channel>=<factor>', default=None)
+    parser.add_argument('--scaling_slope', help='Controls the slope of the sigmoid curve. Ignored if scaling_bias=None', default=None)
     parser.add_argument('--max_project', help="Output max projection as per channel YX tiffs", action='store_true', default=False)
     parser.add_argument('--no_zstack', help="Do not output one tiff file per channel containing all z-stacks", action='store_true', default=False)
     #parser.add_argument('--max_project_onefile', help="Output max projection one CYX tiff. Specify --no_zstack to skip per channel tiffs.", action='store_true', default=False)

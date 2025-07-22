@@ -318,14 +318,31 @@ workflow run_pipeline {
         // Scaling
         //------------------------------------------------------------
         // Get scaling string
-        if (params.rn_manualscale != null) {
-            scaling_channel = Channel
-            .fromPath(params.rn_manualscale)
-            .map { file ->  file.text}
-            .first() // Makes sure it is a value channel
+        if (params.rn_manualscale != null) {    
+            scaling_channel = channel.value(file(params.rn_manualscale))
+            // Old way, makes a text channel of the file content
+            //scaling_channel = Channel
+            //.fromPath(params.rn_manualscale)
+            //.map { file ->  file.text}
+            //.first() // Makes sure it is a value channel
         } else {
-            scaling_channel = Channel.value("none")
+            scaling_channel = Channel.value(file("NO_SCALE"))
         }
+        
+        // Optional slope for the sigmoid curve
+        if (params.rn_scale_slope != null) {    
+            slope_channel = channel.value(file(params.rn_scale_slope))
+        } else {
+            slope_channel = Channel.value(file("NO_SLOPE"))
+        }
+        
+        // Optional bias for the sigmoid curve
+        if (params.rn_scale_bias != null) {    
+            bias_channel = channel.value(file(params.rn_scale_bias))
+        } else {
+            bias_channel = Channel.value(file("NO_BIAS"))
+        }
+        
         
         // When all deconvelution is done, or all data is staged, calculate the scaling factors
         // which map the images onto the full dynamic range of the 16 bit uint
@@ -367,9 +384,12 @@ workflow run_pipeline {
                 plates_channel,
                 manifest_registration_channel,
                 control_dir.collect(), // ensures this only runs when control dir is done
-                demultiplex_channelstring).scaling_factors.map { file -> 
-                    file.text
-            }
+                demultiplex_channelstring).scaling_factors.first() // Emit the scale factor file as a value channel
+            
+            // Old way, emit the file text into the channel
+            //    .scaling_factors.map { file -> 
+            //        file.text
+            //}
         }
 
 
@@ -449,7 +469,7 @@ workflow run_pipeline {
         
         // Cache the final images for feature extraction
         if (params.rn_cache_images) {
-            finalize_out = finalize(finalize_in, flatfield_out_string, scaling_channel)[0]
+            finalize_out = finalize(finalize_in, flatfield_out_string, scaling_channel, slope_channel, bias_channel)[0]
             
             // Create the plate manfiests once finalize is done
             index_imagedir("processed_images", finalize_out.last(), finalize_out.map{row -> row[0]}.unique())
@@ -464,7 +484,7 @@ workflow run_pipeline {
             cellprofiler_out = cellprofiler(finalize_out)
         } else if (params.cpr_run) {
             // This does not cache images
-            cellprofiler_out = finalize_and_cellprofiler(finalize_in, flatfield_out_string, scaling_channel)
+            cellprofiler_out = finalize_and_cellprofiler(finalize_in, flatfield_out_string, scaling_channel, slope_channel, bias_channel)
         }      
 }
 
