@@ -28,9 +28,14 @@ def read_and_split_file(filepath, param):
     Returns:
         list: A list of strings split by space.
     """
+    if filepath is None:
+        log.warning(f"{param} filepath is none, returning none")
+        return None
+    
     if not os.path.isfile(filepath):
         log.warning(f"{param} file not found, returning None. File: {filepath}")
         return None
+    
     with open(filepath, 'r') as file:
         line = file.readline()
         return line.strip().split()
