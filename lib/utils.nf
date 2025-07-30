@@ -49,7 +49,7 @@ def readBlacklist(String path){
         blacklist.add(fields[0] + ":" + fields[1])
     }
     
-    log.info("Blacklist consists of " + blacklist.size() + " items")
+    //log.info("Blacklist consists of " + blacklist.size() + " items")
             
     return blacklist
 }
