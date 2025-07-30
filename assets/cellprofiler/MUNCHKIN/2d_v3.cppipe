@@ -1,0 +1,965 @@
+CellProfiler Pipeline: http://www.cellprofiler.org
+Version:5
+DateRevision:426
+GitHash:
+ModuleCount:67
+HasImagePlaneDetails:False
+
+Images:[module_num:1|svn_version:'Unknown'|variable_revision_number:2|show_window:False|notes:['To begin creating your project, use the Images module to compile a list of files and/or folders that you want to analyze. You can also specify a set of rules to include only the desired files in your selected folders.']|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    :
+    Filter images?:Custom
+    Select the rule criteria:and (extension does istif) (directory doesnot containregexp "[\\\\/]\\.")
+
+Metadata:[module_num:2|svn_version:'Unknown'|variable_revision_number:6|show_window:False|notes:['The Metadata module optionally allows you to extract information describing your images (i.e, metadata) which will be stored along with your measurements. This information can be contained in the file name and/or location, or in an external file.', '', '^(?P<Plate>.*)_(?P<Well>[A-P][0-9]{2})_s(?P<Site>[0-9])_w(?P<ChannelNumber>[0-9])']|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Extract metadata?:Yes
+    Metadata data type:Text
+    Metadata types:{}
+    Extraction method count:2
+    Metadata extraction method:Extract from file/folder names
+    Metadata source:File name
+    Regular expression to extract from file name:^(?P<field>\d+)_(?P<mask_type>.*_mask)_d\d+_ch\d+_cp_masks.tif
+    Regular expression to extract from folder name:(?P<Date>[0-9]{4}_[0-9]{2}_[0-9]{2})$
+    Extract metadata from:All images
+    Select the filtering criteria:and (file does contain "")
+    Metadata file location:Elsewhere...|
+    Match file and image metadata:[]
+    Use case insensitive matching?:No
+    Metadata file name:None
+    Does cached metadata exist?:No
+    Metadata extraction method:Extract from file/folder names
+    Metadata source:File name
+    Regular expression to extract from file name:^(?P<field>\d+)_(?P<plate>.*)_(?P<well>\w\d\d)_ch(?P<channel>\d+)
+    Regular expression to extract from folder name:(?P<Date>[0-9]{4}_[0-9]{2}_[0-9]{2})$
+    Extract metadata from:Images matching a rule
+    Select the filtering criteria:and (file doesnot contain "mask")
+    Metadata file location:Elsewhere...|
+    Match file and image metadata:[]
+    Use case insensitive matching?:No
+    Metadata file name:None
+    Does cached metadata exist?:No
+
+NamesAndTypes:[module_num:3|svn_version:'Unknown'|variable_revision_number:8|show_window:False|notes:['The NamesAndTypes module allows you to assign a meaningful name to each image by which other modules will refer to it.']|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Assign a name to:Images matching rules
+    Select the image type:Grayscale image
+    Name to assign these images:DNA
+    Match metadata:[{'cd25_ki67': 'field', 'actin': 'field', 'mito': 'field', 'cell_img': 'field', 'dna': 'field', 'lipids': 'field', 'ER': 'field', 'dna2': 'field', 'ki67': 'field', 'cd25': 'field', 'nucl_img': 'field', 'tubulin': 'field'}]
+    Image set matching method:Metadata
+    Set intensity range from:Image metadata
+    Assignments count:12
+    Single images count:0
+    Maximum intensity:255.0
+    Process as 3D?:No
+    Relative pixel spacing in X:1.0
+    Relative pixel spacing in Y:1.0
+    Relative pixel spacing in Z:8
+    Select the rule criteria:and (metadata does channel "0")
+    Name to assign these images:cd25_ki67
+    Name to assign these objects:Cell
+    Select the image type:Grayscale image
+    Set intensity range from:Image metadata
+    Maximum intensity:255.0
+    Select the rule criteria:and (metadata does channel "1")
+    Name to assign these images:mito
+    Name to assign these objects:Nucleus
+    Select the image type:Grayscale image
+    Set intensity range from:Image metadata
+    Maximum intensity:255.0
+    Select the rule criteria:and (metadata does channel "2")
+    Name to assign these images:dna
+    Name to assign these objects:Cytoplasm
+    Select the image type:Grayscale image
+    Set intensity range from:Image metadata
+    Maximum intensity:255.0
+    Select the rule criteria:and (metadata does channel "3")
+    Name to assign these images:actin
+    Name to assign these objects:Speckle
+    Select the image type:Grayscale image
+    Set intensity range from:Image metadata
+    Maximum intensity:255.0
+    Select the rule criteria:and (metadata does channel "4")
+    Name to assign these images:lipids
+    Name to assign these objects:Object1
+    Select the image type:Grayscale image
+    Set intensity range from:Image metadata
+    Maximum intensity:255.0
+    Select the rule criteria:and (metadata does channel "5")
+    Name to assign these images:ER
+    Name to assign these objects:Object2
+    Select the image type:Grayscale image
+    Set intensity range from:Image metadata
+    Maximum intensity:255.0
+    Select the rule criteria:and (metadata does channel "6")
+    Name to assign these images:dna2
+    Name to assign these objects:Object3
+    Select the image type:Grayscale image
+    Set intensity range from:Image metadata
+    Maximum intensity:255.0
+    Select the rule criteria:and (metadata does channel "7")
+    Name to assign these images:tubulin
+    Name to assign these objects:Object3
+    Select the image type:Grayscale image
+    Set intensity range from:Image metadata
+    Maximum intensity:255.0
+    Select the rule criteria:and (metadata does channel "9")
+    Name to assign these images:ki67
+    Name to assign these objects:Object3
+    Select the image type:Grayscale image
+    Set intensity range from:Image metadata
+    Maximum intensity:255.0
+    Select the rule criteria:and (metadata does channel "10")
+    Name to assign these images:cd25
+    Name to assign these objects:Object4
+    Select the image type:Grayscale image
+    Set intensity range from:Image metadata
+    Maximum intensity:255.0
+    Select the rule criteria:and (metadata does mask_type "nucl_mask")
+    Name to assign these images:nucl_img
+    Name to assign these objects:Object5
+    Select the image type:Grayscale image
+    Set intensity range from:Image metadata
+    Maximum intensity:255.0
+    Select the rule criteria:and (metadata does mask_type "cell_mask")
+    Name to assign these images:cell_img
+    Name to assign these objects:Object6
+    Select the image type:Grayscale image
+    Set intensity range from:Image metadata
+    Maximum intensity:255.0
+
+Groups:[module_num:4|svn_version:'Unknown'|variable_revision_number:2|show_window:False|notes:['The Groups module optionally allows you to split your list of images into image subsets (groups) which will be processed independently of each other. Examples of groupings include screening batches, microtiter plates, time-lapse movies, etc.']|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Do you want to group your images?:No
+    grouping metadata count:1
+    Metadata category:None
+
+ConvertImageToObjects:[module_num:5|svn_version:'Unknown'|variable_revision_number:1|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Select the input image:cell_img
+    Name the output object:cell_raw
+    Convert to boolean image:No
+    Preserve original labels:Yes
+    Background label:0
+    Connectivity:0
+
+ConvertImageToObjects:[module_num:6|svn_version:'Unknown'|variable_revision_number:1|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Select the input image:nucl_img
+    Name the output object:nucl_raw_unmerged
+    Convert to boolean image:No
+    Preserve original labels:Yes
+    Background label:0
+    Connectivity:0
+
+Threshold:[module_num:7|svn_version:'Unknown'|variable_revision_number:12|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Select the input image:cell_img
+    Name the output image:cell_img_binary
+    Threshold strategy:Global
+    Thresholding method:Manual
+    Threshold smoothing scale:0.0
+    Threshold correction factor:1.0
+    Lower and upper bounds on threshold:0.0,1.0
+    Manual threshold:0.00001525903
+    Select the measurement to threshold with:None
+    Two-class or three-class thresholding?:Two classes
+    Log transform before thresholding?:No
+    Assign pixels in the middle intensity class to the foreground or the background?:Foreground
+    Size of adaptive window:50
+    Lower outlier fraction:0.05
+    Upper outlier fraction:0.05
+    Averaging method:Mean
+    Variance method:Standard deviation
+    # of deviations:2.0
+    Thresholding method:Minimum Cross-Entropy
+
+ImageMath:[module_num:8|svn_version:'Unknown'|variable_revision_number:5|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Operation:Invert
+    Raise the power of the result by:1.0
+    Multiply the result by:1.0
+    Add to result:0.0
+    Set values less than 0 equal to 0?:Yes
+    Set values greater than 1 equal to 1?:Yes
+    Replace invalid values with 0?:Yes
+    Ignore the image masks?:No
+    Name the output image:background_binary
+    Image or measurement?:Image
+    Select the first image:cell_img_binary
+    Multiply the first image by:1.0
+    Measurement:
+    Image or measurement?:Image
+    Select the second image:None
+    Multiply the second image by:1.0
+    Measurement:
+
+ImageMath:[module_num:9|svn_version:'Unknown'|variable_revision_number:5|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Operation:Multiply
+    Raise the power of the result by:1.0
+    Multiply the result by:1.0
+    Add to result:0.0
+    Set values less than 0 equal to 0?:Yes
+    Set values greater than 1 equal to 1?:Yes
+    Replace invalid values with 0?:Yes
+    Ignore the image masks?:No
+    Name the output image:ER_ibg
+    Image or measurement?:Image
+    Select the first image:ER
+    Multiply the first image by:1.0
+    Measurement:
+    Image or measurement?:Image
+    Select the second image:background_binary
+    Multiply the second image by:1.0
+    Measurement:
+
+ImageMath:[module_num:10|svn_version:'Unknown'|variable_revision_number:5|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Operation:Multiply
+    Raise the power of the result by:1.0
+    Multiply the result by:1.0
+    Add to result:0.0
+    Set values less than 0 equal to 0?:Yes
+    Set values greater than 1 equal to 1?:Yes
+    Replace invalid values with 0?:Yes
+    Ignore the image masks?:No
+    Name the output image:actin_ibg
+    Image or measurement?:Image
+    Select the first image:actin
+    Multiply the first image by:1.0
+    Measurement:
+    Image or measurement?:Image
+    Select the second image:background_binary
+    Multiply the second image by:1.0
+    Measurement:
+
+ImageMath:[module_num:11|svn_version:'Unknown'|variable_revision_number:5|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Operation:Multiply
+    Raise the power of the result by:1.0
+    Multiply the result by:1.0
+    Add to result:0.0
+    Set values less than 0 equal to 0?:Yes
+    Set values greater than 1 equal to 1?:Yes
+    Replace invalid values with 0?:Yes
+    Ignore the image masks?:No
+    Name the output image:cd25_ibg
+    Image or measurement?:Image
+    Select the first image:cd25
+    Multiply the first image by:1.0
+    Measurement:
+    Image or measurement?:Image
+    Select the second image:background_binary
+    Multiply the second image by:1.0
+    Measurement:
+
+ImageMath:[module_num:12|svn_version:'Unknown'|variable_revision_number:5|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Operation:Multiply
+    Raise the power of the result by:1.0
+    Multiply the result by:1.0
+    Add to result:0.0
+    Set values less than 0 equal to 0?:Yes
+    Set values greater than 1 equal to 1?:Yes
+    Replace invalid values with 0?:Yes
+    Ignore the image masks?:No
+    Name the output image:cd25_ki67_ibg
+    Image or measurement?:Image
+    Select the first image:cd25_ki67
+    Multiply the first image by:1.0
+    Measurement:
+    Image or measurement?:Image
+    Select the second image:background_binary
+    Multiply the second image by:1.0
+    Measurement:
+
+ImageMath:[module_num:13|svn_version:'Unknown'|variable_revision_number:5|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Operation:Multiply
+    Raise the power of the result by:1.0
+    Multiply the result by:1.0
+    Add to result:0.0
+    Set values less than 0 equal to 0?:Yes
+    Set values greater than 1 equal to 1?:Yes
+    Replace invalid values with 0?:Yes
+    Ignore the image masks?:No
+    Name the output image:dna_ibg
+    Image or measurement?:Image
+    Select the first image:dna
+    Multiply the first image by:1.0
+    Measurement:
+    Image or measurement?:Image
+    Select the second image:background_binary
+    Multiply the second image by:1.0
+    Measurement:
+
+ImageMath:[module_num:14|svn_version:'Unknown'|variable_revision_number:5|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Operation:Multiply
+    Raise the power of the result by:1.0
+    Multiply the result by:1.0
+    Add to result:0.0
+    Set values less than 0 equal to 0?:Yes
+    Set values greater than 1 equal to 1?:Yes
+    Replace invalid values with 0?:Yes
+    Ignore the image masks?:No
+    Name the output image:dna2_ibg
+    Image or measurement?:Image
+    Select the first image:dna2
+    Multiply the first image by:1.0
+    Measurement:
+    Image or measurement?:Image
+    Select the second image:background_binary
+    Multiply the second image by:1.0
+    Measurement:
+
+ImageMath:[module_num:15|svn_version:'Unknown'|variable_revision_number:5|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Operation:Multiply
+    Raise the power of the result by:1.0
+    Multiply the result by:1.0
+    Add to result:0.0
+    Set values less than 0 equal to 0?:Yes
+    Set values greater than 1 equal to 1?:Yes
+    Replace invalid values with 0?:Yes
+    Ignore the image masks?:No
+    Name the output image:ki67_ibg
+    Image or measurement?:Image
+    Select the first image:ki67
+    Multiply the first image by:1.0
+    Measurement:
+    Image or measurement?:Image
+    Select the second image:background_binary
+    Multiply the second image by:1.0
+    Measurement:
+
+ImageMath:[module_num:16|svn_version:'Unknown'|variable_revision_number:5|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Operation:Multiply
+    Raise the power of the result by:1.0
+    Multiply the result by:1.0
+    Add to result:0.0
+    Set values less than 0 equal to 0?:Yes
+    Set values greater than 1 equal to 1?:Yes
+    Replace invalid values with 0?:Yes
+    Ignore the image masks?:No
+    Name the output image:lipids_ibg
+    Image or measurement?:Image
+    Select the first image:lipids
+    Multiply the first image by:1.0
+    Measurement:
+    Image or measurement?:Image
+    Select the second image:background_binary
+    Multiply the second image by:1.0
+    Measurement:
+
+ImageMath:[module_num:17|svn_version:'Unknown'|variable_revision_number:5|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Operation:Multiply
+    Raise the power of the result by:1.0
+    Multiply the result by:1.0
+    Add to result:0.0
+    Set values less than 0 equal to 0?:Yes
+    Set values greater than 1 equal to 1?:Yes
+    Replace invalid values with 0?:Yes
+    Ignore the image masks?:No
+    Name the output image:mito_ibg
+    Image or measurement?:Image
+    Select the first image:mito
+    Multiply the first image by:1.0
+    Measurement:
+    Image or measurement?:Image
+    Select the second image:background_binary
+    Multiply the second image by:1.0
+    Measurement:
+
+ImageMath:[module_num:18|svn_version:'Unknown'|variable_revision_number:5|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Operation:Multiply
+    Raise the power of the result by:1.0
+    Multiply the result by:1.0
+    Add to result:0.0
+    Set values less than 0 equal to 0?:Yes
+    Set values greater than 1 equal to 1?:Yes
+    Replace invalid values with 0?:Yes
+    Ignore the image masks?:No
+    Name the output image:tubulin_ibg
+    Image or measurement?:Image
+    Select the first image:tubulin
+    Multiply the first image by:1.0
+    Measurement:
+    Image or measurement?:Image
+    Select the second image:background_binary
+    Multiply the second image by:1.0
+    Measurement:
+
+MeasureImageIntensity:[module_num:19|svn_version:'Unknown'|variable_revision_number:4|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:True]
+    Select images to measure:ER_ibg, actin_ibg, cd25_ibg, cd25_ki67_ibg, dna2_ibg, dna_ibg, ki67_ibg, lipids_ibg, mito_ibg, tubulin_ibg
+    Measure the intensity only from areas enclosed by objects?:No
+    Select input object sets:
+    Calculate custom percentiles:Yes
+    Specify percentiles to measure:0,1,2,5,10,25,50,75,90,95,98,99,100
+
+MeasureImageQuality:[module_num:20|svn_version:'Unknown'|variable_revision_number:6|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Calculate metrics for which images?:Select...
+    Image count:1
+    Scale count:1
+    Threshold count:1
+    Select the images to measure:ER, actin, cd25, cd25_ki67, dna, dna2, ki67, lipids, mito, tubulin
+    Include the image rescaling value?:Yes
+    Calculate blur metrics?:Yes
+    Spatial scale for blur measurements:20
+    Calculate saturation metrics?:Yes
+    Calculate intensity metrics?:Yes
+    Calculate thresholds?:Yes
+    Use all thresholding methods?:No
+    Select a thresholding method:Otsu
+    Typical fraction of the image covered by objects:0.1
+    Two-class or three-class thresholding?:Two classes
+    Minimize the weighted variance or the entropy?:Weighted variance
+    Assign pixels in the middle intensity class to the foreground or the background?:Foreground
+
+FlagImage:[module_num:21|svn_version:'Unknown'|variable_revision_number:5|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Hidden:1
+    Hidden:1
+    Name the flag's category:Metadata
+    Name the flag:no_cells
+    How should measurements be linked?:Flag if any fail
+    Skip image set if flagged?:Yes
+    Flag is based on:Whole-image measurement
+    Select the object to be used for flagging:None
+    Which measurement?:Count_cell_raw
+    Flag images based on low values?:Yes
+    Minimum value:5
+    Flag images based on high values?:No
+    Maximum value:1.0
+    Rules file location:Elsewhere...|
+    Rules file name:rules.txt
+    Class number:
+    Allow fuzzy feature matching?:No
+    Ignore flag skips on last cycle?:No
+
+RelateObjects:[module_num:22|svn_version:'Unknown'|variable_revision_number:5|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Parent objects:cell_raw
+    Child objects:nucl_raw_unmerged
+    Calculate child-parent distances?:None
+    Calculate per-parent means for all child measurements?:No
+    Calculate distances to other parents?:No
+    Do you want to save the children with parents as a new object set?:No
+    Name the output object:RelateObjects
+    Parent name:None
+
+SplitOrMergeObjects:[module_num:23|svn_version:'Unknown'|variable_revision_number:6|show_window:False|notes:['Merge nuclei with the same parent']|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Select the input objects:nucl_raw_unmerged
+    Name the new objects:nucl
+    Operation:Merge
+    Maximum distance within which to merge objects:0
+    Merge using a grayscale image?:No
+    Select the grayscale image to guide merging:None
+    Minimum intensity fraction:0.9
+    Method to find object intensity:Closest point
+    Merging method:Per-parent
+    Select the parent object:cell_raw
+    Output object type:Disconnected
+
+ExpandOrShrinkObjects:[module_num:24|svn_version:'Unknown'|variable_revision_number:2|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Select the input objects:cell_raw
+    Name the output objects:cell_shrunk
+    Select the operation:Shrink objects by a specified number of pixels
+    Number of pixels by which to expand or shrink:5
+    Fill holes in objects so that all objects shrink to a single point?:No
+    Expand or shrink measurement:None
+
+MaskObjects:[module_num:25|svn_version:'Unknown'|variable_revision_number:3|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Select objects to be masked:cell_raw
+    Name the masked objects:memb_tmp
+    Mask using a region defined by other objects or by binary image?:Objects
+    Select the masking object:cell_shrunk
+    Select the masking image:None
+    Handling of objects that are partially masked:Keep overlapping region
+    Fraction of object that must overlap:0.5
+    Numbering of resulting objects:Retain
+    Invert the mask?:Yes
+
+MaskObjects:[module_num:26|svn_version:'Unknown'|variable_revision_number:3|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Select objects to be masked:memb_tmp
+    Name the masked objects:memb
+    Mask using a region defined by other objects or by binary image?:Objects
+    Select the masking object:nucl
+    Select the masking image:None
+    Handling of objects that are partially masked:Keep overlapping region
+    Fraction of object that must overlap:0.5
+    Numbering of resulting objects:Renumber
+    Invert the mask?:Yes
+
+MaskObjects:[module_num:27|svn_version:'Unknown'|variable_revision_number:3|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Select objects to be masked:cell_raw
+    Name the masked objects:cyto
+    Mask using a region defined by other objects or by binary image?:Objects
+    Select the masking object:nucl
+    Select the masking image:None
+    Handling of objects that are partially masked:Keep overlapping region
+    Fraction of object that must overlap:0.5
+    Numbering of resulting objects:Retain
+    Invert the mask?:Yes
+
+MaskImage:[module_num:28|svn_version:'Unknown'|variable_revision_number:3|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Select the input image:cd25_ki67
+    Name the output image:cd25_old
+    Use objects or an image as a mask?:Objects
+    Select object for mask:cyto
+    Select image for mask:None
+    Invert the mask?:No
+
+MaskImage:[module_num:29|svn_version:'Unknown'|variable_revision_number:3|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Select the input image:cd25_ki67
+    Name the output image:ki67_old
+    Use objects or an image as a mask?:Objects
+    Select object for mask:nucl
+    Select image for mask:None
+    Invert the mask?:No
+
+Smooth:[module_num:30|svn_version:'Unknown'|variable_revision_number:2|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Select the input image:mito
+    Name the output image:mito_background
+    Select smoothing method:Median Filter
+    Calculate artifact diameter automatically?:No
+    Typical artifact diameter:16
+    Edge intensity difference:0.1
+    Clip intensities to 0 and 1?:Yes
+
+Smooth:[module_num:31|svn_version:'Unknown'|variable_revision_number:2|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:False|wants_pause:False]
+    Select the input image:ki67
+    Name the output image:ki67_background
+    Select smoothing method:Circular Average Filter
+    Calculate artifact diameter automatically?:No
+    Typical artifact diameter:16.0
+    Edge intensity difference:0.1
+    Clip intensities to 0 and 1?:Yes
+
+ImageMath:[module_num:32|svn_version:'Unknown'|variable_revision_number:5|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Operation:Subtract
+    Raise the power of the result by:1.0
+    Multiply the result by:1.0
+    Add to result:0.0
+    Set values less than 0 equal to 0?:Yes
+    Set values greater than 1 equal to 1?:Yes
+    Replace invalid values with 0?:Yes
+    Ignore the image masks?:No
+    Name the output image:mito_bgcor
+    Image or measurement?:Image
+    Select the first image:mito
+    Multiply the first image by:1.0
+    Measurement:
+    Image or measurement?:Image
+    Select the second image:mito_background
+    Multiply the second image by:1.0
+    Measurement:
+
+ImageMath:[module_num:33|svn_version:'Unknown'|variable_revision_number:5|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:False|wants_pause:False]
+    Operation:Subtract
+    Raise the power of the result by:1.0
+    Multiply the result by:1.0
+    Add to result:0.0
+    Set values less than 0 equal to 0?:Yes
+    Set values greater than 1 equal to 1?:Yes
+    Replace invalid values with 0?:Yes
+    Ignore the image masks?:No
+    Name the output image:ki67_bgcor
+    Image or measurement?:Image
+    Select the first image:ki67
+    Multiply the first image by:1.0
+    Measurement:
+    Image or measurement?:Image
+    Select the second image:ki67_background
+    Multiply the second image by:1.0
+    Measurement:
+
+Threshold:[module_num:34|svn_version:'Unknown'|variable_revision_number:12|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Select the input image:mito_bgcor
+    Name the output image:mito_thresh
+    Threshold strategy:Adaptive
+    Thresholding method:Otsu
+    Threshold smoothing scale:0.0
+    Threshold correction factor:1.0
+    Lower and upper bounds on threshold:0.01,1.0
+    Manual threshold:0.0
+    Select the measurement to threshold with:None
+    Two-class or three-class thresholding?:Two classes
+    Log transform before thresholding?:No
+    Assign pixels in the middle intensity class to the foreground or the background?:Foreground
+    Size of adaptive window:50
+    Lower outlier fraction:0.05
+    Upper outlier fraction:0.05
+    Averaging method:Mean
+    Variance method:Standard deviation
+    # of deviations:2.0
+    Thresholding method:Otsu
+
+Threshold:[module_num:35|svn_version:'Unknown'|variable_revision_number:12|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:True]
+    Select the input image:lipids
+    Name the output image:lipid_thresh
+    Threshold strategy:Adaptive
+    Thresholding method:Otsu
+    Threshold smoothing scale:0.0
+    Threshold correction factor:1.0
+    Lower and upper bounds on threshold:0.01,1.0
+    Manual threshold:0.0
+    Select the measurement to threshold with:None
+    Two-class or three-class thresholding?:Two classes
+    Log transform before thresholding?:No
+    Assign pixels in the middle intensity class to the foreground or the background?:Foreground
+    Size of adaptive window:50
+    Lower outlier fraction:0.05
+    Upper outlier fraction:0.05
+    Averaging method:Mean
+    Variance method:Standard deviation
+    # of deviations:2.0
+    Thresholding method:Otsu
+
+Threshold:[module_num:36|svn_version:'Unknown'|variable_revision_number:12|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:True]
+    Select the input image:ki67
+    Name the output image:ki67_thresh
+    Threshold strategy:Adaptive
+    Thresholding method:Otsu
+    Threshold smoothing scale:0.0
+    Threshold correction factor:1
+    Lower and upper bounds on threshold:0.01,1.0
+    Manual threshold:0.0
+    Select the measurement to threshold with:None
+    Two-class or three-class thresholding?:Two classes
+    Log transform before thresholding?:No
+    Assign pixels in the middle intensity class to the foreground or the background?:Background
+    Size of adaptive window:50
+    Lower outlier fraction:0.05
+    Upper outlier fraction:0.05
+    Averaging method:Mean
+    Variance method:Standard deviation
+    # of deviations:2.0
+    Thresholding method:Otsu
+
+ConvertImageToObjects:[module_num:37|svn_version:'Unknown'|variable_revision_number:1|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Select the input image:ki67_thresh
+    Name the output object:ki67
+    Convert to boolean image:Yes
+    Preserve original labels:No
+    Background label:0
+    Connectivity:0
+
+ConvertImageToObjects:[module_num:38|svn_version:'Unknown'|variable_revision_number:1|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Select the input image:mito_thresh
+    Name the output object:mito
+    Convert to boolean image:No
+    Preserve original labels:No
+    Background label:0
+    Connectivity:0
+
+ConvertImageToObjects:[module_num:39|svn_version:'Unknown'|variable_revision_number:1|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Select the input image:lipid_thresh
+    Name the output object:lipids
+    Convert to boolean image:No
+    Preserve original labels:No
+    Background label:0
+    Connectivity:0
+
+FilterObjects:[module_num:40|svn_version:'Unknown'|variable_revision_number:10|show_window:False|notes:['Exclude nuclei 5% arround the image borders']|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Select the objects to filter:cell_raw
+    Name the output objects:cell
+    Select the filtering mode:Measurements
+    Select the filtering method:Limits
+    Select the objects that contain the filtered objects:None
+    Select the location of the rules or classifier file:Elsewhere...|
+    Rules or classifier file name:rules.txt
+    Class number:1
+    Measurement count:2
+    Additional object count:0
+    Assign overlapping child to:Both parents
+    Keep removed objects as a separate set?:No
+    Name the objects removed by the filter:RemovedObjects
+    Select the measurement to filter by:Location_Center_X
+    Filter using a minimum measurement value?:Yes
+    Minimum value:108
+    Filter using a maximum measurement value?:Yes
+    Maximum value:2052
+    Select the measurement to filter by:Location_Center_Y
+    Filter using a minimum measurement value?:Yes
+    Minimum value:108
+    Filter using a maximum measurement value?:Yes
+    Maximum value:2052
+    Allow fuzzy feature matching?:No
+
+RelateObjects:[module_num:41|svn_version:'Unknown'|variable_revision_number:5|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Parent objects:cell
+    Child objects:nucl
+    Calculate child-parent distances?:None
+    Calculate per-parent means for all child measurements?:No
+    Calculate distances to other parents?:No
+    Do you want to save the children with parents as a new object set?:No
+    Name the output object:RelateObjects
+    Parent name:None
+
+RelateObjects:[module_num:42|svn_version:'Unknown'|variable_revision_number:5|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Parent objects:cell
+    Child objects:memb
+    Calculate child-parent distances?:None
+    Calculate per-parent means for all child measurements?:No
+    Calculate distances to other parents?:No
+    Do you want to save the children with parents as a new object set?:No
+    Name the output object:RelateObjects
+    Parent name:None
+
+RelateObjects:[module_num:43|svn_version:'Unknown'|variable_revision_number:5|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Parent objects:cell
+    Child objects:cyto
+    Calculate child-parent distances?:None
+    Calculate per-parent means for all child measurements?:No
+    Calculate distances to other parents?:No
+    Do you want to save the children with parents as a new object set?:No
+    Name the output object:RelateObjects
+    Parent name:None
+
+RelateObjects:[module_num:44|svn_version:'Unknown'|variable_revision_number:5|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Parent objects:cell
+    Child objects:mito
+    Calculate child-parent distances?:None
+    Calculate per-parent means for all child measurements?:No
+    Calculate distances to other parents?:No
+    Do you want to save the children with parents as a new object set?:No
+    Name the output object:RelateObjects
+    Parent name:None
+
+RelateObjects:[module_num:45|svn_version:'Unknown'|variable_revision_number:5|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Parent objects:cell
+    Child objects:ki67
+    Calculate child-parent distances?:None
+    Calculate per-parent means for all child measurements?:No
+    Calculate distances to other parents?:No
+    Do you want to save the children with parents as a new object set?:No
+    Name the output object:RelateObjects
+    Parent name:None
+
+RelateObjects:[module_num:46|svn_version:'Unknown'|variable_revision_number:5|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Parent objects:cell
+    Child objects:lipids
+    Calculate child-parent distances?:None
+    Calculate per-parent means for all child measurements?:No
+    Calculate distances to other parents?:No
+    Do you want to save the children with parents as a new object set?:No
+    Name the output object:RelateObjects
+    Parent name:None
+
+SplitOrMergeObjects:[module_num:47|svn_version:'Unknown'|variable_revision_number:6|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Select the input objects:mito
+    Name the new objects:mitoNetwork
+    Operation:Merge
+    Maximum distance within which to merge objects:0
+    Merge using a grayscale image?:No
+    Select the grayscale image to guide merging:None
+    Minimum intensity fraction:0.9
+    Method to find object intensity:Closest point
+    Merging method:Per-parent
+    Select the parent object:cell
+    Output object type:Disconnected
+
+RelateObjects:[module_num:48|svn_version:'Unknown'|variable_revision_number:5|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Parent objects:cell
+    Child objects:mitoNetwork
+    Calculate child-parent distances?:None
+    Calculate per-parent means for all child measurements?:No
+    Calculate distances to other parents?:No
+    Do you want to save the children with parents as a new object set?:No
+    Name the output object:RelateObjects
+    Parent name:None
+
+MeasureObjectSizeShape:[module_num:49|svn_version:'Unknown'|variable_revision_number:3|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Select object sets to measure:cell, nucl
+    Calculate the Zernike features?:Yes
+    Calculate the advanced features?:Yes
+
+MeasureObjectSizeShape:[module_num:50|svn_version:'Unknown'|variable_revision_number:3|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Select object sets to measure:ki67, lipids, mito, mitoNetwork
+    Calculate the Zernike features?:No
+    Calculate the advanced features?:No
+
+MeasureObjectNeighbors:[module_num:51|svn_version:'Unknown'|variable_revision_number:3|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Select objects to measure:cell
+    Select neighboring objects to measure:cell
+    Method to determine neighbors:Adjacent
+    Neighbor distance:5
+    Consider objects discarded for touching image border?:No
+    Retain the image of objects colored by numbers of neighbors?:No
+    Name the output image:ObjectNeighborCount
+    Select colormap:Blues
+    Retain the image of objects colored by percent of touching pixels?:No
+    Name the output image:PercentTouching
+    Select colormap:Oranges
+
+MeasureObjectNeighbors:[module_num:52|svn_version:'Unknown'|variable_revision_number:3|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:False|wants_pause:False]
+    Select objects to measure:mito
+    Select neighboring objects to measure:mito
+    Method to determine neighbors:Within a specified distance
+    Neighbor distance:3
+    Consider objects discarded for touching image border?:Yes
+    Retain the image of objects colored by numbers of neighbors?:No
+    Name the output image:ObjectNeighborCount
+    Select colormap:Blues
+    Retain the image of objects colored by percent of touching pixels?:No
+    Name the output image:PercentTouching
+    Select colormap:Oranges
+
+MeasureObjectIntensity:[module_num:53|svn_version:'Unknown'|variable_revision_number:4|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Select images to measure:ER, actin, cd25, cd25_ki67, cd25_old, ki67, ki67_old, lipids, mito, tubulin
+    Select objects to measure:cell
+
+MeasureObjectIntensity:[module_num:54|svn_version:'Unknown'|variable_revision_number:4|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Select images to measure:mito
+    Select objects to measure:mito, mitoNetwork
+
+MeasureObjectIntensity:[module_num:55|svn_version:'Unknown'|variable_revision_number:4|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Select images to measure:lipids
+    Select objects to measure:lipids
+
+MeasureObjectIntensity:[module_num:56|svn_version:'Unknown'|variable_revision_number:4|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Select images to measure:ER, actin, cd25, lipids, mito, tubulin
+    Select objects to measure:cyto, memb
+
+MeasureObjectIntensity:[module_num:57|svn_version:'Unknown'|variable_revision_number:4|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Select images to measure:dna, dna2, ki67, ki67_old, tubulin
+    Select objects to measure:nucl
+
+MeasureImageAreaOccupied:[module_num:58|svn_version:'Unknown'|variable_revision_number:5|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Measure the area occupied by:Objects
+    Select binary images to measure:cells_img
+    Select object sets to measure:cell
+
+MeasureObjectIntensityDistribution:[module_num:59|svn_version:'Unknown'|variable_revision_number:6|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Select images to measure:ER, actin, cd25, mito, tubulin
+    Hidden:1
+    Hidden:1
+    Hidden:0
+    Calculate intensity Zernikes?:Magnitudes and phase
+    Maximum zernike moment:5
+    Select objects to measure:cell
+    Object to use as center?:These objects
+    Select objects to use as centers:None
+    Scale the bins?:Yes
+    Number of bins:6
+    Maximum radius:100
+
+MeasureGranularity:[module_num:60|svn_version:'Unknown'|variable_revision_number:4|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Select images to measure:ER, cd25, lipids, mito
+    Measure within objects?:Yes
+    Select objects to measure:cell
+    Subsampling factor for granularity measurements:0.25
+    Subsampling factor for background reduction:0.25
+    Radius of structuring element:5
+    Range of the granular spectrum:12
+
+MeasureGranularity:[module_num:61|svn_version:'Unknown'|variable_revision_number:4|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Select images to measure:ki67
+    Measure within objects?:Yes
+    Select objects to measure:nucl
+    Subsampling factor for granularity measurements:0.25
+    Subsampling factor for background reduction:0.25
+    Radius of structuring element:5
+    Range of the granular spectrum:12
+
+MeasureColocalization:[module_num:62|svn_version:'Unknown'|variable_revision_number:5|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Select images to measure:dna, dna2, ki67, tubulin
+    Set threshold as percentage of maximum intensity for the images:15.0
+    Select where to measure correlation:Within objects
+    Select objects to measure:nucl
+    Run all metrics?:No
+    Calculate correlation and slope metrics?:Yes
+    Calculate the Manders coefficients?:No
+    Calculate the Rank Weighted Colocalization coefficients?:No
+    Calculate the Overlap coefficients?:No
+    Calculate the Manders coefficients using Costes auto threshold?:No
+    Method for Costes thresholding:Faster
+
+MeasureColocalization:[module_num:63|svn_version:'Unknown'|variable_revision_number:5|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Select images to measure:ER, cd25, lipids, mito
+    Set threshold as percentage of maximum intensity for the images:15.0
+    Select where to measure correlation:Within objects
+    Select objects to measure:cell
+    Run all metrics?:No
+    Calculate correlation and slope metrics?:Yes
+    Calculate the Manders coefficients?:No
+    Calculate the Rank Weighted Colocalization coefficients?:No
+    Calculate the Overlap coefficients?:No
+    Calculate the Manders coefficients using Costes auto threshold?:No
+    Method for Costes thresholding:Faster
+
+MeasureTexture:[module_num:64|svn_version:'Unknown'|variable_revision_number:7|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Select images to measure:ER, actin, cd25, cd25_ki67, lipids, mito, tubulin
+    Select objects to measure:cell
+    Enter how many gray levels to measure the texture at:256
+    Hidden:2
+    Measure whole images or objects?:Objects
+    Texture scale to measure:3
+    Texture scale to measure:12
+
+MeasureTexture:[module_num:65|svn_version:'Unknown'|variable_revision_number:7|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Select images to measure:cd25, cd25_ki67
+    Select objects to measure:cyto
+    Enter how many gray levels to measure the texture at:256
+    Hidden:2
+    Measure whole images or objects?:Objects
+    Texture scale to measure:3
+    Texture scale to measure:12
+
+MeasureTexture:[module_num:66|svn_version:'Unknown'|variable_revision_number:7|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Select images to measure:cd25_ki67, dna, dna2, ki67
+    Select objects to measure:nucl
+    Enter how many gray levels to measure the texture at:256
+    Hidden:2
+    Measure whole images or objects?:Objects
+    Texture scale to measure:3
+    Texture scale to measure:12
+
+ExportToSpreadsheet:[module_num:67|svn_version:'Unknown'|variable_revision_number:13|show_window:True|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Select the column delimiter:Tab
+    Add image metadata columns to your object data file?:No
+    Add image file and folder names to your object data file?:No
+    Select the measurements to export:Yes
+    Calculate the per-image mean values for object measurements?:No
+    Calculate the per-image median values for object measurements?:No
+    Calculate the per-image standard deviation values for object measurements?:No
+    Output file location:Default Output Folder|Desktop
+    Create a GenePattern GCT file?:No
+    Select source of sample row name:Metadata
+    Select the image to use as the identifier:None
+    Select the metadata to use as the identifier:None
+    Export all measurement types?:No
+    Press button to select measurements:cell|Texture_InfoMeas2_tubulin_3_03_256,cell|Texture_InfoMeas2_tubulin_3_02_256,cell|Texture_InfoMeas2_tubulin_3_01_256,cell|Texture_InfoMeas2_tubulin_3_00_256,cell|Texture_InfoMeas2_tubulin_12_03_256,cell|Texture_InfoMeas2_tubulin_12_00_256,cell|Texture_InfoMeas2_tubulin_12_02_256,cell|Texture_InfoMeas2_tubulin_12_01_256,cell|Texture_InfoMeas2_mito_3_01_256,cell|Texture_InfoMeas2_mito_3_03_256,cell|Texture_InfoMeas2_mito_3_00_256,cell|Texture_InfoMeas2_mito_3_02_256,cell|Texture_InfoMeas2_mito_12_02_256,cell|Texture_InfoMeas2_mito_12_00_256,cell|Texture_InfoMeas2_mito_12_03_256,cell|Texture_InfoMeas2_mito_12_01_256,cell|Texture_InfoMeas2_actin_12_03_256,cell|Texture_InfoMeas2_actin_12_00_256,cell|Texture_InfoMeas2_actin_12_01_256,cell|Texture_InfoMeas2_actin_12_02_256,cell|Texture_InfoMeas2_actin_3_01_256,cell|Texture_InfoMeas2_actin_3_03_256,cell|Texture_InfoMeas2_actin_3_00_256,cell|Texture_InfoMeas2_actin_3_02_256,cell|Texture_InfoMeas2_ER_3_01_256,cell|Texture_InfoMeas2_ER_3_03_256,cell|Texture_InfoMeas2_ER_3_02_256,cell|Texture_InfoMeas2_ER_3_00_256,cell|Texture_InfoMeas2_ER_12_03_256,cell|Texture_InfoMeas2_ER_12_01_256,cell|Texture_InfoMeas2_ER_12_02_256,cell|Texture_InfoMeas2_ER_12_00_256,cell|Texture_InfoMeas2_lipids_3_02_256,cell|Texture_InfoMeas2_lipids_3_00_256,cell|Texture_InfoMeas2_lipids_3_01_256,cell|Texture_InfoMeas2_lipids_3_03_256,cell|Texture_InfoMeas2_lipids_12_03_256,cell|Texture_InfoMeas2_lipids_12_00_256,cell|Texture_InfoMeas2_lipids_12_02_256,cell|Texture_InfoMeas2_lipids_12_01_256,cell|Texture_InfoMeas2_cd25_12_01_256,cell|Texture_InfoMeas2_cd25_12_00_256,cell|Texture_InfoMeas2_cd25_12_02_256,cell|Texture_InfoMeas2_cd25_12_03_256,cell|Texture_InfoMeas2_cd25_3_03_256,cell|Texture_InfoMeas2_cd25_3_00_256,cell|Texture_InfoMeas2_cd25_3_01_256,cell|Texture_InfoMeas2_cd25_3_02_256,cell|Texture_InfoMeas2_cd25_ki67_12_00_256,cell|Texture_InfoMeas2_cd25_ki67_12_03_256,cell|Texture_InfoMeas2_cd25_ki67_12_02_256,cell|Texture_InfoMeas2_cd25_ki67_12_01_256,cell|Texture_InfoMeas2_cd25_ki67_3_03_256,cell|Texture_InfoMeas2_cd25_ki67_3_01_256,cell|Texture_InfoMeas2_cd25_ki67_3_00_256,cell|Texture_InfoMeas2_cd25_ki67_3_02_256,cell|Texture_Variance_actin_3_00_256,cell|Texture_Variance_actin_3_01_256,cell|Texture_Variance_actin_3_03_256,cell|Texture_Variance_actin_3_02_256,cell|Texture_Variance_actin_12_01_256,cell|Texture_Variance_actin_12_00_256,cell|Texture_Variance_actin_12_03_256,cell|Texture_Variance_actin_12_02_256,cell|Texture_Variance_mito_12_01_256,cell|Texture_Variance_mito_12_00_256,cell|Texture_Variance_mito_12_02_256,cell|Texture_Variance_mito_12_03_256,cell|Texture_Variance_mito_3_03_256,cell|Texture_Variance_mito_3_01_256,cell|Texture_Variance_mito_3_02_256,cell|Texture_Variance_mito_3_00_256,cell|Texture_Variance_lipids_12_02_256,cell|Texture_Variance_lipids_12_03_256,cell|Texture_Variance_lipids_12_01_256,cell|Texture_Variance_lipids_12_00_256,cell|Texture_Variance_lipids_3_00_256,cell|Texture_Variance_lipids_3_01_256,cell|Texture_Variance_lipids_3_03_256,cell|Texture_Variance_lipids_3_02_256,cell|Texture_Variance_tubulin_12_01_256,cell|Texture_Variance_tubulin_12_02_256,cell|Texture_Variance_tubulin_12_00_256,cell|Texture_Variance_tubulin_12_03_256,cell|Texture_Variance_tubulin_3_01_256,cell|Texture_Variance_tubulin_3_02_256,cell|Texture_Variance_tubulin_3_03_256,cell|Texture_Variance_tubulin_3_00_256,cell|Texture_Variance_ER_3_02_256,cell|Texture_Variance_ER_3_03_256,cell|Texture_Variance_ER_3_00_256,cell|Texture_Variance_ER_3_01_256,cell|Texture_Variance_ER_12_00_256,cell|Texture_Variance_ER_12_02_256,cell|Texture_Variance_ER_12_03_256,cell|Texture_Variance_ER_12_01_256,cell|Texture_Variance_cd25_ki67_3_03_256,cell|Texture_Variance_cd25_ki67_3_02_256,cell|Texture_Variance_cd25_ki67_3_01_256,cell|Texture_Variance_cd25_ki67_3_00_256,cell|Texture_Variance_cd25_ki67_12_02_256,cell|Texture_Variance_cd25_ki67_12_03_256,cell|Texture_Variance_cd25_ki67_12_01_256,cell|Texture_Variance_cd25_ki67_12_00_256,cell|Texture_Variance_cd25_3_01_256,cell|Texture_Variance_cd25_3_03_256,cell|Texture_Variance_cd25_3_02_256,cell|Texture_Variance_cd25_3_00_256,cell|Texture_Variance_cd25_12_02_256,cell|Texture_Variance_cd25_12_01_256,cell|Texture_Variance_cd25_12_03_256,cell|Texture_Variance_cd25_12_00_256,cell|Texture_DifferenceEntropy_actin_3_03_256,cell|Texture_DifferenceEntropy_actin_3_01_256,cell|Texture_DifferenceEntropy_actin_3_02_256,cell|Texture_DifferenceEntropy_actin_3_00_256,cell|Texture_DifferenceEntropy_actin_12_00_256,cell|Texture_DifferenceEntropy_actin_12_02_256,cell|Texture_DifferenceEntropy_actin_12_01_256,cell|Texture_DifferenceEntropy_actin_12_03_256,cell|Texture_DifferenceEntropy_ER_3_03_256,cell|Texture_DifferenceEntropy_ER_3_02_256,cell|Texture_DifferenceEntropy_ER_3_01_256,cell|Texture_DifferenceEntropy_ER_3_00_256,cell|Texture_DifferenceEntropy_ER_12_02_256,cell|Texture_DifferenceEntropy_ER_12_00_256,cell|Texture_DifferenceEntropy_ER_12_03_256,cell|Texture_DifferenceEntropy_ER_12_01_256,cell|Texture_DifferenceEntropy_lipids_3_00_256,cell|Texture_DifferenceEntropy_lipids_3_03_256,cell|Texture_DifferenceEntropy_lipids_3_01_256,cell|Texture_DifferenceEntropy_lipids_3_02_256,cell|Texture_DifferenceEntropy_lipids_12_00_256,cell|Texture_DifferenceEntropy_lipids_12_03_256,cell|Texture_DifferenceEntropy_lipids_12_02_256,cell|Texture_DifferenceEntropy_lipids_12_01_256,cell|Texture_DifferenceEntropy_cd25_3_01_256,cell|Texture_DifferenceEntropy_cd25_3_03_256,cell|Texture_DifferenceEntropy_cd25_3_00_256,cell|Texture_DifferenceEntropy_cd25_3_02_256,cell|Texture_DifferenceEntropy_cd25_12_00_256,cell|Texture_DifferenceEntropy_cd25_12_01_256,cell|Texture_DifferenceEntropy_cd25_12_03_256,cell|Texture_DifferenceEntropy_cd25_12_02_256,cell|Texture_DifferenceEntropy_cd25_ki67_12_01_256,cell|Texture_DifferenceEntropy_cd25_ki67_12_02_256,cell|Texture_DifferenceEntropy_cd25_ki67_12_03_256,cell|Texture_DifferenceEntropy_cd25_ki67_12_00_256,cell|Texture_DifferenceEntropy_cd25_ki67_3_00_256,cell|Texture_DifferenceEntropy_cd25_ki67_3_03_256,cell|Texture_DifferenceEntropy_cd25_ki67_3_01_256,cell|Texture_DifferenceEntropy_cd25_ki67_3_02_256,cell|Texture_DifferenceEntropy_tubulin_3_03_256,cell|Texture_DifferenceEntropy_tubulin_3_02_256,cell|Texture_DifferenceEntropy_tubulin_3_00_256,cell|Texture_DifferenceEntropy_tubulin_3_01_256,cell|Texture_DifferenceEntropy_tubulin_12_00_256,cell|Texture_DifferenceEntropy_tubulin_12_03_256,cell|Texture_DifferenceEntropy_tubulin_12_01_256,cell|Texture_DifferenceEntropy_tubulin_12_02_256,cell|Texture_DifferenceEntropy_mito_12_02_256,cell|Texture_DifferenceEntropy_mito_12_00_256,cell|Texture_DifferenceEntropy_mito_12_01_256,cell|Texture_DifferenceEntropy_mito_12_03_256,cell|Texture_DifferenceEntropy_mito_3_00_256,cell|Texture_DifferenceEntropy_mito_3_01_256,cell|Texture_DifferenceEntropy_mito_3_02_256,cell|Texture_DifferenceEntropy_mito_3_03_256,cell|Texture_Entropy_ER_12_00_256,cell|Texture_Entropy_ER_12_02_256,cell|Texture_Entropy_ER_12_03_256,cell|Texture_Entropy_ER_12_01_256,cell|Texture_Entropy_ER_3_01_256,cell|Texture_Entropy_ER_3_02_256,cell|Texture_Entropy_ER_3_00_256,cell|Texture_Entropy_ER_3_03_256,cell|Texture_Entropy_cd25_ki67_3_02_256,cell|Texture_Entropy_cd25_ki67_3_01_256,cell|Texture_Entropy_cd25_ki67_3_00_256,cell|Texture_Entropy_cd25_ki67_3_03_256,cell|Texture_Entropy_cd25_ki67_12_02_256,cell|Texture_Entropy_cd25_ki67_12_03_256,cell|Texture_Entropy_cd25_ki67_12_00_256,cell|Texture_Entropy_cd25_ki67_12_01_256,cell|Texture_Entropy_cd25_12_03_256,cell|Texture_Entropy_cd25_12_01_256,cell|Texture_Entropy_cd25_12_00_256,cell|Texture_Entropy_cd25_12_02_256,cell|Texture_Entropy_cd25_3_00_256,cell|Texture_Entropy_cd25_3_03_256,cell|Texture_Entropy_cd25_3_01_256,cell|Texture_Entropy_cd25_3_02_256,cell|Texture_Entropy_tubulin_3_00_256,cell|Texture_Entropy_tubulin_3_01_256,cell|Texture_Entropy_tubulin_3_03_256,cell|Texture_Entropy_tubulin_3_02_256,cell|Texture_Entropy_tubulin_12_01_256,cell|Texture_Entropy_tubulin_12_00_256,cell|Texture_Entropy_tubulin_12_03_256,cell|Texture_Entropy_tubulin_12_02_256,cell|Texture_Entropy_lipids_12_02_256,cell|Texture_Entropy_lipids_12_00_256,cell|Texture_Entropy_lipids_12_01_256,cell|Texture_Entropy_lipids_12_03_256,cell|Texture_Entropy_lipids_3_00_256,cell|Texture_Entropy_lipids_3_02_256,cell|Texture_Entropy_lipids_3_03_256,cell|Texture_Entropy_lipids_3_01_256,cell|Texture_Entropy_actin_12_01_256,cell|Texture_Entropy_actin_12_02_256,cell|Texture_Entropy_actin_12_00_256,cell|Texture_Entropy_actin_12_03_256,cell|Texture_Entropy_actin_3_02_256,cell|Texture_Entropy_actin_3_03_256,cell|Texture_Entropy_actin_3_00_256,cell|Texture_Entropy_actin_3_01_256,cell|Texture_Entropy_mito_12_00_256,cell|Texture_Entropy_mito_12_03_256,cell|Texture_Entropy_mito_12_01_256,cell|Texture_Entropy_mito_12_02_256,cell|Texture_Entropy_mito_3_00_256,cell|Texture_Entropy_mito_3_01_256,cell|Texture_Entropy_mito_3_03_256,cell|Texture_Entropy_mito_3_02_256,cell|Texture_SumAverage_actin_3_01_256,cell|Texture_SumAverage_actin_3_03_256,cell|Texture_SumAverage_actin_3_00_256,cell|Texture_SumAverage_actin_3_02_256,cell|Texture_SumAverage_actin_12_01_256,cell|Texture_SumAverage_actin_12_02_256,cell|Texture_SumAverage_actin_12_00_256,cell|Texture_SumAverage_actin_12_03_256,cell|Texture_SumAverage_tubulin_12_02_256,cell|Texture_SumAverage_tubulin_12_03_256,cell|Texture_SumAverage_tubulin_12_00_256,cell|Texture_SumAverage_tubulin_12_01_256,cell|Texture_SumAverage_tubulin_3_03_256,cell|Texture_SumAverage_tubulin_3_02_256,cell|Texture_SumAverage_tubulin_3_00_256,cell|Texture_SumAverage_tubulin_3_01_256,cell|Texture_SumAverage_ER_12_01_256,cell|Texture_SumAverage_ER_12_02_256,cell|Texture_SumAverage_ER_12_00_256,cell|Texture_SumAverage_ER_12_03_256,cell|Texture_SumAverage_ER_3_03_256,cell|Texture_SumAverage_ER_3_00_256,cell|Texture_SumAverage_ER_3_01_256,cell|Texture_SumAverage_ER_3_02_256,cell|Texture_SumAverage_cd25_12_03_256,cell|Texture_SumAverage_cd25_12_01_256,cell|Texture_SumAverage_cd25_12_02_256,cell|Texture_SumAverage_cd25_12_00_256,cell|Texture_SumAverage_cd25_ki67_12_01_256,cell|Texture_SumAverage_cd25_ki67_12_03_256,cell|Texture_SumAverage_cd25_ki67_12_00_256,cell|Texture_SumAverage_cd25_ki67_12_02_256,cell|Texture_SumAverage_cd25_ki67_3_02_256,cell|Texture_SumAverage_cd25_ki67_3_00_256,cell|Texture_SumAverage_cd25_ki67_3_03_256,cell|Texture_SumAverage_cd25_ki67_3_01_256,cell|Texture_SumAverage_cd25_3_02_256,cell|Texture_SumAverage_cd25_3_01_256,cell|Texture_SumAverage_cd25_3_03_256,cell|Texture_SumAverage_cd25_3_00_256,cell|Texture_SumAverage_mito_3_00_256,cell|Texture_SumAverage_mito_3_03_256,cell|Texture_SumAverage_mito_3_01_256,cell|Texture_SumAverage_mito_3_02_256,cell|Texture_SumAverage_mito_12_02_256,cell|Texture_SumAverage_mito_12_00_256,cell|Texture_SumAverage_mito_12_03_256,cell|Texture_SumAverage_mito_12_01_256,cell|Texture_SumAverage_lipids_3_01_256,cell|Texture_SumAverage_lipids_3_02_256,cell|Texture_SumAverage_lipids_3_03_256,cell|Texture_SumAverage_lipids_3_00_256,cell|Texture_SumAverage_lipids_12_00_256,cell|Texture_SumAverage_lipids_12_01_256,cell|Texture_SumAverage_lipids_12_03_256,cell|Texture_SumAverage_lipids_12_02_256,cell|Texture_InverseDifferenceMoment_actin_12_03_256,cell|Texture_InverseDifferenceMoment_actin_12_01_256,cell|Texture_InverseDifferenceMoment_actin_12_00_256,cell|Texture_InverseDifferenceMoment_actin_12_02_256,cell|Texture_InverseDifferenceMoment_actin_3_01_256,cell|Texture_InverseDifferenceMoment_actin_3_02_256,cell|Texture_InverseDifferenceMoment_actin_3_00_256,cell|Texture_InverseDifferenceMoment_actin_3_03_256,cell|Texture_InverseDifferenceMoment_cd25_12_00_256,cell|Texture_InverseDifferenceMoment_cd25_12_03_256,cell|Texture_InverseDifferenceMoment_cd25_12_01_256,cell|Texture_InverseDifferenceMoment_cd25_12_02_256,cell|Texture_InverseDifferenceMoment_cd25_ki67_12_02_256,cell|Texture_InverseDifferenceMoment_cd25_ki67_12_03_256,cell|Texture_InverseDifferenceMoment_cd25_ki67_12_01_256,cell|Texture_InverseDifferenceMoment_cd25_ki67_12_00_256,cell|Texture_InverseDifferenceMoment_cd25_ki67_3_03_256,cell|Texture_InverseDifferenceMoment_cd25_ki67_3_02_256,cell|Texture_InverseDifferenceMoment_cd25_ki67_3_01_256,cell|Texture_InverseDifferenceMoment_cd25_ki67_3_00_256,cell|Texture_InverseDifferenceMoment_cd25_3_02_256,cell|Texture_InverseDifferenceMoment_cd25_3_03_256,cell|Texture_InverseDifferenceMoment_cd25_3_01_256,cell|Texture_InverseDifferenceMoment_cd25_3_00_256,cell|Texture_InverseDifferenceMoment_mito_3_03_256,cell|Texture_InverseDifferenceMoment_mito_3_02_256,cell|Texture_InverseDifferenceMoment_mito_3_01_256,cell|Texture_InverseDifferenceMoment_mito_3_00_256,cell|Texture_InverseDifferenceMoment_mito_12_00_256,cell|Texture_InverseDifferenceMoment_mito_12_01_256,cell|Texture_InverseDifferenceMoment_mito_12_03_256,cell|Texture_InverseDifferenceMoment_mito_12_02_256,cell|Texture_InverseDifferenceMoment_tubulin_12_00_256,cell|Texture_InverseDifferenceMoment_tubulin_12_03_256,cell|Texture_InverseDifferenceMoment_tubulin_12_02_256,cell|Texture_InverseDifferenceMoment_tubulin_12_01_256,cell|Texture_InverseDifferenceMoment_tubulin_3_01_256,cell|Texture_InverseDifferenceMoment_tubulin_3_02_256,cell|Texture_InverseDifferenceMoment_tubulin_3_00_256,cell|Texture_InverseDifferenceMoment_tubulin_3_03_256,cell|Texture_InverseDifferenceMoment_lipids_3_00_256,cell|Texture_InverseDifferenceMoment_lipids_3_01_256,cell|Texture_InverseDifferenceMoment_lipids_3_02_256,cell|Texture_InverseDifferenceMoment_lipids_3_03_256,cell|Texture_InverseDifferenceMoment_lipids_12_01_256,cell|Texture_InverseDifferenceMoment_lipids_12_03_256,cell|Texture_InverseDifferenceMoment_lipids_12_00_256,cell|Texture_InverseDifferenceMoment_lipids_12_02_256,cell|Texture_InverseDifferenceMoment_ER_3_00_256,cell|Texture_InverseDifferenceMoment_ER_3_01_256,cell|Texture_InverseDifferenceMoment_ER_3_03_256,cell|Texture_InverseDifferenceMoment_ER_3_02_256,cell|Texture_InverseDifferenceMoment_ER_12_00_256,cell|Texture_InverseDifferenceMoment_ER_12_03_256,cell|Texture_InverseDifferenceMoment_ER_12_01_256,cell|Texture_InverseDifferenceMoment_ER_12_02_256,cell|Texture_DifferenceVariance_actin_3_03_256,cell|Texture_DifferenceVariance_actin_3_01_256,cell|Texture_DifferenceVariance_actin_3_00_256,cell|Texture_DifferenceVariance_actin_3_02_256,cell|Texture_DifferenceVariance_actin_12_00_256,cell|Texture_DifferenceVariance_actin_12_03_256,cell|Texture_DifferenceVariance_actin_12_01_256,cell|Texture_DifferenceVariance_actin_12_02_256,cell|Texture_DifferenceVariance_cd25_ki67_12_00_256,cell|Texture_DifferenceVariance_cd25_ki67_12_01_256,cell|Texture_DifferenceVariance_cd25_ki67_12_03_256,cell|Texture_DifferenceVariance_cd25_ki67_12_02_256,cell|Texture_DifferenceVariance_cd25_ki67_3_01_256,cell|Texture_DifferenceVariance_cd25_ki67_3_00_256,cell|Texture_DifferenceVariance_cd25_ki67_3_02_256,cell|Texture_DifferenceVariance_cd25_ki67_3_03_256,cell|Texture_DifferenceVariance_cd25_3_01_256,cell|Texture_DifferenceVariance_cd25_3_02_256,cell|Texture_DifferenceVariance_cd25_3_00_256,cell|Texture_DifferenceVariance_cd25_3_03_256,cell|Texture_DifferenceVariance_cd25_12_02_256,cell|Texture_DifferenceVariance_cd25_12_03_256,cell|Texture_DifferenceVariance_cd25_12_01_256,cell|Texture_DifferenceVariance_cd25_12_00_256,cell|Texture_DifferenceVariance_lipids_12_03_256,cell|Texture_DifferenceVariance_lipids_12_00_256,cell|Texture_DifferenceVariance_lipids_12_02_256,cell|Texture_DifferenceVariance_lipids_12_01_256,cell|Texture_DifferenceVariance_lipids_3_00_256,cell|Texture_DifferenceVariance_lipids_3_02_256,cell|Texture_DifferenceVariance_lipids_3_01_256,cell|Texture_DifferenceVariance_lipids_3_03_256,cell|Texture_DifferenceVariance_mito_12_00_256,cell|Texture_DifferenceVariance_mito_12_03_256,cell|Texture_DifferenceVariance_mito_12_01_256,cell|Texture_DifferenceVariance_mito_12_02_256,cell|Texture_DifferenceVariance_mito_3_01_256,cell|Texture_DifferenceVariance_mito_3_03_256,cell|Texture_DifferenceVariance_mito_3_02_256,cell|Texture_DifferenceVariance_mito_3_00_256,cell|Texture_DifferenceVariance_ER_3_01_256,cell|Texture_DifferenceVariance_ER_3_02_256,cell|Texture_DifferenceVariance_ER_3_03_256,cell|Texture_DifferenceVariance_ER_3_00_256,cell|Texture_DifferenceVariance_ER_12_03_256,cell|Texture_DifferenceVariance_ER_12_01_256,cell|Texture_DifferenceVariance_ER_12_00_256,cell|Texture_DifferenceVariance_ER_12_02_256,cell|Texture_DifferenceVariance_tubulin_12_00_256,cell|Texture_DifferenceVariance_tubulin_12_03_256,cell|Texture_DifferenceVariance_tubulin_12_01_256,cell|Texture_DifferenceVariance_tubulin_12_02_256,cell|Texture_DifferenceVariance_tubulin_3_02_256,cell|Texture_DifferenceVariance_tubulin_3_03_256,cell|Texture_DifferenceVariance_tubulin_3_01_256,cell|Texture_DifferenceVariance_tubulin_3_00_256,cell|Texture_AngularSecondMoment_actin_12_00_256,cell|Texture_AngularSecondMoment_actin_12_03_256,cell|Texture_AngularSecondMoment_actin_12_01_256,cell|Texture_AngularSecondMoment_actin_12_02_256,cell|Texture_AngularSecondMoment_actin_3_03_256,cell|Texture_AngularSecondMoment_actin_3_00_256,cell|Texture_AngularSecondMoment_actin_3_01_256,cell|Texture_AngularSecondMoment_actin_3_02_256,cell|Texture_AngularSecondMoment_cd25_ki67_12_00_256,cell|Texture_AngularSecondMoment_cd25_ki67_12_02_256,cell|Texture_AngularSecondMoment_cd25_ki67_12_01_256,cell|Texture_AngularSecondMoment_cd25_ki67_12_03_256,cell|Texture_AngularSecondMoment_cd25_ki67_3_03_256,cell|Texture_AngularSecondMoment_cd25_ki67_3_01_256,cell|Texture_AngularSecondMoment_cd25_ki67_3_02_256,cell|Texture_AngularSecondMoment_cd25_ki67_3_00_256,cell|Texture_AngularSecondMoment_cd25_3_03_256,cell|Texture_AngularSecondMoment_cd25_3_00_256,cell|Texture_AngularSecondMoment_cd25_3_02_256,cell|Texture_AngularSecondMoment_cd25_3_01_256,cell|Texture_AngularSecondMoment_cd25_12_00_256,cell|Texture_AngularSecondMoment_cd25_12_02_256,cell|Texture_AngularSecondMoment_cd25_12_01_256,cell|Texture_AngularSecondMoment_cd25_12_03_256,cell|Texture_AngularSecondMoment_tubulin_3_02_256,cell|Texture_AngularSecondMoment_tubulin_3_00_256,cell|Texture_AngularSecondMoment_tubulin_3_01_256,cell|Texture_AngularSecondMoment_tubulin_3_03_256,cell|Texture_AngularSecondMoment_tubulin_12_01_256,cell|Texture_AngularSecondMoment_tubulin_12_03_256,cell|Texture_AngularSecondMoment_tubulin_12_02_256,cell|Texture_AngularSecondMoment_tubulin_12_00_256,cell|Texture_AngularSecondMoment_ER_12_01_256,cell|Texture_AngularSecondMoment_ER_12_03_256,cell|Texture_AngularSecondMoment_ER_12_02_256,cell|Texture_AngularSecondMoment_ER_12_00_256,cell|Texture_AngularSecondMoment_ER_3_00_256,cell|Texture_AngularSecondMoment_ER_3_01_256,cell|Texture_AngularSecondMoment_ER_3_03_256,cell|Texture_AngularSecondMoment_ER_3_02_256,cell|Texture_AngularSecondMoment_mito_12_01_256,cell|Texture_AngularSecondMoment_mito_12_03_256,cell|Texture_AngularSecondMoment_mito_12_02_256,cell|Texture_AngularSecondMoment_mito_12_00_256,cell|Texture_AngularSecondMoment_mito_3_02_256,cell|Texture_AngularSecondMoment_mito_3_00_256,cell|Texture_AngularSecondMoment_mito_3_03_256,cell|Texture_AngularSecondMoment_mito_3_01_256,cell|Texture_AngularSecondMoment_lipids_12_03_256,cell|Texture_AngularSecondMoment_lipids_12_00_256,cell|Texture_AngularSecondMoment_lipids_12_01_256,cell|Texture_AngularSecondMoment_lipids_12_02_256,cell|Texture_AngularSecondMoment_lipids_3_02_256,cell|Texture_AngularSecondMoment_lipids_3_00_256,cell|Texture_AngularSecondMoment_lipids_3_03_256,cell|Texture_AngularSecondMoment_lipids_3_01_256,cell|Texture_SumEntropy_cd25_ki67_12_02_256,cell|Texture_SumEntropy_cd25_ki67_12_00_256,cell|Texture_SumEntropy_cd25_ki67_12_03_256,cell|Texture_SumEntropy_cd25_ki67_12_01_256,cell|Texture_SumEntropy_cd25_ki67_3_01_256,cell|Texture_SumEntropy_cd25_ki67_3_00_256,cell|Texture_SumEntropy_cd25_ki67_3_02_256,cell|Texture_SumEntropy_cd25_ki67_3_03_256,cell|Texture_SumEntropy_cd25_12_01_256,cell|Texture_SumEntropy_cd25_12_00_256,cell|Texture_SumEntropy_cd25_12_03_256,cell|Texture_SumEntropy_cd25_12_02_256,cell|Texture_SumEntropy_cd25_3_01_256,cell|Texture_SumEntropy_cd25_3_03_256,cell|Texture_SumEntropy_cd25_3_02_256,cell|Texture_SumEntropy_cd25_3_00_256,cell|Texture_SumEntropy_mito_3_01_256,cell|Texture_SumEntropy_mito_3_00_256,cell|Texture_SumEntropy_mito_3_02_256,cell|Texture_SumEntropy_mito_3_03_256,cell|Texture_SumEntropy_mito_12_00_256,cell|Texture_SumEntropy_mito_12_03_256,cell|Texture_SumEntropy_mito_12_02_256,cell|Texture_SumEntropy_mito_12_01_256,cell|Texture_SumEntropy_tubulin_3_02_256,cell|Texture_SumEntropy_tubulin_3_00_256,cell|Texture_SumEntropy_tubulin_3_03_256,cell|Texture_SumEntropy_tubulin_3_01_256,cell|Texture_SumEntropy_tubulin_12_01_256,cell|Texture_SumEntropy_tubulin_12_00_256,cell|Texture_SumEntropy_tubulin_12_02_256,cell|Texture_SumEntropy_tubulin_12_03_256,cell|Texture_SumEntropy_actin_12_02_256,cell|Texture_SumEntropy_actin_12_00_256,cell|Texture_SumEntropy_actin_12_03_256,cell|Texture_SumEntropy_actin_12_01_256,cell|Texture_SumEntropy_actin_3_03_256,cell|Texture_SumEntropy_actin_3_00_256,cell|Texture_SumEntropy_actin_3_02_256,cell|Texture_SumEntropy_actin_3_01_256,cell|Texture_SumEntropy_lipids_12_01_256,cell|Texture_SumEntropy_lipids_12_00_256,cell|Texture_SumEntropy_lipids_12_02_256,cell|Texture_SumEntropy_lipids_12_03_256,cell|Texture_SumEntropy_lipids_3_02_256,cell|Texture_SumEntropy_lipids_3_00_256,cell|Texture_SumEntropy_lipids_3_01_256,cell|Texture_SumEntropy_lipids_3_03_256,cell|Texture_SumEntropy_ER_3_02_256,cell|Texture_SumEntropy_ER_3_03_256,cell|Texture_SumEntropy_ER_3_01_256,cell|Texture_SumEntropy_ER_3_00_256,cell|Texture_SumEntropy_ER_12_00_256,cell|Texture_SumEntropy_ER_12_01_256,cell|Texture_SumEntropy_ER_12_02_256,cell|Texture_SumEntropy_ER_12_03_256,cell|Texture_InfoMeas1_ER_3_02_256,cell|Texture_InfoMeas1_ER_3_01_256,cell|Texture_InfoMeas1_ER_3_03_256,cell|Texture_InfoMeas1_ER_3_00_256,cell|Texture_InfoMeas1_ER_12_00_256,cell|Texture_InfoMeas1_ER_12_02_256,cell|Texture_InfoMeas1_ER_12_03_256,cell|Texture_InfoMeas1_ER_12_01_256,cell|Texture_InfoMeas1_cd25_3_01_256,cell|Texture_InfoMeas1_cd25_3_02_256,cell|Texture_InfoMeas1_cd25_3_03_256,cell|Texture_InfoMeas1_cd25_3_00_256,cell|Texture_InfoMeas1_cd25_ki67_12_03_256,cell|Texture_InfoMeas1_cd25_ki67_12_02_256,cell|Texture_InfoMeas1_cd25_ki67_12_00_256,cell|Texture_InfoMeas1_cd25_ki67_12_01_256,cell|Texture_InfoMeas1_cd25_ki67_3_00_256,cell|Texture_InfoMeas1_cd25_ki67_3_03_256,cell|Texture_InfoMeas1_cd25_ki67_3_02_256,cell|Texture_InfoMeas1_cd25_ki67_3_01_256,cell|Texture_InfoMeas1_cd25_12_02_256,cell|Texture_InfoMeas1_cd25_12_01_256,cell|Texture_InfoMeas1_cd25_12_03_256,cell|Texture_InfoMeas1_cd25_12_00_256,cell|Texture_InfoMeas1_actin_3_01_256,cell|Texture_InfoMeas1_actin_3_02_256,cell|Texture_InfoMeas1_actin_3_00_256,cell|Texture_InfoMeas1_actin_3_03_256,cell|Texture_InfoMeas1_actin_12_00_256,cell|Texture_InfoMeas1_actin_12_02_256,cell|Texture_InfoMeas1_actin_12_01_256,cell|Texture_InfoMeas1_actin_12_03_256,cell|Texture_InfoMeas1_lipids_3_03_256,cell|Texture_InfoMeas1_lipids_3_01_256,cell|Texture_InfoMeas1_lipids_3_00_256,cell|Texture_InfoMeas1_lipids_3_02_256,cell|Texture_InfoMeas1_lipids_12_03_256,cell|Texture_InfoMeas1_lipids_12_00_256,cell|Texture_InfoMeas1_lipids_12_01_256,cell|Texture_InfoMeas1_lipids_12_02_256,cell|Texture_InfoMeas1_tubulin_3_01_256,cell|Texture_InfoMeas1_tubulin_3_00_256,cell|Texture_InfoMeas1_tubulin_3_03_256,cell|Texture_InfoMeas1_tubulin_3_02_256,cell|Texture_InfoMeas1_tubulin_12_02_256,cell|Texture_InfoMeas1_tubulin_12_01_256,cell|Texture_InfoMeas1_tubulin_12_03_256,cell|Texture_InfoMeas1_tubulin_12_00_256,cell|Texture_InfoMeas1_mito_12_01_256,cell|Texture_InfoMeas1_mito_12_00_256,cell|Texture_InfoMeas1_mito_12_03_256,cell|Texture_InfoMeas1_mito_12_02_256,cell|Texture_InfoMeas1_mito_3_01_256,cell|Texture_InfoMeas1_mito_3_03_256,cell|Texture_InfoMeas1_mito_3_00_256,cell|Texture_InfoMeas1_mito_3_02_256,cell|Texture_Correlation_lipids_12_03_256,cell|Texture_Correlation_lipids_12_00_256,cell|Texture_Correlation_lipids_12_01_256,cell|Texture_Correlation_lipids_12_02_256,cell|Texture_Correlation_lipids_3_03_256,cell|Texture_Correlation_lipids_3_01_256,cell|Texture_Correlation_lipids_3_02_256,cell|Texture_Correlation_lipids_3_00_256,cell|Texture_Correlation_cd25_3_01_256,cell|Texture_Correlation_cd25_3_03_256,cell|Texture_Correlation_cd25_3_02_256,cell|Texture_Correlation_cd25_3_00_256,cell|Texture_Correlation_cd25_ki67_12_02_256,cell|Texture_Correlation_cd25_ki67_12_01_256,cell|Texture_Correlation_cd25_ki67_12_00_256,cell|Texture_Correlation_cd25_ki67_12_03_256,cell|Texture_Correlation_cd25_ki67_3_01_256,cell|Texture_Correlation_cd25_ki67_3_02_256,cell|Texture_Correlation_cd25_ki67_3_00_256,cell|Texture_Correlation_cd25_ki67_3_03_256,cell|Texture_Correlation_cd25_12_02_256,cell|Texture_Correlation_cd25_12_01_256,cell|Texture_Correlation_cd25_12_03_256,cell|Texture_Correlation_cd25_12_00_256,cell|Texture_Correlation_actin_3_00_256,cell|Texture_Correlation_actin_3_01_256,cell|Texture_Correlation_actin_3_03_256,cell|Texture_Correlation_actin_3_02_256,cell|Texture_Correlation_actin_12_01_256,cell|Texture_Correlation_actin_12_03_256,cell|Texture_Correlation_actin_12_02_256,cell|Texture_Correlation_actin_12_00_256,cell|Texture_Correlation_tubulin_12_01_256,cell|Texture_Correlation_tubulin_12_03_256,cell|Texture_Correlation_tubulin_12_02_256,cell|Texture_Correlation_tubulin_12_00_256,cell|Texture_Correlation_tubulin_3_01_256,cell|Texture_Correlation_tubulin_3_00_256,cell|Texture_Correlation_tubulin_3_03_256,cell|Texture_Correlation_tubulin_3_02_256,cell|Texture_Correlation_ER_12_00_256,cell|Texture_Correlation_ER_12_02_256,cell|Texture_Correlation_ER_12_01_256,cell|Texture_Correlation_ER_12_03_256,cell|Texture_Correlation_ER_3_02_256,cell|Texture_Correlation_ER_3_00_256,cell|Texture_Correlation_ER_3_01_256,cell|Texture_Correlation_ER_3_03_256,cell|Texture_Correlation_mito_12_02_256,cell|Texture_Correlation_mito_12_01_256,cell|Texture_Correlation_mito_12_03_256,cell|Texture_Correlation_mito_12_00_256,cell|Texture_Correlation_mito_3_03_256,cell|Texture_Correlation_mito_3_02_256,cell|Texture_Correlation_mito_3_01_256,cell|Texture_Correlation_mito_3_00_256,cell|Texture_Contrast_lipids_3_02_256,cell|Texture_Contrast_lipids_3_01_256,cell|Texture_Contrast_lipids_3_00_256,cell|Texture_Contrast_lipids_3_03_256,cell|Texture_Contrast_lipids_12_00_256,cell|Texture_Contrast_lipids_12_01_256,cell|Texture_Contrast_lipids_12_02_256,cell|Texture_Contrast_lipids_12_03_256,cell|Texture_Contrast_tubulin_12_03_256,cell|Texture_Contrast_tubulin_12_01_256,cell|Texture_Contrast_tubulin_12_02_256,cell|Texture_Contrast_tubulin_12_00_256,cell|Texture_Contrast_tubulin_3_03_256,cell|Texture_Contrast_tubulin_3_02_256,cell|Texture_Contrast_tubulin_3_00_256,cell|Texture_Contrast_tubulin_3_01_256,cell|Texture_Contrast_cd25_ki67_3_00_256,cell|Texture_Contrast_cd25_ki67_3_01_256,cell|Texture_Contrast_cd25_ki67_3_03_256,cell|Texture_Contrast_cd25_ki67_3_02_256,cell|Texture_Contrast_cd25_ki67_12_01_256,cell|Texture_Contrast_cd25_ki67_12_03_256,cell|Texture_Contrast_cd25_ki67_12_00_256,cell|Texture_Contrast_cd25_ki67_12_02_256,cell|Texture_Contrast_cd25_3_00_256,cell|Texture_Contrast_cd25_3_01_256,cell|Texture_Contrast_cd25_3_03_256,cell|Texture_Contrast_cd25_3_02_256,cell|Texture_Contrast_cd25_12_00_256,cell|Texture_Contrast_cd25_12_01_256,cell|Texture_Contrast_cd25_12_03_256,cell|Texture_Contrast_cd25_12_02_256,cell|Texture_Contrast_mito_12_02_256,cell|Texture_Contrast_mito_12_03_256,cell|Texture_Contrast_mito_12_00_256,cell|Texture_Contrast_mito_12_01_256,cell|Texture_Contrast_mito_3_00_256,cell|Texture_Contrast_mito_3_03_256,cell|Texture_Contrast_mito_3_02_256,cell|Texture_Contrast_mito_3_01_256,cell|Texture_Contrast_ER_12_01_256,cell|Texture_Contrast_ER_12_03_256,cell|Texture_Contrast_ER_12_02_256,cell|Texture_Contrast_ER_12_00_256,cell|Texture_Contrast_ER_3_03_256,cell|Texture_Contrast_ER_3_01_256,cell|Texture_Contrast_ER_3_00_256,cell|Texture_Contrast_ER_3_02_256,cell|Texture_Contrast_actin_3_02_256,cell|Texture_Contrast_actin_3_01_256,cell|Texture_Contrast_actin_3_00_256,cell|Texture_Contrast_actin_3_03_256,cell|Texture_Contrast_actin_12_03_256,cell|Texture_Contrast_actin_12_02_256,cell|Texture_Contrast_actin_12_01_256,cell|Texture_Contrast_actin_12_00_256,cell|Texture_SumVariance_mito_3_00_256,cell|Texture_SumVariance_mito_3_03_256,cell|Texture_SumVariance_mito_3_02_256,cell|Texture_SumVariance_mito_3_01_256,cell|Texture_SumVariance_mito_12_03_256,cell|Texture_SumVariance_mito_12_01_256,cell|Texture_SumVariance_mito_12_02_256,cell|Texture_SumVariance_mito_12_00_256,cell|Texture_SumVariance_tubulin_3_02_256,cell|Texture_SumVariance_tubulin_3_03_256,cell|Texture_SumVariance_tubulin_3_00_256,cell|Texture_SumVariance_tubulin_3_01_256,cell|Texture_SumVariance_tubulin_12_00_256,cell|Texture_SumVariance_tubulin_12_03_256,cell|Texture_SumVariance_tubulin_12_02_256,cell|Texture_SumVariance_tubulin_12_01_256,cell|Texture_SumVariance_lipids_12_00_256,cell|Texture_SumVariance_lipids_12_02_256,cell|Texture_SumVariance_lipids_12_03_256,cell|Texture_SumVariance_lipids_12_01_256,cell|Texture_SumVariance_lipids_3_03_256,cell|Texture_SumVariance_lipids_3_00_256,cell|Texture_SumVariance_lipids_3_01_256,cell|Texture_SumVariance_lipids_3_02_256,cell|Texture_SumVariance_ER_3_01_256,cell|Texture_SumVariance_ER_3_03_256,cell|Texture_SumVariance_ER_3_00_256,cell|Texture_SumVariance_ER_3_02_256,cell|Texture_SumVariance_ER_12_01_256,cell|Texture_SumVariance_ER_12_03_256,cell|Texture_SumVariance_ER_12_00_256,cell|Texture_SumVariance_ER_12_02_256,cell|Texture_SumVariance_actin_12_02_256,cell|Texture_SumVariance_actin_12_00_256,cell|Texture_SumVariance_actin_12_01_256,cell|Texture_SumVariance_actin_12_03_256,cell|Texture_SumVariance_actin_3_02_256,cell|Texture_SumVariance_actin_3_03_256,cell|Texture_SumVariance_actin_3_01_256,cell|Texture_SumVariance_actin_3_00_256,cell|Texture_SumVariance_cd25_3_02_256,cell|Texture_SumVariance_cd25_3_03_256,cell|Texture_SumVariance_cd25_3_01_256,cell|Texture_SumVariance_cd25_3_00_256,cell|Texture_SumVariance_cd25_ki67_3_02_256,cell|Texture_SumVariance_cd25_ki67_3_03_256,cell|Texture_SumVariance_cd25_ki67_3_00_256,cell|Texture_SumVariance_cd25_ki67_3_01_256,cell|Texture_SumVariance_cd25_ki67_12_01_256,cell|Texture_SumVariance_cd25_ki67_12_00_256,cell|Texture_SumVariance_cd25_ki67_12_02_256,cell|Texture_SumVariance_cd25_ki67_12_03_256,cell|Texture_SumVariance_cd25_12_00_256,cell|Texture_SumVariance_cd25_12_01_256,cell|Texture_SumVariance_cd25_12_02_256,cell|Texture_SumVariance_cd25_12_03_256,cell|AreaShape_Zernike_3_1,cell|AreaShape_Zernike_3_3,cell|AreaShape_Zernike_4_2,cell|AreaShape_Zernike_4_0,cell|AreaShape_Zernike_4_4,cell|AreaShape_Zernike_8_6,cell|AreaShape_Zernike_8_8,cell|AreaShape_Zernike_8_4,cell|AreaShape_Zernike_8_2,cell|AreaShape_Zernike_8_0,cell|AreaShape_Zernike_5_1,cell|AreaShape_Zernike_5_3,cell|AreaShape_Zernike_5_5,cell|AreaShape_Zernike_6_6,cell|AreaShape_Zernike_6_4,cell|AreaShape_Zernike_6_2,cell|AreaShape_Zernike_6_0,cell|AreaShape_Zernike_9_1,cell|AreaShape_Zernike_9_3,cell|AreaShape_Zernike_9_9,cell|AreaShape_Zernike_9_7,cell|AreaShape_Zernike_9_5,cell|AreaShape_Zernike_2_2,cell|AreaShape_Zernike_2_0,cell|AreaShape_Zernike_1_1,cell|AreaShape_Zernike_7_7,cell|AreaShape_Zernike_7_3,cell|AreaShape_Zernike_7_1,cell|AreaShape_Zernike_7_5,cell|AreaShape_Zernike_0_0,cell|AreaShape_NormalizedMoment_3_0,cell|AreaShape_NormalizedMoment_3_1,cell|AreaShape_NormalizedMoment_3_3,cell|AreaShape_NormalizedMoment_3_2,cell|AreaShape_NormalizedMoment_1_3,cell|AreaShape_NormalizedMoment_1_1,cell|AreaShape_NormalizedMoment_1_2,cell|AreaShape_NormalizedMoment_1_0,cell|AreaShape_NormalizedMoment_2_3,cell|AreaShape_NormalizedMoment_2_1,cell|AreaShape_NormalizedMoment_2_0,cell|AreaShape_NormalizedMoment_2_2,cell|AreaShape_NormalizedMoment_0_3,cell|AreaShape_NormalizedMoment_0_1,cell|AreaShape_NormalizedMoment_0_2,cell|AreaShape_NormalizedMoment_0_0,cell|AreaShape_SpatialMoment_0_2,cell|AreaShape_SpatialMoment_0_1,cell|AreaShape_SpatialMoment_0_3,cell|AreaShape_SpatialMoment_0_0,cell|AreaShape_SpatialMoment_2_0,cell|AreaShape_SpatialMoment_2_2,cell|AreaShape_SpatialMoment_2_3,cell|AreaShape_SpatialMoment_2_1,cell|AreaShape_SpatialMoment_1_3,cell|AreaShape_SpatialMoment_1_0,cell|AreaShape_SpatialMoment_1_2,cell|AreaShape_SpatialMoment_1_1,cell|AreaShape_CentralMoment_1_3,cell|AreaShape_CentralMoment_1_1,cell|AreaShape_CentralMoment_1_2,cell|AreaShape_CentralMoment_1_0,cell|AreaShape_CentralMoment_2_2,cell|AreaShape_CentralMoment_2_1,cell|AreaShape_CentralMoment_2_3,cell|AreaShape_CentralMoment_2_0,cell|AreaShape_CentralMoment_0_2,cell|AreaShape_CentralMoment_0_0,cell|AreaShape_CentralMoment_0_3,cell|AreaShape_CentralMoment_0_1,cell|AreaShape_Solidity,cell|AreaShape_Eccentricity,cell|AreaShape_MaximumRadius,cell|AreaShape_HuMoment_0,cell|AreaShape_HuMoment_3,cell|AreaShape_HuMoment_5,cell|AreaShape_HuMoment_6,cell|AreaShape_HuMoment_2,cell|AreaShape_HuMoment_1,cell|AreaShape_HuMoment_4,cell|AreaShape_Extent,cell|AreaShape_BoundingBoxMinimum_X,cell|AreaShape_BoundingBoxMinimum_Y,cell|AreaShape_BoundingBoxMaximum_X,cell|AreaShape_BoundingBoxMaximum_Y,cell|AreaShape_EquivalentDiameter,cell|AreaShape_InertiaTensorEigenvalues_0,cell|AreaShape_InertiaTensorEigenvalues_1,cell|AreaShape_InertiaTensor_1_1,cell|AreaShape_InertiaTensor_1_0,cell|AreaShape_InertiaTensor_0_1,cell|AreaShape_InertiaTensor_0_0,cell|AreaShape_Perimeter,cell|AreaShape_BoundingBoxArea,cell|AreaShape_EulerNumber,cell|AreaShape_Center_Y,cell|AreaShape_Center_X,cell|AreaShape_MeanRadius,cell|AreaShape_MajorAxisLength,cell|AreaShape_Orientation,cell|AreaShape_Compactness,cell|AreaShape_MinorAxisLength,cell|AreaShape_MedianRadius,cell|AreaShape_MaxFeretDiameter,cell|AreaShape_FormFactor,cell|AreaShape_ConvexArea,cell|AreaShape_Area,cell|AreaShape_MinFeretDiameter,cell|Location_MaxIntensity_Z_cd25,cell|Location_MaxIntensity_Z_cd25_old,cell|Location_MaxIntensity_Z_cd25_ki67,cell|Location_MaxIntensity_Z_lipids,cell|Location_MaxIntensity_Z_ki67,cell|Location_MaxIntensity_Z_ki67_old,cell|Location_MaxIntensity_Z_ER,cell|Location_MaxIntensity_Z_mito,cell|Location_MaxIntensity_Z_tubulin,cell|Location_MaxIntensity_Z_actin,cell|Location_MaxIntensity_Y_ki67,cell|Location_MaxIntensity_Y_ki67_old,cell|Location_MaxIntensity_Y_lipids,cell|Location_MaxIntensity_Y_mito,cell|Location_MaxIntensity_Y_cd25,cell|Location_MaxIntensity_Y_cd25_old,cell|Location_MaxIntensity_Y_cd25_ki67,cell|Location_MaxIntensity_Y_tubulin,cell|Location_MaxIntensity_Y_actin,cell|Location_MaxIntensity_Y_ER,cell|Location_MaxIntensity_X_mito,cell|Location_MaxIntensity_X_tubulin,cell|Location_MaxIntensity_X_cd25,cell|Location_MaxIntensity_X_cd25_ki67,cell|Location_MaxIntensity_X_cd25_old,cell|Location_MaxIntensity_X_lipids,cell|Location_MaxIntensity_X_ER,cell|Location_MaxIntensity_X_ki67,cell|Location_MaxIntensity_X_ki67_old,cell|Location_MaxIntensity_X_actin,cell|Location_CenterMassIntensity_X_tubulin,cell|Location_CenterMassIntensity_X_lipids,cell|Location_CenterMassIntensity_X_cd25,cell|Location_CenterMassIntensity_X_cd25_ki67,cell|Location_CenterMassIntensity_X_cd25_old,cell|Location_CenterMassIntensity_X_actin,cell|Location_CenterMassIntensity_X_ki67,cell|Location_CenterMassIntensity_X_ki67_old,cell|Location_CenterMassIntensity_X_ER,cell|Location_CenterMassIntensity_X_mito,cell|Location_CenterMassIntensity_Y_ki67,cell|Location_CenterMassIntensity_Y_ki67_old,cell|Location_CenterMassIntensity_Y_cd25,cell|Location_CenterMassIntensity_Y_cd25_old,cell|Location_CenterMassIntensity_Y_cd25_ki67,cell|Location_CenterMassIntensity_Y_actin,cell|Location_CenterMassIntensity_Y_mito,cell|Location_CenterMassIntensity_Y_lipids,cell|Location_CenterMassIntensity_Y_tubulin,cell|Location_CenterMassIntensity_Y_ER,cell|Location_CenterMassIntensity_Z_cd25,cell|Location_CenterMassIntensity_Z_cd25_old,cell|Location_CenterMassIntensity_Z_cd25_ki67,cell|Location_CenterMassIntensity_Z_lipids,cell|Location_CenterMassIntensity_Z_ki67,cell|Location_CenterMassIntensity_Z_ki67_old,cell|Location_CenterMassIntensity_Z_actin,cell|Location_CenterMassIntensity_Z_ER,cell|Location_CenterMassIntensity_Z_mito,cell|Location_CenterMassIntensity_Z_tubulin,cell|Location_Center_X,cell|Location_Center_Z,cell|Location_Center_Y,cell|RadialDistribution_ZernikePhase_actin_3_3,cell|RadialDistribution_ZernikePhase_actin_3_1,cell|RadialDistribution_ZernikePhase_actin_4_2,cell|RadialDistribution_ZernikePhase_actin_4_4,cell|RadialDistribution_ZernikePhase_actin_4_0,cell|RadialDistribution_ZernikePhase_actin_0_0,cell|RadialDistribution_ZernikePhase_actin_5_3,cell|RadialDistribution_ZernikePhase_actin_5_5,cell|RadialDistribution_ZernikePhase_actin_5_1,cell|RadialDistribution_ZernikePhase_actin_2_2,cell|RadialDistribution_ZernikePhase_actin_2_0,cell|RadialDistribution_ZernikePhase_actin_1_1,cell|RadialDistribution_ZernikePhase_cd25_5_3,cell|RadialDistribution_ZernikePhase_cd25_5_5,cell|RadialDistribution_ZernikePhase_cd25_5_1,cell|RadialDistribution_ZernikePhase_cd25_4_4,cell|RadialDistribution_ZernikePhase_cd25_4_2,cell|RadialDistribution_ZernikePhase_cd25_4_0,cell|RadialDistribution_ZernikePhase_cd25_2_0,cell|RadialDistribution_ZernikePhase_cd25_2_2,cell|RadialDistribution_ZernikePhase_cd25_3_1,cell|RadialDistribution_ZernikePhase_cd25_3_3,cell|RadialDistribution_ZernikePhase_cd25_0_0,cell|RadialDistribution_ZernikePhase_cd25_1_1,cell|RadialDistribution_ZernikePhase_mito_5_5,cell|RadialDistribution_ZernikePhase_mito_5_3,cell|RadialDistribution_ZernikePhase_mito_5_1,cell|RadialDistribution_ZernikePhase_mito_4_0,cell|RadialDistribution_ZernikePhase_mito_4_4,cell|RadialDistribution_ZernikePhase_mito_4_2,cell|RadialDistribution_ZernikePhase_mito_3_3,cell|RadialDistribution_ZernikePhase_mito_3_1,cell|RadialDistribution_ZernikePhase_mito_2_2,cell|RadialDistribution_ZernikePhase_mito_2_0,cell|RadialDistribution_ZernikePhase_mito_0_0,cell|RadialDistribution_ZernikePhase_mito_1_1,cell|RadialDistribution_ZernikePhase_tubulin_1_1,cell|RadialDistribution_ZernikePhase_tubulin_5_1,cell|RadialDistribution_ZernikePhase_tubulin_5_3,cell|RadialDistribution_ZernikePhase_tubulin_5_5,cell|RadialDistribution_ZernikePhase_tubulin_3_1,cell|RadialDistribution_ZernikePhase_tubulin_3_3,cell|RadialDistribution_ZernikePhase_tubulin_4_4,cell|RadialDistribution_ZernikePhase_tubulin_4_2,cell|RadialDistribution_ZernikePhase_tubulin_4_0,cell|RadialDistribution_ZernikePhase_tubulin_2_0,cell|RadialDistribution_ZernikePhase_tubulin_2_2,cell|RadialDistribution_ZernikePhase_tubulin_0_0,cell|RadialDistribution_ZernikePhase_ER_5_1,cell|RadialDistribution_ZernikePhase_ER_5_5,cell|RadialDistribution_ZernikePhase_ER_5_3,cell|RadialDistribution_ZernikePhase_ER_4_0,cell|RadialDistribution_ZernikePhase_ER_4_4,cell|RadialDistribution_ZernikePhase_ER_4_2,cell|RadialDistribution_ZernikePhase_ER_1_1,cell|RadialDistribution_ZernikePhase_ER_2_2,cell|RadialDistribution_ZernikePhase_ER_2_0,cell|RadialDistribution_ZernikePhase_ER_3_1,cell|RadialDistribution_ZernikePhase_ER_3_3,cell|RadialDistribution_ZernikePhase_ER_0_0,cell|RadialDistribution_RadialCV_cd25_3of6,cell|RadialDistribution_RadialCV_cd25_1of6,cell|RadialDistribution_RadialCV_cd25_5of6,cell|RadialDistribution_RadialCV_cd25_4of6,cell|RadialDistribution_RadialCV_cd25_6of6,cell|RadialDistribution_RadialCV_cd25_2of6,cell|RadialDistribution_RadialCV_mito_5of6,cell|RadialDistribution_RadialCV_mito_2of6,cell|RadialDistribution_RadialCV_mito_1of6,cell|RadialDistribution_RadialCV_mito_3of6,cell|RadialDistribution_RadialCV_mito_4of6,cell|RadialDistribution_RadialCV_mito_6of6,cell|RadialDistribution_RadialCV_ER_2of6,cell|RadialDistribution_RadialCV_ER_5of6,cell|RadialDistribution_RadialCV_ER_3of6,cell|RadialDistribution_RadialCV_ER_6of6,cell|RadialDistribution_RadialCV_ER_1of6,cell|RadialDistribution_RadialCV_ER_4of6,cell|RadialDistribution_RadialCV_actin_1of6,cell|RadialDistribution_RadialCV_actin_6of6,cell|RadialDistribution_RadialCV_actin_3of6,cell|RadialDistribution_RadialCV_actin_5of6,cell|RadialDistribution_RadialCV_actin_4of6,cell|RadialDistribution_RadialCV_actin_2of6,cell|RadialDistribution_RadialCV_tubulin_3of6,cell|RadialDistribution_RadialCV_tubulin_1of6,cell|RadialDistribution_RadialCV_tubulin_5of6,cell|RadialDistribution_RadialCV_tubulin_2of6,cell|RadialDistribution_RadialCV_tubulin_4of6,cell|RadialDistribution_RadialCV_tubulin_6of6,cell|RadialDistribution_FracAtD_tubulin_6of6,cell|RadialDistribution_FracAtD_tubulin_1of6,cell|RadialDistribution_FracAtD_tubulin_4of6,cell|RadialDistribution_FracAtD_tubulin_5of6,cell|RadialDistribution_FracAtD_tubulin_3of6,cell|RadialDistribution_FracAtD_tubulin_2of6,cell|RadialDistribution_FracAtD_ER_1of6,cell|RadialDistribution_FracAtD_ER_5of6,cell|RadialDistribution_FracAtD_ER_3of6,cell|RadialDistribution_FracAtD_ER_2of6,cell|RadialDistribution_FracAtD_ER_6of6,cell|RadialDistribution_FracAtD_ER_4of6,cell|RadialDistribution_FracAtD_cd25_4of6,cell|RadialDistribution_FracAtD_cd25_2of6,cell|RadialDistribution_FracAtD_cd25_5of6,cell|RadialDistribution_FracAtD_cd25_1of6,cell|RadialDistribution_FracAtD_cd25_6of6,cell|RadialDistribution_FracAtD_cd25_3of6,cell|RadialDistribution_FracAtD_actin_2of6,cell|RadialDistribution_FracAtD_actin_6of6,cell|RadialDistribution_FracAtD_actin_1of6,cell|RadialDistribution_FracAtD_actin_5of6,cell|RadialDistribution_FracAtD_actin_3of6,cell|RadialDistribution_FracAtD_actin_4of6,cell|RadialDistribution_FracAtD_mito_5of6,cell|RadialDistribution_FracAtD_mito_2of6,cell|RadialDistribution_FracAtD_mito_6of6,cell|RadialDistribution_FracAtD_mito_1of6,cell|RadialDistribution_FracAtD_mito_3of6,cell|RadialDistribution_FracAtD_mito_4of6,cell|RadialDistribution_MeanFrac_cd25_5of6,cell|RadialDistribution_MeanFrac_cd25_6of6,cell|RadialDistribution_MeanFrac_cd25_2of6,cell|RadialDistribution_MeanFrac_cd25_1of6,cell|RadialDistribution_MeanFrac_cd25_4of6,cell|RadialDistribution_MeanFrac_cd25_3of6,cell|RadialDistribution_MeanFrac_ER_3of6,cell|RadialDistribution_MeanFrac_ER_2of6,cell|RadialDistribution_MeanFrac_ER_1of6,cell|RadialDistribution_MeanFrac_ER_6of6,cell|RadialDistribution_MeanFrac_ER_4of6,cell|RadialDistribution_MeanFrac_ER_5of6,cell|RadialDistribution_MeanFrac_tubulin_4of6,cell|RadialDistribution_MeanFrac_tubulin_3of6,cell|RadialDistribution_MeanFrac_tubulin_1of6,cell|RadialDistribution_MeanFrac_tubulin_6of6,cell|RadialDistribution_MeanFrac_tubulin_5of6,cell|RadialDistribution_MeanFrac_tubulin_2of6,cell|RadialDistribution_MeanFrac_actin_6of6,cell|RadialDistribution_MeanFrac_actin_1of6,cell|RadialDistribution_MeanFrac_actin_2of6,cell|RadialDistribution_MeanFrac_actin_3of6,cell|RadialDistribution_MeanFrac_actin_4of6,cell|RadialDistribution_MeanFrac_actin_5of6,cell|RadialDistribution_MeanFrac_mito_6of6,cell|RadialDistribution_MeanFrac_mito_4of6,cell|RadialDistribution_MeanFrac_mito_1of6,cell|RadialDistribution_MeanFrac_mito_5of6,cell|RadialDistribution_MeanFrac_mito_3of6,cell|RadialDistribution_MeanFrac_mito_2of6,cell|RadialDistribution_ZernikeMagnitude_cd25_3_1,cell|RadialDistribution_ZernikeMagnitude_cd25_3_3,cell|RadialDistribution_ZernikeMagnitude_cd25_2_0,cell|RadialDistribution_ZernikeMagnitude_cd25_2_2,cell|RadialDistribution_ZernikeMagnitude_cd25_4_2,cell|RadialDistribution_ZernikeMagnitude_cd25_4_4,cell|RadialDistribution_ZernikeMagnitude_cd25_4_0,cell|RadialDistribution_ZernikeMagnitude_cd25_5_1,cell|RadialDistribution_ZernikeMagnitude_cd25_5_3,cell|RadialDistribution_ZernikeMagnitude_cd25_5_5,cell|RadialDistribution_ZernikeMagnitude_cd25_0_0,cell|RadialDistribution_ZernikeMagnitude_cd25_1_1,cell|RadialDistribution_ZernikeMagnitude_actin_5_3,cell|RadialDistribution_ZernikeMagnitude_actin_5_5,cell|RadialDistribution_ZernikeMagnitude_actin_5_1,cell|RadialDistribution_ZernikeMagnitude_actin_3_1,cell|RadialDistribution_ZernikeMagnitude_actin_3_3,cell|RadialDistribution_ZernikeMagnitude_actin_1_1,cell|RadialDistribution_ZernikeMagnitude_actin_4_2,cell|RadialDistribution_ZernikeMagnitude_actin_4_4,cell|RadialDistribution_ZernikeMagnitude_actin_4_0,cell|RadialDistribution_ZernikeMagnitude_actin_2_2,cell|RadialDistribution_ZernikeMagnitude_actin_2_0,cell|RadialDistribution_ZernikeMagnitude_actin_0_0,cell|RadialDistribution_ZernikeMagnitude_mito_3_1,cell|RadialDistribution_ZernikeMagnitude_mito_3_3,cell|RadialDistribution_ZernikeMagnitude_mito_4_2,cell|RadialDistribution_ZernikeMagnitude_mito_4_4,cell|RadialDistribution_ZernikeMagnitude_mito_4_0,cell|RadialDistribution_ZernikeMagnitude_mito_1_1,cell|RadialDistribution_ZernikeMagnitude_mito_2_2,cell|RadialDistribution_ZernikeMagnitude_mito_2_0,cell|RadialDistribution_ZernikeMagnitude_mito_5_1,cell|RadialDistribution_ZernikeMagnitude_mito_5_3,cell|RadialDistribution_ZernikeMagnitude_mito_5_5,cell|RadialDistribution_ZernikeMagnitude_mito_0_0,cell|RadialDistribution_ZernikeMagnitude_tubulin_3_3,cell|RadialDistribution_ZernikeMagnitude_tubulin_3_1,cell|RadialDistribution_ZernikeMagnitude_tubulin_5_5,cell|RadialDistribution_ZernikeMagnitude_tubulin_5_3,cell|RadialDistribution_ZernikeMagnitude_tubulin_5_1,cell|RadialDistribution_ZernikeMagnitude_tubulin_1_1,cell|RadialDistribution_ZernikeMagnitude_tubulin_4_4,cell|RadialDistribution_ZernikeMagnitude_tubulin_4_2,cell|RadialDistribution_ZernikeMagnitude_tubulin_4_0,cell|RadialDistribution_ZernikeMagnitude_tubulin_0_0,cell|RadialDistribution_ZernikeMagnitude_tubulin_2_2,cell|RadialDistribution_ZernikeMagnitude_tubulin_2_0,cell|RadialDistribution_ZernikeMagnitude_ER_4_2,cell|RadialDistribution_ZernikeMagnitude_ER_4_4,cell|RadialDistribution_ZernikeMagnitude_ER_4_0,cell|RadialDistribution_ZernikeMagnitude_ER_5_5,cell|RadialDistribution_ZernikeMagnitude_ER_5_1,cell|RadialDistribution_ZernikeMagnitude_ER_5_3,cell|RadialDistribution_ZernikeMagnitude_ER_3_1,cell|RadialDistribution_ZernikeMagnitude_ER_3_3,cell|RadialDistribution_ZernikeMagnitude_ER_2_2,cell|RadialDistribution_ZernikeMagnitude_ER_2_0,cell|RadialDistribution_ZernikeMagnitude_ER_0_0,cell|RadialDistribution_ZernikeMagnitude_ER_1_1,cell|Intensity_StdIntensityEdge_ki67,cell|Intensity_StdIntensityEdge_ki67_old,cell|Intensity_StdIntensityEdge_ER,cell|Intensity_StdIntensityEdge_actin,cell|Intensity_StdIntensityEdge_cd25,cell|Intensity_StdIntensityEdge_cd25_ki67,cell|Intensity_StdIntensityEdge_cd25_old,cell|Intensity_StdIntensityEdge_mito,cell|Intensity_StdIntensityEdge_lipids,cell|Intensity_StdIntensityEdge_tubulin,cell|Intensity_LowerQuartileIntensity_mito,cell|Intensity_LowerQuartileIntensity_lipids,cell|Intensity_LowerQuartileIntensity_cd25,cell|Intensity_LowerQuartileIntensity_cd25_ki67,cell|Intensity_LowerQuartileIntensity_cd25_old,cell|Intensity_LowerQuartileIntensity_ki67,cell|Intensity_LowerQuartileIntensity_ki67_old,cell|Intensity_LowerQuartileIntensity_actin,cell|Intensity_LowerQuartileIntensity_tubulin,cell|Intensity_LowerQuartileIntensity_ER,cell|Intensity_MaxIntensity_cd25,cell|Intensity_MaxIntensity_cd25_ki67,cell|Intensity_MaxIntensity_cd25_old,cell|Intensity_MaxIntensity_ki67,cell|Intensity_MaxIntensity_ki67_old,cell|Intensity_MaxIntensity_lipids,cell|Intensity_MaxIntensity_actin,cell|Intensity_MaxIntensity_ER,cell|Intensity_MaxIntensity_tubulin,cell|Intensity_MaxIntensity_mito,cell|Intensity_MADIntensity_cd25,cell|Intensity_MADIntensity_cd25_ki67,cell|Intensity_MADIntensity_cd25_old,cell|Intensity_MADIntensity_tubulin,cell|Intensity_MADIntensity_ki67,cell|Intensity_MADIntensity_ki67_old,cell|Intensity_MADIntensity_mito,cell|Intensity_MADIntensity_ER,cell|Intensity_MADIntensity_lipids,cell|Intensity_MADIntensity_actin,cell|Intensity_MinIntensityEdge_cd25,cell|Intensity_MinIntensityEdge_cd25_old,cell|Intensity_MinIntensityEdge_cd25_ki67,cell|Intensity_MinIntensityEdge_actin,cell|Intensity_MinIntensityEdge_tubulin,cell|Intensity_MinIntensityEdge_mito,cell|Intensity_MinIntensityEdge_ki67,cell|Intensity_MinIntensityEdge_ki67_old,cell|Intensity_MinIntensityEdge_lipids,cell|Intensity_MinIntensityEdge_ER,cell|Intensity_MinIntensity_tubulin,cell|Intensity_MinIntensity_ER,cell|Intensity_MinIntensity_cd25,cell|Intensity_MinIntensity_cd25_old,cell|Intensity_MinIntensity_cd25_ki67,cell|Intensity_MinIntensity_mito,cell|Intensity_MinIntensity_lipids,cell|Intensity_MinIntensity_ki67,cell|Intensity_MinIntensity_ki67_old,cell|Intensity_MinIntensity_actin,cell|Intensity_MedianIntensity_actin,cell|Intensity_MedianIntensity_ki67,cell|Intensity_MedianIntensity_ki67_old,cell|Intensity_MedianIntensity_mito,cell|Intensity_MedianIntensity_cd25,cell|Intensity_MedianIntensity_cd25_old,cell|Intensity_MedianIntensity_cd25_ki67,cell|Intensity_MedianIntensity_lipids,cell|Intensity_MedianIntensity_tubulin,cell|Intensity_MedianIntensity_ER,cell|Intensity_MeanIntensityEdge_ki67,cell|Intensity_MeanIntensityEdge_ki67_old,cell|Intensity_MeanIntensityEdge_tubulin,cell|Intensity_MeanIntensityEdge_ER,cell|Intensity_MeanIntensityEdge_cd25,cell|Intensity_MeanIntensityEdge_cd25_old,cell|Intensity_MeanIntensityEdge_cd25_ki67,cell|Intensity_MeanIntensityEdge_lipids,cell|Intensity_MeanIntensityEdge_actin,cell|Intensity_MeanIntensityEdge_mito,cell|Intensity_MaxIntensityEdge_ki67,cell|Intensity_MaxIntensityEdge_ki67_old,cell|Intensity_MaxIntensityEdge_ER,cell|Intensity_MaxIntensityEdge_cd25,cell|Intensity_MaxIntensityEdge_cd25_old,cell|Intensity_MaxIntensityEdge_cd25_ki67,cell|Intensity_MaxIntensityEdge_lipids,cell|Intensity_MaxIntensityEdge_tubulin,cell|Intensity_MaxIntensityEdge_mito,cell|Intensity_MaxIntensityEdge_actin,cell|Intensity_UpperQuartileIntensity_cd25,cell|Intensity_UpperQuartileIntensity_cd25_ki67,cell|Intensity_UpperQuartileIntensity_cd25_old,cell|Intensity_UpperQuartileIntensity_actin,cell|Intensity_UpperQuartileIntensity_tubulin,cell|Intensity_UpperQuartileIntensity_ki67,cell|Intensity_UpperQuartileIntensity_ki67_old,cell|Intensity_UpperQuartileIntensity_mito,cell|Intensity_UpperQuartileIntensity_lipids,cell|Intensity_UpperQuartileIntensity_ER,cell|Intensity_MeanIntensity_mito,cell|Intensity_MeanIntensity_cd25,cell|Intensity_MeanIntensity_cd25_ki67,cell|Intensity_MeanIntensity_cd25_old,cell|Intensity_MeanIntensity_ki67,cell|Intensity_MeanIntensity_ki67_old,cell|Intensity_MeanIntensity_actin,cell|Intensity_MeanIntensity_tubulin,cell|Intensity_MeanIntensity_lipids,cell|Intensity_MeanIntensity_ER,cell|Intensity_IntegratedIntensity_cd25,cell|Intensity_IntegratedIntensity_cd25_ki67,cell|Intensity_IntegratedIntensity_cd25_old,cell|Intensity_IntegratedIntensity_ER,cell|Intensity_IntegratedIntensity_actin,cell|Intensity_IntegratedIntensity_tubulin,cell|Intensity_IntegratedIntensity_mito,cell|Intensity_IntegratedIntensity_lipids,cell|Intensity_IntegratedIntensity_ki67,cell|Intensity_IntegratedIntensity_ki67_old,cell|Intensity_MassDisplacement_cd25,cell|Intensity_MassDisplacement_cd25_old,cell|Intensity_MassDisplacement_cd25_ki67,cell|Intensity_MassDisplacement_ER,cell|Intensity_MassDisplacement_actin,cell|Intensity_MassDisplacement_ki67,cell|Intensity_MassDisplacement_ki67_old,cell|Intensity_MassDisplacement_tubulin,cell|Intensity_MassDisplacement_lipids,cell|Intensity_MassDisplacement_mito,cell|Intensity_StdIntensity_cd25,cell|Intensity_StdIntensity_cd25_ki67,cell|Intensity_StdIntensity_cd25_old,cell|Intensity_StdIntensity_mito,cell|Intensity_StdIntensity_lipids,cell|Intensity_StdIntensity_ki67,cell|Intensity_StdIntensity_ki67_old,cell|Intensity_StdIntensity_ER,cell|Intensity_StdIntensity_tubulin,cell|Intensity_StdIntensity_actin,cell|Intensity_IntegratedIntensityEdge_ER,cell|Intensity_IntegratedIntensityEdge_mito,cell|Intensity_IntegratedIntensityEdge_cd25,cell|Intensity_IntegratedIntensityEdge_cd25_ki67,cell|Intensity_IntegratedIntensityEdge_cd25_old,cell|Intensity_IntegratedIntensityEdge_lipids,cell|Intensity_IntegratedIntensityEdge_ki67,cell|Intensity_IntegratedIntensityEdge_ki67_old,cell|Intensity_IntegratedIntensityEdge_tubulin,cell|Intensity_IntegratedIntensityEdge_actin,cell|Granularity_6_lipids,cell|Granularity_6_cd25,cell|Granularity_6_mito,cell|Granularity_6_ER,cell|Granularity_9_lipids,cell|Granularity_9_mito,cell|Granularity_9_cd25,cell|Granularity_9_ER,cell|Granularity_2_cd25,cell|Granularity_2_mito,cell|Granularity_2_ER,cell|Granularity_2_lipids,cell|Granularity_12_mito,cell|Granularity_12_cd25,cell|Granularity_12_lipids,cell|Granularity_12_ER,cell|Granularity_10_mito,cell|Granularity_10_cd25,cell|Granularity_10_ER,cell|Granularity_10_lipids,cell|Granularity_5_cd25,cell|Granularity_5_mito,cell|Granularity_5_lipids,cell|Granularity_5_ER,cell|Granularity_1_mito,cell|Granularity_1_ER,cell|Granularity_1_lipids,cell|Granularity_1_cd25,cell|Granularity_11_ER,cell|Granularity_11_lipids,cell|Granularity_11_cd25,cell|Granularity_11_mito,cell|Granularity_8_ER,cell|Granularity_8_mito,cell|Granularity_8_lipids,cell|Granularity_8_cd25,cell|Granularity_3_mito,cell|Granularity_3_ER,cell|Granularity_3_lipids,cell|Granularity_3_cd25,cell|Granularity_4_lipids,cell|Granularity_4_ER,cell|Granularity_4_mito,cell|Granularity_4_cd25,cell|Granularity_7_lipids,cell|Granularity_7_mito,cell|Granularity_7_cd25,cell|Granularity_7_ER,cell|Children_nucl_Count,cell|Children_memb_Count,cell|Children_cyto_Count,cell|Children_lipids_Count,cell|Children_mitoNetwork_Count,cell|Children_mito_Count,cell|Children_ki67_Count,cell|Correlation_Correlation_cd25_lipids,cell|Correlation_Correlation_cd25_mito,cell|Correlation_Correlation_ER_mito,cell|Correlation_Correlation_ER_lipids,cell|Correlation_Correlation_ER_cd25,cell|Correlation_Correlation_lipids_mito,cell|Neighbors_FirstClosestObjectNumber_Adjacent,cell|Neighbors_AngleBetweenNeighbors_Adjacent,cell|Neighbors_SecondClosestObjectNumber_Adjacent,cell|Neighbors_PercentTouching_Adjacent,cell|Neighbors_NumberOfNeighbors_Adjacent,cell|Neighbors_SecondClosestDistance_Adjacent,cell|Neighbors_FirstClosestDistance_Adjacent,cell|Number_Object_Number,cell|Parent_cell_raw,Image|Granularity_12_ki67,Image|Granularity_12_ER,Image|Granularity_12_mito,Image|Granularity_12_lipids,Image|Granularity_12_cd25,Image|Granularity_9_lipids,Image|Granularity_9_mito,Image|Granularity_9_ki67,Image|Granularity_9_ER,Image|Granularity_9_cd25,Image|Granularity_6_mito,Image|Granularity_6_ER,Image|Granularity_6_ki67,Image|Granularity_6_lipids,Image|Granularity_6_cd25,Image|Granularity_4_mito,Image|Granularity_4_cd25,Image|Granularity_4_lipids,Image|Granularity_4_ki67,Image|Granularity_4_ER,Image|Granularity_8_cd25,Image|Granularity_8_mito,Image|Granularity_8_ki67,Image|Granularity_8_ER,Image|Granularity_8_lipids,Image|Granularity_2_lipids,Image|Granularity_2_mito,Image|Granularity_2_cd25,Image|Granularity_2_ki67,Image|Granularity_2_ER,Image|Granularity_7_lipids,Image|Granularity_7_cd25,Image|Granularity_7_ki67,Image|Granularity_7_ER,Image|Granularity_7_mito,Image|Granularity_11_cd25,Image|Granularity_11_ER,Image|Granularity_11_ki67,Image|Granularity_11_mito,Image|Granularity_11_lipids,Image|Granularity_10_lipids,Image|Granularity_10_cd25,Image|Granularity_10_ER,Image|Granularity_10_ki67,Image|Granularity_10_mito,Image|Granularity_1_ER,Image|Granularity_1_ki67,Image|Granularity_1_cd25,Image|Granularity_1_mito,Image|Granularity_1_lipids,Image|Granularity_5_mito,Image|Granularity_5_cd25,Image|Granularity_5_ki67,Image|Granularity_5_ER,Image|Granularity_5_lipids,Image|Granularity_3_ki67,Image|Granularity_3_cd25,Image|Granularity_3_lipids,Image|Granularity_3_mito,Image|Granularity_3_ER,Image|ExecutionTime_28MaskImage,Image|ExecutionTime_20MeasureImageQuality,Image|ExecutionTime_01Images,Image|ExecutionTime_08ImageMath,Image|ExecutionTime_45RelateObjects,Image|ExecutionTime_44RelateObjects,Image|ExecutionTime_35Threshold,Image|ExecutionTime_59MeasureObjectIntensityDistribution,Image|ExecutionTime_54MeasureObjectIntensity,Image|ExecutionTime_27MaskObjects,Image|ExecutionTime_40FilterObjects,Image|ExecutionTime_04Groups,Image|ExecutionTime_16ImageMath,Image|ExecutionTime_61MeasureGranularity,Image|ExecutionTime_65MeasureTexture,Image|ExecutionTime_66MeasureTexture,Image|ExecutionTime_30Smooth,Image|ExecutionTime_18ImageMath,Image|ExecutionTime_37ConvertImageToObjects,Image|ExecutionTime_51MeasureObjectNeighbors,Image|ExecutionTime_11ImageMath,Image|ExecutionTime_21FlagImage,Image|ExecutionTime_39ConvertImageToObjects,Image|ExecutionTime_06ConvertImageToObjects,Image|ExecutionTime_50MeasureObjectSizeShape,Image|ExecutionTime_57MeasureObjectIntensity,Image|ExecutionTime_56MeasureObjectIntensity,Image|ExecutionTime_63MeasureColocalization,Image|ExecutionTime_12ImageMath,Image|ExecutionTime_55MeasureObjectIntensity,Image|ExecutionTime_24ExpandOrShrinkObjects,Image|ExecutionTime_09ImageMath,Image|ExecutionTime_23SplitOrMergeObjects,Image|ExecutionTime_02Metadata,Image|ExecutionTime_22RelateObjects,Image|ExecutionTime_53MeasureObjectIntensity,Image|ExecutionTime_41RelateObjects,Image|ExecutionTime_62MeasureColocalization,Image|ExecutionTime_46RelateObjects,Image|ExecutionTime_29MaskImage,Image|ExecutionTime_03NamesAndTypes,Image|ExecutionTime_58MeasureImageAreaOccupied,Image|ExecutionTime_15ImageMath,Image|ExecutionTime_14ImageMath,Image|ExecutionTime_05ConvertImageToObjects,Image|ExecutionTime_42RelateObjects,Image|ExecutionTime_43RelateObjects,Image|ExecutionTime_60MeasureGranularity,Image|ExecutionTime_36Threshold,Image|ExecutionTime_10ImageMath,Image|ExecutionTime_48RelateObjects,Image|ExecutionTime_26MaskObjects,Image|ExecutionTime_47SplitOrMergeObjects,Image|ExecutionTime_25MaskObjects,Image|ExecutionTime_64MeasureTexture,Image|ExecutionTime_34Threshold,Image|ExecutionTime_32ImageMath,Image|ExecutionTime_13ImageMath,Image|ExecutionTime_19MeasureImageIntensity,Image|ExecutionTime_07Threshold,Image|ExecutionTime_17ImageMath,Image|ExecutionTime_38ConvertImageToObjects,Image|ExecutionTime_49MeasureObjectSizeShape,Image|Height_nucl_img,Image|Height_lipids,Image|Height_cd25,Image|Height_cd25_ki67,Image|Height_actin,Image|Height_tubulin,Image|Height_dna,Image|Height_ER,Image|Height_dna2,Image|Height_cell_img,Image|Height_ki67,Image|Height_mito,Image|Intensity_Percentile_10_mito_ibg,Image|Intensity_Percentile_10_cd25_ibg,Image|Intensity_Percentile_10_cd25_ki67_ibg,Image|Intensity_Percentile_10_ki67_ibg,Image|Intensity_Percentile_10_tubulin_ibg,Image|Intensity_Percentile_10_ER_ibg,Image|Intensity_Percentile_10_dna_ibg,Image|Intensity_Percentile_10_actin_ibg,Image|Intensity_Percentile_10_lipids_ibg,Image|Intensity_Percentile_10_dna2_ibg,Image|Intensity_Percentile_75_ki67_ibg,Image|Intensity_Percentile_75_cd25_ki67_ibg,Image|Intensity_Percentile_75_cd25_ibg,Image|Intensity_Percentile_75_actin_ibg,Image|Intensity_Percentile_75_ER_ibg,Image|Intensity_Percentile_75_dna_ibg,Image|Intensity_Percentile_75_tubulin_ibg,Image|Intensity_Percentile_75_lipids_ibg,Image|Intensity_Percentile_75_mito_ibg,Image|Intensity_Percentile_75_dna2_ibg,Image|Intensity_Percentile_98_cd25_ibg,Image|Intensity_Percentile_98_cd25_ki67_ibg,Image|Intensity_Percentile_98_tubulin_ibg,Image|Intensity_Percentile_98_actin_ibg,Image|Intensity_Percentile_98_lipids_ibg,Image|Intensity_Percentile_98_dna2_ibg,Image|Intensity_Percentile_98_dna_ibg,Image|Intensity_Percentile_98_ER_ibg,Image|Intensity_Percentile_98_mito_ibg,Image|Intensity_Percentile_98_ki67_ibg,Image|Intensity_Percentile_99_dna_ibg,Image|Intensity_Percentile_99_mito_ibg,Image|Intensity_Percentile_99_tubulin_ibg,Image|Intensity_Percentile_99_cd25_ki67_ibg,Image|Intensity_Percentile_99_cd25_ibg,Image|Intensity_Percentile_99_ER_ibg,Image|Intensity_Percentile_99_actin_ibg,Image|Intensity_Percentile_99_ki67_ibg,Image|Intensity_Percentile_99_dna2_ibg,Image|Intensity_Percentile_99_lipids_ibg,Image|Intensity_Percentile_0_ki67_ibg,Image|Intensity_Percentile_0_cd25_ibg,Image|Intensity_Percentile_0_cd25_ki67_ibg,Image|Intensity_Percentile_0_dna_ibg,Image|Intensity_Percentile_0_ER_ibg,Image|Intensity_Percentile_0_dna2_ibg,Image|Intensity_Percentile_0_lipids_ibg,Image|Intensity_Percentile_0_actin_ibg,Image|Intensity_Percentile_0_tubulin_ibg,Image|Intensity_Percentile_0_mito_ibg,Image|Intensity_Percentile_25_dna2_ibg,Image|Intensity_Percentile_25_dna_ibg,Image|Intensity_Percentile_25_tubulin_ibg,Image|Intensity_Percentile_25_ER_ibg,Image|Intensity_Percentile_25_mito_ibg,Image|Intensity_Percentile_25_cd25_ki67_ibg,Image|Intensity_Percentile_25_cd25_ibg,Image|Intensity_Percentile_25_ki67_ibg,Image|Intensity_Percentile_25_actin_ibg,Image|Intensity_Percentile_25_lipids_ibg,Image|Intensity_Percentile_2_lipids_ibg,Image|Intensity_Percentile_2_cd25_ibg,Image|Intensity_Percentile_2_cd25_ki67_ibg,Image|Intensity_Percentile_2_dna2_ibg,Image|Intensity_Percentile_2_tubulin_ibg,Image|Intensity_Percentile_2_mito_ibg,Image|Intensity_Percentile_2_actin_ibg,Image|Intensity_Percentile_2_ER_ibg,Image|Intensity_Percentile_2_ki67_ibg,Image|Intensity_Percentile_2_dna_ibg,Image|Intensity_Percentile_90_dna2_ibg,Image|Intensity_Percentile_90_cd25_ibg,Image|Intensity_Percentile_90_cd25_ki67_ibg,Image|Intensity_Percentile_90_lipids_ibg,Image|Intensity_Percentile_90_dna_ibg,Image|Intensity_Percentile_90_ER_ibg,Image|Intensity_Percentile_90_tubulin_ibg,Image|Intensity_Percentile_90_ki67_ibg,Image|Intensity_Percentile_90_actin_ibg,Image|Intensity_Percentile_90_mito_ibg,Image|Intensity_Percentile_50_actin_ibg,Image|Intensity_Percentile_50_cd25_ibg,Image|Intensity_Percentile_50_cd25_ki67_ibg,Image|Intensity_Percentile_50_ER_ibg,Image|Intensity_Percentile_50_lipids_ibg,Image|Intensity_Percentile_50_mito_ibg,Image|Intensity_Percentile_50_dna2_ibg,Image|Intensity_Percentile_50_ki67_ibg,Image|Intensity_Percentile_50_tubulin_ibg,Image|Intensity_Percentile_50_dna_ibg,Image|Intensity_Percentile_95_cd25_ki67_ibg,Image|Intensity_Percentile_95_cd25_ibg,Image|Intensity_Percentile_95_dna_ibg,Image|Intensity_Percentile_95_dna2_ibg,Image|Intensity_Percentile_95_tubulin_ibg,Image|Intensity_Percentile_95_ki67_ibg,Image|Intensity_Percentile_95_actin_ibg,Image|Intensity_Percentile_95_lipids_ibg,Image|Intensity_Percentile_95_mito_ibg,Image|Intensity_Percentile_95_ER_ibg,Image|Intensity_Percentile_100_ki67_ibg,Image|Intensity_Percentile_100_dna2_ibg,Image|Intensity_Percentile_100_ER_ibg,Image|Intensity_Percentile_100_cd25_ki67_ibg,Image|Intensity_Percentile_100_cd25_ibg,Image|Intensity_Percentile_100_dna_ibg,Image|Intensity_Percentile_100_tubulin_ibg,Image|Intensity_Percentile_100_actin_ibg,Image|Intensity_Percentile_100_mito_ibg,Image|Intensity_Percentile_100_lipids_ibg,Image|Intensity_Percentile_5_actin_ibg,Image|Intensity_Percentile_5_dna2_ibg,Image|Intensity_Percentile_5_cd25_ki67_ibg,Image|Intensity_Percentile_5_cd25_ibg,Image|Intensity_Percentile_5_ki67_ibg,Image|Intensity_Percentile_5_lipids_ibg,Image|Intensity_Percentile_5_mito_ibg,Image|Intensity_Percentile_5_dna_ibg,Image|Intensity_Percentile_5_ER_ibg,Image|Intensity_Percentile_5_tubulin_ibg,Image|Intensity_Percentile_1_mito_ibg,Image|Intensity_Percentile_1_ER_ibg,Image|Intensity_Percentile_1_cd25_ki67_ibg,Image|Intensity_Percentile_1_cd25_ibg,Image|Intensity_Percentile_1_tubulin_ibg,Image|Intensity_Percentile_1_ki67_ibg,Image|Intensity_Percentile_1_dna2_ibg,Image|Intensity_Percentile_1_lipids_ibg,Image|Intensity_Percentile_1_actin_ibg,Image|Intensity_Percentile_1_dna_ibg,Image|Intensity_MaxIntensity_dna2_ibg,Image|Intensity_MaxIntensity_mito_ibg,Image|Intensity_MaxIntensity_ki67_ibg,Image|Intensity_MaxIntensity_tubulin_ibg,Image|Intensity_MaxIntensity_cd25_ki67_ibg,Image|Intensity_MaxIntensity_cd25_ibg,Image|Intensity_MaxIntensity_ER_ibg,Image|Intensity_MaxIntensity_lipids_ibg,Image|Intensity_MaxIntensity_dna_ibg,Image|Intensity_MaxIntensity_actin_ibg,Image|Intensity_UpperQuartileIntensity_tubulin_ibg,Image|Intensity_UpperQuartileIntensity_dna_ibg,Image|Intensity_UpperQuartileIntensity_mito_ibg,Image|Intensity_UpperQuartileIntensity_ki67_ibg,Image|Intensity_UpperQuartileIntensity_cd25_ki67_ibg,Image|Intensity_UpperQuartileIntensity_cd25_ibg,Image|Intensity_UpperQuartileIntensity_dna2_ibg,Image|Intensity_UpperQuartileIntensity_lipids_ibg,Image|Intensity_UpperQuartileIntensity_ER_ibg,Image|Intensity_UpperQuartileIntensity_actin_ibg,Image|Intensity_StdIntensity_tubulin_ibg,Image|Intensity_StdIntensity_mito_ibg,Image|Intensity_StdIntensity_ER_ibg,Image|Intensity_StdIntensity_cd25_ibg,Image|Intensity_StdIntensity_cd25_ki67_ibg,Image|Intensity_StdIntensity_dna_ibg,Image|Intensity_StdIntensity_ki67_ibg,Image|Intensity_StdIntensity_lipids_ibg,Image|Intensity_StdIntensity_dna2_ibg,Image|Intensity_StdIntensity_actin_ibg,Image|Intensity_TotalArea_cd25_ki67_ibg,Image|Intensity_TotalArea_cd25_ibg,Image|Intensity_TotalArea_mito_ibg,Image|Intensity_TotalArea_tubulin_ibg,Image|Intensity_TotalArea_actin_ibg,Image|Intensity_TotalArea_ER_ibg,Image|Intensity_TotalArea_dna_ibg,Image|Intensity_TotalArea_ki67_ibg,Image|Intensity_TotalArea_dna2_ibg,Image|Intensity_TotalArea_lipids_ibg,Image|Intensity_MinIntensity_ki67_ibg,Image|Intensity_MinIntensity_cd25_ibg,Image|Intensity_MinIntensity_cd25_ki67_ibg,Image|Intensity_MinIntensity_ER_ibg,Image|Intensity_MinIntensity_dna_ibg,Image|Intensity_MinIntensity_actin_ibg,Image|Intensity_MinIntensity_lipids_ibg,Image|Intensity_MinIntensity_dna2_ibg,Image|Intensity_MinIntensity_tubulin_ibg,Image|Intensity_MinIntensity_mito_ibg,Image|Intensity_MADIntensity_ER_ibg,Image|Intensity_MADIntensity_tubulin_ibg,Image|Intensity_MADIntensity_cd25_ki67_ibg,Image|Intensity_MADIntensity_cd25_ibg,Image|Intensity_MADIntensity_mito_ibg,Image|Intensity_MADIntensity_lipids_ibg,Image|Intensity_MADIntensity_ki67_ibg,Image|Intensity_MADIntensity_dna_ibg,Image|Intensity_MADIntensity_actin_ibg,Image|Intensity_MADIntensity_dna2_ibg,Image|Intensity_LowerQuartileIntensity_lipids_ibg,Image|Intensity_LowerQuartileIntensity_cd25_ki67_ibg,Image|Intensity_LowerQuartileIntensity_cd25_ibg,Image|Intensity_LowerQuartileIntensity_ER_ibg,Image|Intensity_LowerQuartileIntensity_tubulin_ibg,Image|Intensity_LowerQuartileIntensity_dna2_ibg,Image|Intensity_LowerQuartileIntensity_ki67_ibg,Image|Intensity_LowerQuartileIntensity_actin_ibg,Image|Intensity_LowerQuartileIntensity_mito_ibg,Image|Intensity_LowerQuartileIntensity_dna_ibg,Image|Intensity_PercentMaximal_tubulin_ibg,Image|Intensity_PercentMaximal_dna_ibg,Image|Intensity_PercentMaximal_cd25_ibg,Image|Intensity_PercentMaximal_cd25_ki67_ibg,Image|Intensity_PercentMaximal_lipids_ibg,Image|Intensity_PercentMaximal_mito_ibg,Image|Intensity_PercentMaximal_ki67_ibg,Image|Intensity_PercentMaximal_dna2_ibg,Image|Intensity_PercentMaximal_ER_ibg,Image|Intensity_PercentMaximal_actin_ibg,Image|Intensity_MedianIntensity_actin_ibg,Image|Intensity_MedianIntensity_cd25_ki67_ibg,Image|Intensity_MedianIntensity_cd25_ibg,Image|Intensity_MedianIntensity_mito_ibg,Image|Intensity_MedianIntensity_lipids_ibg,Image|Intensity_MedianIntensity_ER_ibg,Image|Intensity_MedianIntensity_tubulin_ibg,Image|Intensity_MedianIntensity_ki67_ibg,Image|Intensity_MedianIntensity_dna_ibg,Image|Intensity_MedianIntensity_dna2_ibg,Image|Intensity_TotalIntensity_actin_ibg,Image|Intensity_TotalIntensity_cd25_ki67_ibg,Image|Intensity_TotalIntensity_cd25_ibg,Image|Intensity_TotalIntensity_dna2_ibg,Image|Intensity_TotalIntensity_mito_ibg,Image|Intensity_TotalIntensity_ER_ibg,Image|Intensity_TotalIntensity_ki67_ibg,Image|Intensity_TotalIntensity_lipids_ibg,Image|Intensity_TotalIntensity_dna_ibg,Image|Intensity_TotalIntensity_tubulin_ibg,Image|Intensity_MeanIntensity_mito_ibg,Image|Intensity_MeanIntensity_ki67_ibg,Image|Intensity_MeanIntensity_ER_ibg,Image|Intensity_MeanIntensity_dna2_ibg,Image|Intensity_MeanIntensity_actin_ibg,Image|Intensity_MeanIntensity_lipids_ibg,Image|Intensity_MeanIntensity_cd25_ki67_ibg,Image|Intensity_MeanIntensity_cd25_ibg,Image|Intensity_MeanIntensity_tubulin_ibg,Image|Intensity_MeanIntensity_dna_ibg,Image|Series_cd25,Image|Series_cd25_ki67,Image|Series_lipids,Image|Series_nucl_img,Image|Series_cell_img,Image|Series_dna2,Image|Series_mito,Image|Series_ki67,Image|Series_actin,Image|Series_tubulin,Image|Series_dna,Image|Series_ER,Image|ImageQuality_MedianIntensity_dna2,Image|ImageQuality_MedianIntensity_ki67,Image|ImageQuality_MedianIntensity_tubulin,Image|ImageQuality_MedianIntensity_actin,Image|ImageQuality_MedianIntensity_dna,Image|ImageQuality_MedianIntensity_ER,Image|ImageQuality_MedianIntensity_mito,Image|ImageQuality_MedianIntensity_cd25,Image|ImageQuality_MedianIntensity_cd25_ki67,Image|ImageQuality_MedianIntensity_lipids,Image|ImageQuality_PercentMinimal_lipids,Image|ImageQuality_PercentMinimal_tubulin,Image|ImageQuality_PercentMinimal_cd25,Image|ImageQuality_PercentMinimal_cd25_ki67,Image|ImageQuality_PercentMinimal_actin,Image|ImageQuality_PercentMinimal_mito,Image|ImageQuality_PercentMinimal_ki67,Image|ImageQuality_PercentMinimal_dna2,Image|ImageQuality_PercentMinimal_ER,Image|ImageQuality_PercentMinimal_dna,Image|ImageQuality_PercentMaximal_cd25,Image|ImageQuality_PercentMaximal_cd25_ki67,Image|ImageQuality_PercentMaximal_ki67,Image|ImageQuality_PercentMaximal_mito,Image|ImageQuality_PercentMaximal_lipids,Image|ImageQuality_PercentMaximal_dna2,Image|ImageQuality_PercentMaximal_ER,Image|ImageQuality_PercentMaximal_tubulin,Image|ImageQuality_PercentMaximal_actin,Image|ImageQuality_PercentMaximal_dna,Image|ImageQuality_MaxIntensity_actin,Image|ImageQuality_MaxIntensity_dna,Image|ImageQuality_MaxIntensity_ER,Image|ImageQuality_MaxIntensity_dna2,Image|ImageQuality_MaxIntensity_cd25,Image|ImageQuality_MaxIntensity_cd25_ki67,Image|ImageQuality_MaxIntensity_ki67,Image|ImageQuality_MaxIntensity_tubulin,Image|ImageQuality_MaxIntensity_lipids,Image|ImageQuality_MaxIntensity_mito,Image|ImageQuality_MeanIntensity_dna,Image|ImageQuality_MeanIntensity_tubulin,Image|ImageQuality_MeanIntensity_lipids,Image|ImageQuality_MeanIntensity_cd25,Image|ImageQuality_MeanIntensity_cd25_ki67,Image|ImageQuality_MeanIntensity_dna2,Image|ImageQuality_MeanIntensity_ER,Image|ImageQuality_MeanIntensity_mito,Image|ImageQuality_MeanIntensity_ki67,Image|ImageQuality_MeanIntensity_actin,Image|ImageQuality_Correlation_cd25_ki67_20,Image|ImageQuality_Correlation_cd25_20,Image|ImageQuality_Correlation_mito_20,Image|ImageQuality_Correlation_ER_20,Image|ImageQuality_Correlation_dna2_20,Image|ImageQuality_Correlation_actin_20,Image|ImageQuality_Correlation_tubulin_20,Image|ImageQuality_Correlation_dna_20,Image|ImageQuality_Correlation_lipids_20,Image|ImageQuality_Correlation_ki67_20,Image|ImageQuality_MADIntensity_ER,Image|ImageQuality_MADIntensity_mito,Image|ImageQuality_MADIntensity_cd25,Image|ImageQuality_MADIntensity_cd25_ki67,Image|ImageQuality_MADIntensity_dna,Image|ImageQuality_MADIntensity_dna2,Image|ImageQuality_MADIntensity_lipids,Image|ImageQuality_MADIntensity_ki67,Image|ImageQuality_MADIntensity_tubulin,Image|ImageQuality_MADIntensity_actin,Image|ImageQuality_StdIntensity_mito,Image|ImageQuality_StdIntensity_cd25,Image|ImageQuality_StdIntensity_cd25_ki67,Image|ImageQuality_StdIntensity_lipids,Image|ImageQuality_StdIntensity_ER,Image|ImageQuality_StdIntensity_ki67,Image|ImageQuality_StdIntensity_tubulin,Image|ImageQuality_StdIntensity_dna2,Image|ImageQuality_StdIntensity_dna,Image|ImageQuality_StdIntensity_actin,Image|ImageQuality_LocalFocusScore_lipids_20,Image|ImageQuality_LocalFocusScore_ER_20,Image|ImageQuality_LocalFocusScore_ki67_20,Image|ImageQuality_LocalFocusScore_cd25_20,Image|ImageQuality_LocalFocusScore_cd25_ki67_20,Image|ImageQuality_LocalFocusScore_mito_20,Image|ImageQuality_LocalFocusScore_dna2_20,Image|ImageQuality_LocalFocusScore_actin_20,Image|ImageQuality_LocalFocusScore_dna_20,Image|ImageQuality_LocalFocusScore_tubulin_20,Image|ImageQuality_FocusScore_cd25,Image|ImageQuality_FocusScore_cd25_ki67,Image|ImageQuality_FocusScore_lipids,Image|ImageQuality_FocusScore_tubulin,Image|ImageQuality_FocusScore_ki67,Image|ImageQuality_FocusScore_dna,Image|ImageQuality_FocusScore_dna2,Image|ImageQuality_FocusScore_mito,Image|ImageQuality_FocusScore_ER,Image|ImageQuality_FocusScore_actin,Image|ImageQuality_TotalArea_tubulin,Image|ImageQuality_TotalArea_mito,Image|ImageQuality_TotalArea_ER,Image|ImageQuality_TotalArea_lipids,Image|ImageQuality_TotalArea_dna,Image|ImageQuality_TotalArea_dna2,Image|ImageQuality_TotalArea_cd25,Image|ImageQuality_TotalArea_cd25_ki67,Image|ImageQuality_TotalArea_actin,Image|ImageQuality_TotalArea_ki67,Image|ImageQuality_ThresholdOtsu_cd25_2W,Image|ImageQuality_ThresholdOtsu_cd25_ki67_2W,Image|ImageQuality_ThresholdOtsu_tubulin_2W,Image|ImageQuality_ThresholdOtsu_dna_2W,Image|ImageQuality_ThresholdOtsu_ki67_2W,Image|ImageQuality_ThresholdOtsu_dna2_2W,Image|ImageQuality_ThresholdOtsu_lipids_2W,Image|ImageQuality_ThresholdOtsu_ER_2W,Image|ImageQuality_ThresholdOtsu_actin_2W,Image|ImageQuality_ThresholdOtsu_mito_2W,Image|ImageQuality_TotalIntensity_mito,Image|ImageQuality_TotalIntensity_dna2,Image|ImageQuality_TotalIntensity_actin,Image|ImageQuality_TotalIntensity_tubulin,Image|ImageQuality_TotalIntensity_cd25,Image|ImageQuality_TotalIntensity_cd25_ki67,Image|ImageQuality_TotalIntensity_ki67,Image|ImageQuality_TotalIntensity_lipids,Image|ImageQuality_TotalIntensity_dna,Image|ImageQuality_TotalIntensity_ER,Image|ImageQuality_Scaling_lipids,Image|ImageQuality_Scaling_tubulin,Image|ImageQuality_Scaling_dna,Image|ImageQuality_Scaling_actin,Image|ImageQuality_Scaling_ki67,Image|ImageQuality_Scaling_cd25,Image|ImageQuality_Scaling_cd25_ki67,Image|ImageQuality_Scaling_ER,Image|ImageQuality_Scaling_dna2,Image|ImageQuality_Scaling_mito,Image|ImageQuality_PowerLogLogSlope_cd25,Image|ImageQuality_PowerLogLogSlope_cd25_ki67,Image|ImageQuality_PowerLogLogSlope_mito,Image|ImageQuality_PowerLogLogSlope_dna2,Image|ImageQuality_PowerLogLogSlope_dna,Image|ImageQuality_PowerLogLogSlope_ki67,Image|ImageQuality_PowerLogLogSlope_tubulin,Image|ImageQuality_PowerLogLogSlope_actin,Image|ImageQuality_PowerLogLogSlope_ER,Image|ImageQuality_PowerLogLogSlope_lipids,Image|ImageQuality_MinIntensity_dna,Image|ImageQuality_MinIntensity_mito,Image|ImageQuality_MinIntensity_tubulin,Image|ImageQuality_MinIntensity_cd25,Image|ImageQuality_MinIntensity_cd25_ki67,Image|ImageQuality_MinIntensity_ki67,Image|ImageQuality_MinIntensity_actin,Image|ImageQuality_MinIntensity_lipids,Image|ImageQuality_MinIntensity_dna2,Image|ImageQuality_MinIntensity_ER,Image|FileName_ki67,Image|FileName_cd25,Image|FileName_cd25_ki67,Image|FileName_dna2,Image|FileName_nucl_img,Image|FileName_mito,Image|FileName_lipids,Image|FileName_cell_img,Image|FileName_ER,Image|FileName_tubulin,Image|FileName_actin,Image|FileName_dna,Image|ModuleError_58MeasureImageAreaOccupied,Image|ModuleError_18ImageMath,Image|ModuleError_12ImageMath,Image|ModuleError_54MeasureObjectIntensity,Image|ModuleError_05ConvertImageToObjects,Image|ModuleError_38ConvertImageToObjects,Image|ModuleError_60MeasureGranularity,Image|ModuleError_53MeasureObjectIntensity,Image|ModuleError_28MaskImage,Image|ModuleError_07Threshold,Image|ModuleError_26MaskObjects,Image|ModuleError_64MeasureTexture,Image|ModuleError_06ConvertImageToObjects,Image|ModuleError_27MaskObjects,Image|ModuleError_45RelateObjects,Image|ModuleError_39ConvertImageToObjects,Image|ModuleError_46RelateObjects,Image|ModuleError_02Metadata,Image|ModuleError_42RelateObjects,Image|ModuleError_44RelateObjects,Image|ModuleError_34Threshold,Image|ModuleError_62MeasureColocalization,Image|ModuleError_21FlagImage,Image|ModuleError_66MeasureTexture,Image|ModuleError_03NamesAndTypes,Image|ModuleError_65MeasureTexture,Image|ModuleError_48RelateObjects,Image|ModuleError_57MeasureObjectIntensity,Image|ModuleError_11ImageMath,Image|ModuleError_19MeasureImageIntensity,Image|ModuleError_25MaskObjects,Image|ModuleError_37ConvertImageToObjects,Image|ModuleError_43RelateObjects,Image|ModuleError_16ImageMath,Image|ModuleError_47SplitOrMergeObjects,Image|ModuleError_08ImageMath,Image|ModuleError_29MaskImage,Image|ModuleError_09ImageMath,Image|ModuleError_61MeasureGranularity,Image|ModuleError_13ImageMath,Image|ModuleError_22RelateObjects,Image|ModuleError_24ExpandOrShrinkObjects,Image|ModuleError_01Images,Image|ModuleError_32ImageMath,Image|ModuleError_23SplitOrMergeObjects,Image|ModuleError_63MeasureColocalization,Image|ModuleError_15ImageMath,Image|ModuleError_10ImageMath,Image|ModuleError_49MeasureObjectSizeShape,Image|ModuleError_56MeasureObjectIntensity,Image|ModuleError_14ImageMath,Image|ModuleError_30Smooth,Image|ModuleError_20MeasureImageQuality,Image|ModuleError_17ImageMath,Image|ModuleError_41RelateObjects,Image|ModuleError_55MeasureObjectIntensity,Image|ModuleError_59MeasureObjectIntensityDistribution,Image|ModuleError_50MeasureObjectSizeShape,Image|ModuleError_51MeasureObjectNeighbors,Image|ModuleError_36Threshold,Image|ModuleError_35Threshold,Image|ModuleError_04Groups,Image|ModuleError_40FilterObjects,Image|Frame_actin,Image|Frame_dna,Image|Frame_nucl_img,Image|Frame_lipids,Image|Frame_ki67,Image|Frame_mito,Image|Frame_cd25,Image|Frame_cd25_ki67,Image|Frame_tubulin,Image|Frame_cell_img,Image|Frame_ER,Image|Frame_dna2,Image|Width_lipids,Image|Width_nucl_img,Image|Width_cd25,Image|Width_cd25_ki67,Image|Width_dna,Image|Width_tubulin,Image|Width_cell_img,Image|Width_ER,Image|Width_dna2,Image|Width_actin,Image|Width_mito,Image|Width_ki67,Image|Scaling_actin,Image|Scaling_ER,Image|Scaling_cell_img,Image|Scaling_mito,Image|Scaling_dna2,Image|Scaling_cd25,Image|Scaling_cd25_ki67,Image|Scaling_dna,Image|Scaling_nucl_img,Image|Scaling_ki67,Image|Scaling_tubulin,Image|Scaling_lipids,Image|URL_lipids,Image|URL_actin,Image|URL_tubulin,Image|URL_ER,Image|URL_mito,Image|URL_ki67,Image|URL_cd25,Image|URL_cd25_ki67,Image|URL_dna,Image|URL_cell_img,Image|URL_nucl_img,Image|URL_dna2,Image|Threshold_WeightedVariance_ki67_thresh,Image|Threshold_WeightedVariance_lipid_thresh,Image|Threshold_WeightedVariance_mito_thresh,Image|Threshold_WeightedVariance_cell_img_binary,Image|Threshold_SumOfEntropies_lipid_thresh,Image|Threshold_SumOfEntropies_cell_img_binary,Image|Threshold_SumOfEntropies_mito_thresh,Image|Threshold_SumOfEntropies_ki67_thresh,Image|Threshold_FinalThreshold_cell_img_binary,Image|Threshold_FinalThreshold_ki67_thresh,Image|Threshold_FinalThreshold_lipid_thresh,Image|Threshold_FinalThreshold_mito_thresh,Image|Threshold_GuideThreshold_lipid_thresh,Image|Threshold_GuideThreshold_mito_thresh,Image|Threshold_GuideThreshold_ki67_thresh,Image|Threshold_OrigThreshold_cell_img_binary,Image|Threshold_OrigThreshold_ki67_thresh,Image|Threshold_OrigThreshold_lipid_thresh,Image|Threshold_OrigThreshold_mito_thresh,Image|PathName_cd25,Image|PathName_cd25_ki67,Image|PathName_dna,Image|PathName_tubulin,Image|PathName_nucl_img,Image|PathName_ki67,Image|PathName_cell_img,Image|PathName_mito,Image|PathName_lipids,Image|PathName_actin,Image|PathName_dna2,Image|PathName_ER,Image|Count_cell,Image|Count_cell_shrunk,Image|Count_cell_raw,Image|Count_nucl,Image|Count_nucl_raw_unmerged,Image|Count_ki67,Image|Count_mitoNetwork,Image|Count_memb,Image|Count_memb_tmp,Image|Count_lipids,Image|Count_mito,Image|Count_cyto,Image|Metadata_Series,Image|Metadata_plate,Image|Metadata_mask_type,Image|Metadata_Frame,Image|Metadata_no_cells,Image|Metadata_field,Image|Metadata_channel,Image|Metadata_FileLocation,Image|Metadata_well,Image|AreaOccupied_AreaOccupied_cell,Image|AreaOccupied_TotalArea_cell,Image|AreaOccupied_Perimeter_cell,Image|MD5Digest_nucl_img,Image|MD5Digest_lipids,Image|MD5Digest_ki67,Image|MD5Digest_cd25,Image|MD5Digest_cd25_ki67,Image|MD5Digest_dna,Image|MD5Digest_mito,Image|MD5Digest_actin,Image|MD5Digest_tubulin,Image|MD5Digest_dna2,Image|MD5Digest_ER,Image|MD5Digest_cell_img,Image|Group_Length,Image|Group_Number,Image|Group_Index,nucl|Texture_InfoMeas2_ki67_3_00_256,nucl|Texture_InfoMeas2_ki67_3_01_256,nucl|Texture_InfoMeas2_ki67_3_03_256,nucl|Texture_InfoMeas2_ki67_3_02_256,nucl|Texture_InfoMeas2_ki67_12_03_256,nucl|Texture_InfoMeas2_ki67_12_02_256,nucl|Texture_InfoMeas2_ki67_12_01_256,nucl|Texture_InfoMeas2_ki67_12_00_256,nucl|Texture_InfoMeas2_cd25_ki67_12_02_256,nucl|Texture_InfoMeas2_cd25_ki67_12_00_256,nucl|Texture_InfoMeas2_cd25_ki67_12_01_256,nucl|Texture_InfoMeas2_cd25_ki67_12_03_256,nucl|Texture_InfoMeas2_cd25_ki67_3_02_256,nucl|Texture_InfoMeas2_cd25_ki67_3_00_256,nucl|Texture_InfoMeas2_cd25_ki67_3_01_256,nucl|Texture_InfoMeas2_cd25_ki67_3_03_256,nucl|Texture_InfoMeas2_dna_3_03_256,nucl|Texture_InfoMeas2_dna_3_01_256,nucl|Texture_InfoMeas2_dna_3_00_256,nucl|Texture_InfoMeas2_dna_3_02_256,nucl|Texture_InfoMeas2_dna_12_02_256,nucl|Texture_InfoMeas2_dna_12_01_256,nucl|Texture_InfoMeas2_dna_12_00_256,nucl|Texture_InfoMeas2_dna_12_03_256,nucl|Texture_InfoMeas2_dna2_3_03_256,nucl|Texture_InfoMeas2_dna2_3_01_256,nucl|Texture_InfoMeas2_dna2_3_02_256,nucl|Texture_InfoMeas2_dna2_3_00_256,nucl|Texture_InfoMeas2_dna2_12_00_256,nucl|Texture_InfoMeas2_dna2_12_02_256,nucl|Texture_InfoMeas2_dna2_12_01_256,nucl|Texture_InfoMeas2_dna2_12_03_256,nucl|Texture_InfoMeas1_dna_12_03_256,nucl|Texture_InfoMeas1_dna_12_02_256,nucl|Texture_InfoMeas1_dna_12_00_256,nucl|Texture_InfoMeas1_dna_12_01_256,nucl|Texture_InfoMeas1_dna_3_02_256,nucl|Texture_InfoMeas1_dna_3_03_256,nucl|Texture_InfoMeas1_dna_3_01_256,nucl|Texture_InfoMeas1_dna_3_00_256,nucl|Texture_InfoMeas1_ki67_12_01_256,nucl|Texture_InfoMeas1_ki67_12_03_256,nucl|Texture_InfoMeas1_ki67_12_02_256,nucl|Texture_InfoMeas1_ki67_12_00_256,nucl|Texture_InfoMeas1_ki67_3_01_256,nucl|Texture_InfoMeas1_ki67_3_03_256,nucl|Texture_InfoMeas1_ki67_3_00_256,nucl|Texture_InfoMeas1_ki67_3_02_256,nucl|Texture_InfoMeas1_cd25_ki67_3_03_256,nucl|Texture_InfoMeas1_cd25_ki67_3_02_256,nucl|Texture_InfoMeas1_cd25_ki67_3_00_256,nucl|Texture_InfoMeas1_cd25_ki67_3_01_256,nucl|Texture_InfoMeas1_cd25_ki67_12_03_256,nucl|Texture_InfoMeas1_cd25_ki67_12_00_256,nucl|Texture_InfoMeas1_cd25_ki67_12_01_256,nucl|Texture_InfoMeas1_cd25_ki67_12_02_256,nucl|Texture_InfoMeas1_dna2_3_03_256,nucl|Texture_InfoMeas1_dna2_3_01_256,nucl|Texture_InfoMeas1_dna2_3_00_256,nucl|Texture_InfoMeas1_dna2_3_02_256,nucl|Texture_InfoMeas1_dna2_12_00_256,nucl|Texture_InfoMeas1_dna2_12_03_256,nucl|Texture_InfoMeas1_dna2_12_02_256,nucl|Texture_InfoMeas1_dna2_12_01_256,nucl|Texture_SumVariance_cd25_ki67_3_03_256,nucl|Texture_SumVariance_cd25_ki67_3_01_256,nucl|Texture_SumVariance_cd25_ki67_3_02_256,nucl|Texture_SumVariance_cd25_ki67_3_00_256,nucl|Texture_SumVariance_cd25_ki67_12_03_256,nucl|Texture_SumVariance_cd25_ki67_12_01_256,nucl|Texture_SumVariance_cd25_ki67_12_02_256,nucl|Texture_SumVariance_cd25_ki67_12_00_256,nucl|Texture_SumVariance_ki67_12_03_256,nucl|Texture_SumVariance_ki67_12_00_256,nucl|Texture_SumVariance_ki67_12_01_256,nucl|Texture_SumVariance_ki67_12_02_256,nucl|Texture_SumVariance_ki67_3_00_256,nucl|Texture_SumVariance_ki67_3_02_256,nucl|Texture_SumVariance_ki67_3_01_256,nucl|Texture_SumVariance_ki67_3_03_256,nucl|Texture_SumVariance_dna2_3_01_256,nucl|Texture_SumVariance_dna2_3_00_256,nucl|Texture_SumVariance_dna2_3_03_256,nucl|Texture_SumVariance_dna2_3_02_256,nucl|Texture_SumVariance_dna2_12_01_256,nucl|Texture_SumVariance_dna2_12_00_256,nucl|Texture_SumVariance_dna2_12_02_256,nucl|Texture_SumVariance_dna2_12_03_256,nucl|Texture_SumVariance_dna_3_00_256,nucl|Texture_SumVariance_dna_3_03_256,nucl|Texture_SumVariance_dna_3_01_256,nucl|Texture_SumVariance_dna_3_02_256,nucl|Texture_SumVariance_dna_12_02_256,nucl|Texture_SumVariance_dna_12_00_256,nucl|Texture_SumVariance_dna_12_03_256,nucl|Texture_SumVariance_dna_12_01_256,nucl|Texture_DifferenceVariance_dna_12_01_256,nucl|Texture_DifferenceVariance_dna_12_03_256,nucl|Texture_DifferenceVariance_dna_12_00_256,nucl|Texture_DifferenceVariance_dna_12_02_256,nucl|Texture_DifferenceVariance_dna_3_02_256,nucl|Texture_DifferenceVariance_dna_3_01_256,nucl|Texture_DifferenceVariance_dna_3_03_256,nucl|Texture_DifferenceVariance_dna_3_00_256,nucl|Texture_DifferenceVariance_ki67_3_01_256,nucl|Texture_DifferenceVariance_ki67_3_03_256,nucl|Texture_DifferenceVariance_ki67_3_00_256,nucl|Texture_DifferenceVariance_ki67_3_02_256,nucl|Texture_DifferenceVariance_ki67_12_03_256,nucl|Texture_DifferenceVariance_ki67_12_00_256,nucl|Texture_DifferenceVariance_ki67_12_01_256,nucl|Texture_DifferenceVariance_ki67_12_02_256,nucl|Texture_DifferenceVariance_dna2_12_01_256,nucl|Texture_DifferenceVariance_dna2_12_02_256,nucl|Texture_DifferenceVariance_dna2_12_00_256,nucl|Texture_DifferenceVariance_dna2_12_03_256,nucl|Texture_DifferenceVariance_dna2_3_02_256,nucl|Texture_DifferenceVariance_dna2_3_00_256,nucl|Texture_DifferenceVariance_dna2_3_03_256,nucl|Texture_DifferenceVariance_dna2_3_01_256,nucl|Texture_DifferenceVariance_cd25_ki67_3_00_256,nucl|Texture_DifferenceVariance_cd25_ki67_3_01_256,nucl|Texture_DifferenceVariance_cd25_ki67_3_03_256,nucl|Texture_DifferenceVariance_cd25_ki67_3_02_256,nucl|Texture_DifferenceVariance_cd25_ki67_12_02_256,nucl|Texture_DifferenceVariance_cd25_ki67_12_00_256,nucl|Texture_DifferenceVariance_cd25_ki67_12_01_256,nucl|Texture_DifferenceVariance_cd25_ki67_12_03_256,nucl|Texture_DifferenceEntropy_cd25_ki67_12_01_256,nucl|Texture_DifferenceEntropy_cd25_ki67_12_00_256,nucl|Texture_DifferenceEntropy_cd25_ki67_12_02_256,nucl|Texture_DifferenceEntropy_cd25_ki67_12_03_256,nucl|Texture_DifferenceEntropy_cd25_ki67_3_03_256,nucl|Texture_DifferenceEntropy_cd25_ki67_3_00_256,nucl|Texture_DifferenceEntropy_cd25_ki67_3_02_256,nucl|Texture_DifferenceEntropy_cd25_ki67_3_01_256,nucl|Texture_DifferenceEntropy_dna2_3_00_256,nucl|Texture_DifferenceEntropy_dna2_3_03_256,nucl|Texture_DifferenceEntropy_dna2_3_01_256,nucl|Texture_DifferenceEntropy_dna2_3_02_256,nucl|Texture_DifferenceEntropy_dna2_12_02_256,nucl|Texture_DifferenceEntropy_dna2_12_03_256,nucl|Texture_DifferenceEntropy_dna2_12_01_256,nucl|Texture_DifferenceEntropy_dna2_12_00_256,nucl|Texture_DifferenceEntropy_ki67_12_00_256,nucl|Texture_DifferenceEntropy_ki67_12_01_256,nucl|Texture_DifferenceEntropy_ki67_12_02_256,nucl|Texture_DifferenceEntropy_ki67_12_03_256,nucl|Texture_DifferenceEntropy_ki67_3_01_256,nucl|Texture_DifferenceEntropy_ki67_3_03_256,nucl|Texture_DifferenceEntropy_ki67_3_02_256,nucl|Texture_DifferenceEntropy_ki67_3_00_256,nucl|Texture_DifferenceEntropy_dna_3_01_256,nucl|Texture_DifferenceEntropy_dna_3_00_256,nucl|Texture_DifferenceEntropy_dna_3_03_256,nucl|Texture_DifferenceEntropy_dna_3_02_256,nucl|Texture_DifferenceEntropy_dna_12_01_256,nucl|Texture_DifferenceEntropy_dna_12_02_256,nucl|Texture_DifferenceEntropy_dna_12_03_256,nucl|Texture_DifferenceEntropy_dna_12_00_256,nucl|Texture_Entropy_dna_12_00_256,nucl|Texture_Entropy_dna_12_01_256,nucl|Texture_Entropy_dna_12_03_256,nucl|Texture_Entropy_dna_12_02_256,nucl|Texture_Entropy_dna_3_01_256,nucl|Texture_Entropy_dna_3_00_256,nucl|Texture_Entropy_dna_3_03_256,nucl|Texture_Entropy_dna_3_02_256,nucl|Texture_Entropy_ki67_12_00_256,nucl|Texture_Entropy_ki67_12_01_256,nucl|Texture_Entropy_ki67_12_03_256,nucl|Texture_Entropy_ki67_12_02_256,nucl|Texture_Entropy_ki67_3_01_256,nucl|Texture_Entropy_ki67_3_00_256,nucl|Texture_Entropy_ki67_3_03_256,nucl|Texture_Entropy_ki67_3_02_256,nucl|Texture_Entropy_cd25_ki67_12_03_256,nucl|Texture_Entropy_cd25_ki67_12_02_256,nucl|Texture_Entropy_cd25_ki67_12_00_256,nucl|Texture_Entropy_cd25_ki67_12_01_256,nucl|Texture_Entropy_cd25_ki67_3_03_256,nucl|Texture_Entropy_cd25_ki67_3_01_256,nucl|Texture_Entropy_cd25_ki67_3_02_256,nucl|Texture_Entropy_cd25_ki67_3_00_256,nucl|Texture_Entropy_dna2_3_02_256,nucl|Texture_Entropy_dna2_3_00_256,nucl|Texture_Entropy_dna2_3_01_256,nucl|Texture_Entropy_dna2_3_03_256,nucl|Texture_Entropy_dna2_12_03_256,nucl|Texture_Entropy_dna2_12_02_256,nucl|Texture_Entropy_dna2_12_01_256,nucl|Texture_Entropy_dna2_12_00_256,nucl|Texture_SumEntropy_ki67_3_01_256,nucl|Texture_SumEntropy_ki67_3_03_256,nucl|Texture_SumEntropy_ki67_3_02_256,nucl|Texture_SumEntropy_ki67_3_00_256,nucl|Texture_SumEntropy_ki67_12_01_256,nucl|Texture_SumEntropy_ki67_12_02_256,nucl|Texture_SumEntropy_ki67_12_00_256,nucl|Texture_SumEntropy_ki67_12_03_256,nucl|Texture_SumEntropy_dna_3_00_256,nucl|Texture_SumEntropy_dna_3_01_256,nucl|Texture_SumEntropy_dna_3_03_256,nucl|Texture_SumEntropy_dna_3_02_256,nucl|Texture_SumEntropy_dna_12_02_256,nucl|Texture_SumEntropy_dna_12_00_256,nucl|Texture_SumEntropy_dna_12_03_256,nucl|Texture_SumEntropy_dna_12_01_256,nucl|Texture_SumEntropy_cd25_ki67_12_03_256,nucl|Texture_SumEntropy_cd25_ki67_12_01_256,nucl|Texture_SumEntropy_cd25_ki67_12_02_256,nucl|Texture_SumEntropy_cd25_ki67_12_00_256,nucl|Texture_SumEntropy_cd25_ki67_3_00_256,nucl|Texture_SumEntropy_cd25_ki67_3_03_256,nucl|Texture_SumEntropy_cd25_ki67_3_01_256,nucl|Texture_SumEntropy_cd25_ki67_3_02_256,nucl|Texture_SumEntropy_dna2_3_02_256,nucl|Texture_SumEntropy_dna2_3_01_256,nucl|Texture_SumEntropy_dna2_3_00_256,nucl|Texture_SumEntropy_dna2_3_03_256,nucl|Texture_SumEntropy_dna2_12_03_256,nucl|Texture_SumEntropy_dna2_12_01_256,nucl|Texture_SumEntropy_dna2_12_00_256,nucl|Texture_SumEntropy_dna2_12_02_256,nucl|Texture_Correlation_ki67_12_02_256,nucl|Texture_Correlation_ki67_12_03_256,nucl|Texture_Correlation_ki67_12_01_256,nucl|Texture_Correlation_ki67_12_00_256,nucl|Texture_Correlation_ki67_3_01_256,nucl|Texture_Correlation_ki67_3_00_256,nucl|Texture_Correlation_ki67_3_02_256,nucl|Texture_Correlation_ki67_3_03_256,nucl|Texture_Correlation_dna_12_03_256,nucl|Texture_Correlation_dna_12_02_256,nucl|Texture_Correlation_dna_12_01_256,nucl|Texture_Correlation_dna_12_00_256,nucl|Texture_Correlation_dna_3_03_256,nucl|Texture_Correlation_dna_3_02_256,nucl|Texture_Correlation_dna_3_00_256,nucl|Texture_Correlation_dna_3_01_256,nucl|Texture_Correlation_cd25_ki67_12_02_256,nucl|Texture_Correlation_cd25_ki67_12_00_256,nucl|Texture_Correlation_cd25_ki67_12_01_256,nucl|Texture_Correlation_cd25_ki67_12_03_256,nucl|Texture_Correlation_cd25_ki67_3_03_256,nucl|Texture_Correlation_cd25_ki67_3_02_256,nucl|Texture_Correlation_cd25_ki67_3_01_256,nucl|Texture_Correlation_cd25_ki67_3_00_256,nucl|Texture_Correlation_dna2_3_03_256,nucl|Texture_Correlation_dna2_3_02_256,nucl|Texture_Correlation_dna2_3_01_256,nucl|Texture_Correlation_dna2_3_00_256,nucl|Texture_Correlation_dna2_12_01_256,nucl|Texture_Correlation_dna2_12_03_256,nucl|Texture_Correlation_dna2_12_00_256,nucl|Texture_Correlation_dna2_12_02_256,nucl|Texture_Variance_dna2_3_03_256,nucl|Texture_Variance_dna2_3_01_256,nucl|Texture_Variance_dna2_3_02_256,nucl|Texture_Variance_dna2_3_00_256,nucl|Texture_Variance_dna2_12_02_256,nucl|Texture_Variance_dna2_12_01_256,nucl|Texture_Variance_dna2_12_03_256,nucl|Texture_Variance_dna2_12_00_256,nucl|Texture_Variance_ki67_12_02_256,nucl|Texture_Variance_ki67_12_03_256,nucl|Texture_Variance_ki67_12_01_256,nucl|Texture_Variance_ki67_12_00_256,nucl|Texture_Variance_ki67_3_00_256,nucl|Texture_Variance_ki67_3_02_256,nucl|Texture_Variance_ki67_3_01_256,nucl|Texture_Variance_ki67_3_03_256,nucl|Texture_Variance_cd25_ki67_12_00_256,nucl|Texture_Variance_cd25_ki67_12_01_256,nucl|Texture_Variance_cd25_ki67_12_02_256,nucl|Texture_Variance_cd25_ki67_12_03_256,nucl|Texture_Variance_cd25_ki67_3_00_256,nucl|Texture_Variance_cd25_ki67_3_02_256,nucl|Texture_Variance_cd25_ki67_3_03_256,nucl|Texture_Variance_cd25_ki67_3_01_256,nucl|Texture_Variance_dna_12_02_256,nucl|Texture_Variance_dna_12_01_256,nucl|Texture_Variance_dna_12_03_256,nucl|Texture_Variance_dna_12_00_256,nucl|Texture_Variance_dna_3_00_256,nucl|Texture_Variance_dna_3_01_256,nucl|Texture_Variance_dna_3_02_256,nucl|Texture_Variance_dna_3_03_256,nucl|Texture_Contrast_cd25_ki67_3_00_256,nucl|Texture_Contrast_cd25_ki67_3_01_256,nucl|Texture_Contrast_cd25_ki67_3_03_256,nucl|Texture_Contrast_cd25_ki67_3_02_256,nucl|Texture_Contrast_cd25_ki67_12_01_256,nucl|Texture_Contrast_cd25_ki67_12_02_256,nucl|Texture_Contrast_cd25_ki67_12_00_256,nucl|Texture_Contrast_cd25_ki67_12_03_256,nucl|Texture_Contrast_dna_3_03_256,nucl|Texture_Contrast_dna_3_01_256,nucl|Texture_Contrast_dna_3_00_256,nucl|Texture_Contrast_dna_3_02_256,nucl|Texture_Contrast_dna_12_02_256,nucl|Texture_Contrast_dna_12_01_256,nucl|Texture_Contrast_dna_12_00_256,nucl|Texture_Contrast_dna_12_03_256,nucl|Texture_Contrast_ki67_12_03_256,nucl|Texture_Contrast_ki67_12_02_256,nucl|Texture_Contrast_ki67_12_00_256,nucl|Texture_Contrast_ki67_12_01_256,nucl|Texture_Contrast_ki67_3_01_256,nucl|Texture_Contrast_ki67_3_03_256,nucl|Texture_Contrast_ki67_3_00_256,nucl|Texture_Contrast_ki67_3_02_256,nucl|Texture_Contrast_dna2_3_03_256,nucl|Texture_Contrast_dna2_3_01_256,nucl|Texture_Contrast_dna2_3_00_256,nucl|Texture_Contrast_dna2_3_02_256,nucl|Texture_Contrast_dna2_12_02_256,nucl|Texture_Contrast_dna2_12_01_256,nucl|Texture_Contrast_dna2_12_00_256,nucl|Texture_Contrast_dna2_12_03_256,nucl|Texture_AngularSecondMoment_cd25_ki67_3_01_256,nucl|Texture_AngularSecondMoment_cd25_ki67_3_02_256,nucl|Texture_AngularSecondMoment_cd25_ki67_3_00_256,nucl|Texture_AngularSecondMoment_cd25_ki67_3_03_256,nucl|Texture_AngularSecondMoment_cd25_ki67_12_01_256,nucl|Texture_AngularSecondMoment_cd25_ki67_12_00_256,nucl|Texture_AngularSecondMoment_cd25_ki67_12_03_256,nucl|Texture_AngularSecondMoment_cd25_ki67_12_02_256,nucl|Texture_AngularSecondMoment_dna2_3_01_256,nucl|Texture_AngularSecondMoment_dna2_3_02_256,nucl|Texture_AngularSecondMoment_dna2_3_03_256,nucl|Texture_AngularSecondMoment_dna2_3_00_256,nucl|Texture_AngularSecondMoment_dna2_12_01_256,nucl|Texture_AngularSecondMoment_dna2_12_00_256,nucl|Texture_AngularSecondMoment_dna2_12_03_256,nucl|Texture_AngularSecondMoment_dna2_12_02_256,nucl|Texture_AngularSecondMoment_dna_3_03_256,nucl|Texture_AngularSecondMoment_dna_3_01_256,nucl|Texture_AngularSecondMoment_dna_3_02_256,nucl|Texture_AngularSecondMoment_dna_3_00_256,nucl|Texture_AngularSecondMoment_dna_12_01_256,nucl|Texture_AngularSecondMoment_dna_12_03_256,nucl|Texture_AngularSecondMoment_dna_12_02_256,nucl|Texture_AngularSecondMoment_dna_12_00_256,nucl|Texture_AngularSecondMoment_ki67_3_02_256,nucl|Texture_AngularSecondMoment_ki67_3_03_256,nucl|Texture_AngularSecondMoment_ki67_3_00_256,nucl|Texture_AngularSecondMoment_ki67_3_01_256,nucl|Texture_AngularSecondMoment_ki67_12_01_256,nucl|Texture_AngularSecondMoment_ki67_12_03_256,nucl|Texture_AngularSecondMoment_ki67_12_00_256,nucl|Texture_AngularSecondMoment_ki67_12_02_256,nucl|Texture_SumAverage_dna_3_00_256,nucl|Texture_SumAverage_dna_3_01_256,nucl|Texture_SumAverage_dna_3_03_256,nucl|Texture_SumAverage_dna_3_02_256,nucl|Texture_SumAverage_dna_12_00_256,nucl|Texture_SumAverage_dna_12_02_256,nucl|Texture_SumAverage_dna_12_03_256,nucl|Texture_SumAverage_dna_12_01_256,nucl|Texture_SumAverage_ki67_3_01_256,nucl|Texture_SumAverage_ki67_3_03_256,nucl|Texture_SumAverage_ki67_3_02_256,nucl|Texture_SumAverage_ki67_3_00_256,nucl|Texture_SumAverage_ki67_12_02_256,nucl|Texture_SumAverage_ki67_12_00_256,nucl|Texture_SumAverage_ki67_12_01_256,nucl|Texture_SumAverage_ki67_12_03_256,nucl|Texture_SumAverage_dna2_3_02_256,nucl|Texture_SumAverage_dna2_3_01_256,nucl|Texture_SumAverage_dna2_3_03_256,nucl|Texture_SumAverage_dna2_3_00_256,nucl|Texture_SumAverage_dna2_12_02_256,nucl|Texture_SumAverage_dna2_12_01_256,nucl|Texture_SumAverage_dna2_12_03_256,nucl|Texture_SumAverage_dna2_12_00_256,nucl|Texture_SumAverage_cd25_ki67_3_01_256,nucl|Texture_SumAverage_cd25_ki67_3_00_256,nucl|Texture_SumAverage_cd25_ki67_3_02_256,nucl|Texture_SumAverage_cd25_ki67_3_03_256,nucl|Texture_SumAverage_cd25_ki67_12_02_256,nucl|Texture_SumAverage_cd25_ki67_12_03_256,nucl|Texture_SumAverage_cd25_ki67_12_01_256,nucl|Texture_SumAverage_cd25_ki67_12_00_256,nucl|Texture_InverseDifferenceMoment_ki67_12_01_256,nucl|Texture_InverseDifferenceMoment_ki67_12_02_256,nucl|Texture_InverseDifferenceMoment_ki67_12_03_256,nucl|Texture_InverseDifferenceMoment_ki67_12_00_256,nucl|Texture_InverseDifferenceMoment_ki67_3_03_256,nucl|Texture_InverseDifferenceMoment_ki67_3_01_256,nucl|Texture_InverseDifferenceMoment_ki67_3_00_256,nucl|Texture_InverseDifferenceMoment_ki67_3_02_256,nucl|Texture_InverseDifferenceMoment_dna2_3_02_256,nucl|Texture_InverseDifferenceMoment_dna2_3_03_256,nucl|Texture_InverseDifferenceMoment_dna2_3_01_256,nucl|Texture_InverseDifferenceMoment_dna2_3_00_256,nucl|Texture_InverseDifferenceMoment_dna2_12_00_256,nucl|Texture_InverseDifferenceMoment_dna2_12_01_256,nucl|Texture_InverseDifferenceMoment_dna2_12_03_256,nucl|Texture_InverseDifferenceMoment_dna2_12_02_256,nucl|Texture_InverseDifferenceMoment_cd25_ki67_3_02_256,nucl|Texture_InverseDifferenceMoment_cd25_ki67_3_01_256,nucl|Texture_InverseDifferenceMoment_cd25_ki67_3_00_256,nucl|Texture_InverseDifferenceMoment_cd25_ki67_3_03_256,nucl|Texture_InverseDifferenceMoment_cd25_ki67_12_00_256,nucl|Texture_InverseDifferenceMoment_cd25_ki67_12_01_256,nucl|Texture_InverseDifferenceMoment_cd25_ki67_12_03_256,nucl|Texture_InverseDifferenceMoment_cd25_ki67_12_02_256,nucl|Texture_InverseDifferenceMoment_dna_12_01_256,nucl|Texture_InverseDifferenceMoment_dna_12_02_256,nucl|Texture_InverseDifferenceMoment_dna_12_03_256,nucl|Texture_InverseDifferenceMoment_dna_12_00_256,nucl|Texture_InverseDifferenceMoment_dna_3_00_256,nucl|Texture_InverseDifferenceMoment_dna_3_01_256,nucl|Texture_InverseDifferenceMoment_dna_3_02_256,nucl|Texture_InverseDifferenceMoment_dna_3_03_256,nucl|Location_CenterMassIntensity_Y_dna2,nucl|Location_CenterMassIntensity_Y_tubulin,nucl|Location_CenterMassIntensity_Y_dna,nucl|Location_CenterMassIntensity_Y_ki67,nucl|Location_CenterMassIntensity_Y_ki67_old,nucl|Location_CenterMassIntensity_Z_tubulin,nucl|Location_CenterMassIntensity_Z_ki67,nucl|Location_CenterMassIntensity_Z_ki67_old,nucl|Location_CenterMassIntensity_Z_dna2,nucl|Location_CenterMassIntensity_Z_dna,nucl|Location_CenterMassIntensity_X_ki67,nucl|Location_CenterMassIntensity_X_ki67_old,nucl|Location_CenterMassIntensity_X_tubulin,nucl|Location_CenterMassIntensity_X_dna,nucl|Location_CenterMassIntensity_X_dna2,nucl|Location_MaxIntensity_Z_tubulin,nucl|Location_MaxIntensity_Z_dna,nucl|Location_MaxIntensity_Z_ki67,nucl|Location_MaxIntensity_Z_ki67_old,nucl|Location_MaxIntensity_Z_dna2,nucl|Location_MaxIntensity_Y_dna,nucl|Location_MaxIntensity_Y_ki67,nucl|Location_MaxIntensity_Y_ki67_old,nucl|Location_MaxIntensity_Y_tubulin,nucl|Location_MaxIntensity_Y_dna2,nucl|Location_MaxIntensity_X_ki67,nucl|Location_MaxIntensity_X_ki67_old,nucl|Location_MaxIntensity_X_tubulin,nucl|Location_MaxIntensity_X_dna2,nucl|Location_MaxIntensity_X_dna,nucl|Location_Center_X,nucl|Location_Center_Y,nucl|Intensity_StdIntensity_ki67,nucl|Intensity_StdIntensity_ki67_old,nucl|Intensity_StdIntensity_dna,nucl|Intensity_StdIntensity_tubulin,nucl|Intensity_StdIntensity_dna2,nucl|Intensity_MaxIntensityEdge_ki67,nucl|Intensity_MaxIntensityEdge_ki67_old,nucl|Intensity_MaxIntensityEdge_tubulin,nucl|Intensity_MaxIntensityEdge_dna,nucl|Intensity_MaxIntensityEdge_dna2,nucl|Intensity_MaxIntensity_tubulin,nucl|Intensity_MaxIntensity_dna,nucl|Intensity_MaxIntensity_ki67,nucl|Intensity_MaxIntensity_ki67_old,nucl|Intensity_MaxIntensity_dna2,nucl|Intensity_MeanIntensityEdge_ki67,nucl|Intensity_MeanIntensityEdge_ki67_old,nucl|Intensity_MeanIntensityEdge_tubulin,nucl|Intensity_MeanIntensityEdge_dna,nucl|Intensity_MeanIntensityEdge_dna2,nucl|Intensity_MADIntensity_ki67,nucl|Intensity_MADIntensity_ki67_old,nucl|Intensity_MADIntensity_dna2,nucl|Intensity_MADIntensity_dna,nucl|Intensity_MADIntensity_tubulin,nucl|Intensity_IntegratedIntensityEdge_dna,nucl|Intensity_IntegratedIntensityEdge_tubulin,nucl|Intensity_IntegratedIntensityEdge_ki67,nucl|Intensity_IntegratedIntensityEdge_ki67_old,nucl|Intensity_IntegratedIntensityEdge_dna2,nucl|Intensity_MedianIntensity_tubulin,nucl|Intensity_MedianIntensity_dna,nucl|Intensity_MedianIntensity_ki67,nucl|Intensity_MedianIntensity_ki67_old,nucl|Intensity_MedianIntensity_dna2,nucl|Intensity_MinIntensityEdge_ki67,nucl|Intensity_MinIntensityEdge_ki67_old,nucl|Intensity_MinIntensityEdge_tubulin,nucl|Intensity_MinIntensityEdge_dna,nucl|Intensity_MinIntensityEdge_dna2,nucl|Intensity_MinIntensity_dna,nucl|Intensity_MinIntensity_ki67,nucl|Intensity_MinIntensity_ki67_old,nucl|Intensity_MinIntensity_tubulin,nucl|Intensity_MinIntensity_dna2,nucl|Intensity_LowerQuartileIntensity_dna2,nucl|Intensity_LowerQuartileIntensity_dna,nucl|Intensity_LowerQuartileIntensity_tubulin,nucl|Intensity_LowerQuartileIntensity_ki67,nucl|Intensity_LowerQuartileIntensity_ki67_old,nucl|Intensity_MeanIntensity_ki67,nucl|Intensity_MeanIntensity_ki67_old,nucl|Intensity_MeanIntensity_dna2,nucl|Intensity_MeanIntensity_dna,nucl|Intensity_MeanIntensity_tubulin,nucl|Intensity_IntegratedIntensity_dna,nucl|Intensity_IntegratedIntensity_ki67,nucl|Intensity_IntegratedIntensity_ki67_old,nucl|Intensity_IntegratedIntensity_dna2,nucl|Intensity_IntegratedIntensity_tubulin,nucl|Intensity_StdIntensityEdge_tubulin,nucl|Intensity_StdIntensityEdge_dna2,nucl|Intensity_StdIntensityEdge_ki67,nucl|Intensity_StdIntensityEdge_ki67_old,nucl|Intensity_StdIntensityEdge_dna,nucl|Intensity_UpperQuartileIntensity_ki67,nucl|Intensity_UpperQuartileIntensity_ki67_old,nucl|Intensity_UpperQuartileIntensity_tubulin,nucl|Intensity_UpperQuartileIntensity_dna,nucl|Intensity_UpperQuartileIntensity_dna2,nucl|Intensity_MassDisplacement_tubulin,nucl|Intensity_MassDisplacement_ki67,nucl|Intensity_MassDisplacement_ki67_old,nucl|Intensity_MassDisplacement_dna2,nucl|Intensity_MassDisplacement_dna,nucl|AreaShape_NormalizedMoment_1_0,nucl|AreaShape_NormalizedMoment_1_3,nucl|AreaShape_NormalizedMoment_1_2,nucl|AreaShape_NormalizedMoment_1_1,nucl|AreaShape_NormalizedMoment_0_1,nucl|AreaShape_NormalizedMoment_0_0,nucl|AreaShape_NormalizedMoment_0_3,nucl|AreaShape_NormalizedMoment_0_2,nucl|AreaShape_NormalizedMoment_3_3,nucl|AreaShape_NormalizedMoment_3_1,nucl|AreaShape_NormalizedMoment_3_2,nucl|AreaShape_NormalizedMoment_3_0,nucl|AreaShape_NormalizedMoment_2_2,nucl|AreaShape_NormalizedMoment_2_0,nucl|AreaShape_NormalizedMoment_2_3,nucl|AreaShape_NormalizedMoment_2_1,nucl|AreaShape_CentralMoment_1_3,nucl|AreaShape_CentralMoment_1_1,nucl|AreaShape_CentralMoment_1_0,nucl|AreaShape_CentralMoment_1_2,nucl|AreaShape_CentralMoment_0_1,nucl|AreaShape_CentralMoment_0_0,nucl|AreaShape_CentralMoment_0_2,nucl|AreaShape_CentralMoment_0_3,nucl|AreaShape_CentralMoment_2_1,nucl|AreaShape_CentralMoment_2_3,nucl|AreaShape_CentralMoment_2_0,nucl|AreaShape_CentralMoment_2_2,nucl|AreaShape_Zernike_7_1,nucl|AreaShape_Zernike_7_7,nucl|AreaShape_Zernike_7_3,nucl|AreaShape_Zernike_7_5,nucl|AreaShape_Zernike_9_3,nucl|AreaShape_Zernike_9_7,nucl|AreaShape_Zernike_9_1,nucl|AreaShape_Zernike_9_5,nucl|AreaShape_Zernike_9_9,nucl|AreaShape_Zernike_5_1,nucl|AreaShape_Zernike_5_5,nucl|AreaShape_Zernike_5_3,nucl|AreaShape_Zernike_4_0,nucl|AreaShape_Zernike_4_2,nucl|AreaShape_Zernike_4_4,nucl|AreaShape_Zernike_2_0,nucl|AreaShape_Zernike_2_2,nucl|AreaShape_Zernike_3_1,nucl|AreaShape_Zernike_3_3,nucl|AreaShape_Zernike_6_6,nucl|AreaShape_Zernike_6_4,nucl|AreaShape_Zernike_6_2,nucl|AreaShape_Zernike_6_0,nucl|AreaShape_Zernike_0_0,nucl|AreaShape_Zernike_8_6,nucl|AreaShape_Zernike_8_8,nucl|AreaShape_Zernike_8_2,nucl|AreaShape_Zernike_8_4,nucl|AreaShape_Zernike_8_0,nucl|AreaShape_Zernike_1_1,nucl|AreaShape_EulerNumber,nucl|AreaShape_HuMoment_3,nucl|AreaShape_HuMoment_6,nucl|AreaShape_HuMoment_4,nucl|AreaShape_HuMoment_0,nucl|AreaShape_HuMoment_5,nucl|AreaShape_HuMoment_2,nucl|AreaShape_HuMoment_1,nucl|AreaShape_MajorAxisLength,nucl|AreaShape_MinFeretDiameter,nucl|AreaShape_ConvexArea,nucl|AreaShape_EquivalentDiameter,nucl|AreaShape_SpatialMoment_0_1,nucl|AreaShape_SpatialMoment_0_0,nucl|AreaShape_SpatialMoment_0_2,nucl|AreaShape_SpatialMoment_0_3,nucl|AreaShape_SpatialMoment_2_3,nucl|AreaShape_SpatialMoment_2_0,nucl|AreaShape_SpatialMoment_2_2,nucl|AreaShape_SpatialMoment_2_1,nucl|AreaShape_SpatialMoment_1_2,nucl|AreaShape_SpatialMoment_1_3,nucl|AreaShape_SpatialMoment_1_1,nucl|AreaShape_SpatialMoment_1_0,nucl|AreaShape_InertiaTensorEigenvalues_0,nucl|AreaShape_InertiaTensorEigenvalues_1,nucl|AreaShape_Extent,nucl|AreaShape_MedianRadius,nucl|AreaShape_Center_Y,nucl|AreaShape_Center_X,nucl|AreaShape_MinorAxisLength,nucl|AreaShape_MeanRadius,nucl|AreaShape_Area,nucl|AreaShape_InertiaTensor_0_0,nucl|AreaShape_InertiaTensor_0_1,nucl|AreaShape_InertiaTensor_1_1,nucl|AreaShape_InertiaTensor_1_0,nucl|AreaShape_MaximumRadius,nucl|AreaShape_FormFactor,nucl|AreaShape_Orientation,nucl|AreaShape_BoundingBoxMinimum_Y,nucl|AreaShape_BoundingBoxMinimum_X,nucl|AreaShape_MaxFeretDiameter,nucl|AreaShape_Compactness,nucl|AreaShape_BoundingBoxMaximum_Y,nucl|AreaShape_BoundingBoxMaximum_X,nucl|AreaShape_Solidity,nucl|AreaShape_Perimeter,nucl|AreaShape_Eccentricity,nucl|AreaShape_BoundingBoxArea,nucl|Granularity_7_ki67,nucl|Granularity_9_ki67,nucl|Granularity_11_ki67,nucl|Granularity_2_ki67,nucl|Granularity_1_ki67,nucl|Granularity_12_ki67,nucl|Granularity_4_ki67,nucl|Granularity_8_ki67,nucl|Granularity_3_ki67,nucl|Granularity_10_ki67,nucl|Granularity_6_ki67,nucl|Granularity_5_ki67,nucl|Correlation_Correlation_dna_dna2,nucl|Correlation_Correlation_dna_tubulin,nucl|Correlation_Correlation_dna_ki67,nucl|Correlation_Correlation_dna2_tubulin,nucl|Correlation_Correlation_dna2_ki67,nucl|Correlation_Correlation_ki67_tubulin,nucl|Number_Object_Number,nucl|Parent_nucl_raw_unmerged,nucl|Parent_cell,memb|Location_MaxIntensity_X_ER,memb|Location_MaxIntensity_X_actin,memb|Location_MaxIntensity_X_lipids,memb|Location_MaxIntensity_X_mito,memb|Location_MaxIntensity_X_tubulin,memb|Location_MaxIntensity_X_cd25,memb|Location_MaxIntensity_Y_tubulin,memb|Location_MaxIntensity_Y_ER,memb|Location_MaxIntensity_Y_mito,memb|Location_MaxIntensity_Y_cd25,memb|Location_MaxIntensity_Y_actin,memb|Location_MaxIntensity_Y_lipids,memb|Location_MaxIntensity_Z_cd25,memb|Location_MaxIntensity_Z_tubulin,memb|Location_MaxIntensity_Z_ER,memb|Location_MaxIntensity_Z_mito,memb|Location_MaxIntensity_Z_actin,memb|Location_MaxIntensity_Z_lipids,memb|Location_CenterMassIntensity_Z_ER,memb|Location_CenterMassIntensity_Z_tubulin,memb|Location_CenterMassIntensity_Z_lipids,memb|Location_CenterMassIntensity_Z_mito,memb|Location_CenterMassIntensity_Z_cd25,memb|Location_CenterMassIntensity_Z_actin,memb|Location_CenterMassIntensity_Y_tubulin,memb|Location_CenterMassIntensity_Y_actin,memb|Location_CenterMassIntensity_Y_cd25,memb|Location_CenterMassIntensity_Y_mito,memb|Location_CenterMassIntensity_Y_lipids,memb|Location_CenterMassIntensity_Y_ER,memb|Location_CenterMassIntensity_X_actin,memb|Location_CenterMassIntensity_X_cd25,memb|Location_CenterMassIntensity_X_lipids,memb|Location_CenterMassIntensity_X_tubulin,memb|Location_CenterMassIntensity_X_ER,memb|Location_CenterMassIntensity_X_mito,memb|Location_Center_Y,memb|Location_Center_X,memb|Intensity_MaxIntensity_cd25,memb|Intensity_MaxIntensity_lipids,memb|Intensity_MaxIntensity_ER,memb|Intensity_MaxIntensity_tubulin,memb|Intensity_MaxIntensity_mito,memb|Intensity_MaxIntensity_actin,memb|Intensity_MaxIntensityEdge_lipids,memb|Intensity_MaxIntensityEdge_tubulin,memb|Intensity_MaxIntensityEdge_mito,memb|Intensity_MaxIntensityEdge_ER,memb|Intensity_MaxIntensityEdge_cd25,memb|Intensity_MaxIntensityEdge_actin,memb|Intensity_StdIntensityEdge_ER,memb|Intensity_StdIntensityEdge_tubulin,memb|Intensity_StdIntensityEdge_lipids,memb|Intensity_StdIntensityEdge_actin,memb|Intensity_StdIntensityEdge_mito,memb|Intensity_StdIntensityEdge_cd25,memb|Intensity_MADIntensity_actin,memb|Intensity_MADIntensity_lipids,memb|Intensity_MADIntensity_ER,memb|Intensity_MADIntensity_cd25,memb|Intensity_MADIntensity_mito,memb|Intensity_MADIntensity_tubulin,memb|Intensity_StdIntensity_mito,memb|Intensity_StdIntensity_actin,memb|Intensity_StdIntensity_ER,memb|Intensity_StdIntensity_tubulin,memb|Intensity_StdIntensity_lipids,memb|Intensity_StdIntensity_cd25,memb|Intensity_MinIntensity_actin,memb|Intensity_MinIntensity_lipids,memb|Intensity_MinIntensity_cd25,memb|Intensity_MinIntensity_ER,memb|Intensity_MinIntensity_mito,memb|Intensity_MinIntensity_tubulin,memb|Intensity_IntegratedIntensityEdge_tubulin,memb|Intensity_IntegratedIntensityEdge_cd25,memb|Intensity_IntegratedIntensityEdge_lipids,memb|Intensity_IntegratedIntensityEdge_mito,memb|Intensity_IntegratedIntensityEdge_ER,memb|Intensity_IntegratedIntensityEdge_actin,memb|Intensity_MinIntensityEdge_ER,memb|Intensity_MinIntensityEdge_mito,memb|Intensity_MinIntensityEdge_cd25,memb|Intensity_MinIntensityEdge_lipids,memb|Intensity_MinIntensityEdge_actin,memb|Intensity_MinIntensityEdge_tubulin,memb|Intensity_MassDisplacement_actin,memb|Intensity_MassDisplacement_cd25,memb|Intensity_MassDisplacement_mito,memb|Intensity_MassDisplacement_lipids,memb|Intensity_MassDisplacement_ER,memb|Intensity_MassDisplacement_tubulin,memb|Intensity_LowerQuartileIntensity_mito,memb|Intensity_LowerQuartileIntensity_lipids,memb|Intensity_LowerQuartileIntensity_tubulin,memb|Intensity_LowerQuartileIntensity_actin,memb|Intensity_LowerQuartileIntensity_cd25,memb|Intensity_LowerQuartileIntensity_ER,memb|Intensity_IntegratedIntensity_lipids,memb|Intensity_IntegratedIntensity_cd25,memb|Intensity_IntegratedIntensity_mito,memb|Intensity_IntegratedIntensity_tubulin,memb|Intensity_IntegratedIntensity_ER,memb|Intensity_IntegratedIntensity_actin,memb|Intensity_MeanIntensity_actin,memb|Intensity_MeanIntensity_tubulin,memb|Intensity_MeanIntensity_cd25,memb|Intensity_MeanIntensity_mito,memb|Intensity_MeanIntensity_lipids,memb|Intensity_MeanIntensity_ER,memb|Intensity_MedianIntensity_ER,memb|Intensity_MedianIntensity_lipids,memb|Intensity_MedianIntensity_actin,memb|Intensity_MedianIntensity_tubulin,memb|Intensity_MedianIntensity_cd25,memb|Intensity_MedianIntensity_mito,memb|Intensity_MeanIntensityEdge_lipids,memb|Intensity_MeanIntensityEdge_cd25,memb|Intensity_MeanIntensityEdge_mito,memb|Intensity_MeanIntensityEdge_tubulin,memb|Intensity_MeanIntensityEdge_actin,memb|Intensity_MeanIntensityEdge_ER,memb|Intensity_UpperQuartileIntensity_ER,memb|Intensity_UpperQuartileIntensity_lipids,memb|Intensity_UpperQuartileIntensity_cd25,memb|Intensity_UpperQuartileIntensity_tubulin,memb|Intensity_UpperQuartileIntensity_actin,memb|Intensity_UpperQuartileIntensity_mito,memb|Parent_memb_tmp,memb|Parent_cell,memb|Number_Object_Number,cyto|Texture_Entropy_cd25_12_02_256,cyto|Texture_Entropy_cd25_12_01_256,cyto|Texture_Entropy_cd25_12_03_256,cyto|Texture_Entropy_cd25_12_00_256,cyto|Texture_Entropy_cd25_3_03_256,cyto|Texture_Entropy_cd25_3_00_256,cyto|Texture_Entropy_cd25_3_01_256,cyto|Texture_Entropy_cd25_3_02_256,cyto|Texture_Entropy_cd25_ki67_3_02_256,cyto|Texture_Entropy_cd25_ki67_3_00_256,cyto|Texture_Entropy_cd25_ki67_3_03_256,cyto|Texture_Entropy_cd25_ki67_3_01_256,cyto|Texture_Entropy_cd25_ki67_12_00_256,cyto|Texture_Entropy_cd25_ki67_12_03_256,cyto|Texture_Entropy_cd25_ki67_12_02_256,cyto|Texture_Entropy_cd25_ki67_12_01_256,cyto|Texture_DifferenceEntropy_cd25_ki67_12_01_256,cyto|Texture_DifferenceEntropy_cd25_ki67_12_03_256,cyto|Texture_DifferenceEntropy_cd25_ki67_12_02_256,cyto|Texture_DifferenceEntropy_cd25_ki67_12_00_256,cyto|Texture_DifferenceEntropy_cd25_ki67_3_00_256,cyto|Texture_DifferenceEntropy_cd25_ki67_3_03_256,cyto|Texture_DifferenceEntropy_cd25_ki67_3_01_256,cyto|Texture_DifferenceEntropy_cd25_ki67_3_02_256,cyto|Texture_DifferenceEntropy_cd25_12_00_256,cyto|Texture_DifferenceEntropy_cd25_12_03_256,cyto|Texture_DifferenceEntropy_cd25_12_02_256,cyto|Texture_DifferenceEntropy_cd25_12_01_256,cyto|Texture_DifferenceEntropy_cd25_3_01_256,cyto|Texture_DifferenceEntropy_cd25_3_03_256,cyto|Texture_DifferenceEntropy_cd25_3_02_256,cyto|Texture_DifferenceEntropy_cd25_3_00_256,cyto|Texture_InfoMeas1_cd25_ki67_3_02_256,cyto|Texture_InfoMeas1_cd25_ki67_3_03_256,cyto|Texture_InfoMeas1_cd25_ki67_3_00_256,cyto|Texture_InfoMeas1_cd25_ki67_3_01_256,cyto|Texture_InfoMeas1_cd25_ki67_12_00_256,cyto|Texture_InfoMeas1_cd25_ki67_12_01_256,cyto|Texture_InfoMeas1_cd25_ki67_12_02_256,cyto|Texture_InfoMeas1_cd25_ki67_12_03_256,cyto|Texture_InfoMeas1_cd25_12_01_256,cyto|Texture_InfoMeas1_cd25_12_03_256,cyto|Texture_InfoMeas1_cd25_12_00_256,cyto|Texture_InfoMeas1_cd25_12_02_256,cyto|Texture_InfoMeas1_cd25_3_03_256,cyto|Texture_InfoMeas1_cd25_3_00_256,cyto|Texture_InfoMeas1_cd25_3_01_256,cyto|Texture_InfoMeas1_cd25_3_02_256,cyto|Texture_SumAverage_cd25_12_01_256,cyto|Texture_SumAverage_cd25_12_03_256,cyto|Texture_SumAverage_cd25_12_02_256,cyto|Texture_SumAverage_cd25_12_00_256,cyto|Texture_SumAverage_cd25_3_00_256,cyto|Texture_SumAverage_cd25_3_03_256,cyto|Texture_SumAverage_cd25_3_02_256,cyto|Texture_SumAverage_cd25_3_01_256,cyto|Texture_SumAverage_cd25_ki67_3_03_256,cyto|Texture_SumAverage_cd25_ki67_3_01_256,cyto|Texture_SumAverage_cd25_ki67_3_02_256,cyto|Texture_SumAverage_cd25_ki67_3_00_256,cyto|Texture_SumAverage_cd25_ki67_12_03_256,cyto|Texture_SumAverage_cd25_ki67_12_01_256,cyto|Texture_SumAverage_cd25_ki67_12_02_256,cyto|Texture_SumAverage_cd25_ki67_12_00_256,cyto|Texture_SumEntropy_cd25_12_01_256,cyto|Texture_SumEntropy_cd25_12_03_256,cyto|Texture_SumEntropy_cd25_12_02_256,cyto|Texture_SumEntropy_cd25_12_00_256,cyto|Texture_SumEntropy_cd25_3_02_256,cyto|Texture_SumEntropy_cd25_3_01_256,cyto|Texture_SumEntropy_cd25_3_00_256,cyto|Texture_SumEntropy_cd25_3_03_256,cyto|Texture_SumEntropy_cd25_ki67_12_01_256,cyto|Texture_SumEntropy_cd25_ki67_12_00_256,cyto|Texture_SumEntropy_cd25_ki67_12_02_256,cyto|Texture_SumEntropy_cd25_ki67_12_03_256,cyto|Texture_SumEntropy_cd25_ki67_3_02_256,cyto|Texture_SumEntropy_cd25_ki67_3_03_256,cyto|Texture_SumEntropy_cd25_ki67_3_01_256,cyto|Texture_SumEntropy_cd25_ki67_3_00_256,cyto|Texture_Variance_cd25_ki67_3_01_256,cyto|Texture_Variance_cd25_ki67_3_03_256,cyto|Texture_Variance_cd25_ki67_3_02_256,cyto|Texture_Variance_cd25_ki67_3_00_256,cyto|Texture_Variance_cd25_ki67_12_03_256,cyto|Texture_Variance_cd25_ki67_12_01_256,cyto|Texture_Variance_cd25_ki67_12_00_256,cyto|Texture_Variance_cd25_ki67_12_02_256,cyto|Texture_Variance_cd25_3_01_256,cyto|Texture_Variance_cd25_3_02_256,cyto|Texture_Variance_cd25_3_00_256,cyto|Texture_Variance_cd25_3_03_256,cyto|Texture_Variance_cd25_12_03_256,cyto|Texture_Variance_cd25_12_00_256,cyto|Texture_Variance_cd25_12_01_256,cyto|Texture_Variance_cd25_12_02_256,cyto|Texture_AngularSecondMoment_cd25_ki67_12_02_256,cyto|Texture_AngularSecondMoment_cd25_ki67_12_00_256,cyto|Texture_AngularSecondMoment_cd25_ki67_12_03_256,cyto|Texture_AngularSecondMoment_cd25_ki67_12_01_256,cyto|Texture_AngularSecondMoment_cd25_ki67_3_03_256,cyto|Texture_AngularSecondMoment_cd25_ki67_3_02_256,cyto|Texture_AngularSecondMoment_cd25_ki67_3_00_256,cyto|Texture_AngularSecondMoment_cd25_ki67_3_01_256,cyto|Texture_AngularSecondMoment_cd25_12_03_256,cyto|Texture_AngularSecondMoment_cd25_12_02_256,cyto|Texture_AngularSecondMoment_cd25_12_01_256,cyto|Texture_AngularSecondMoment_cd25_12_00_256,cyto|Texture_AngularSecondMoment_cd25_3_03_256,cyto|Texture_AngularSecondMoment_cd25_3_01_256,cyto|Texture_AngularSecondMoment_cd25_3_02_256,cyto|Texture_AngularSecondMoment_cd25_3_00_256,cyto|Texture_DifferenceVariance_cd25_ki67_3_00_256,cyto|Texture_DifferenceVariance_cd25_ki67_3_03_256,cyto|Texture_DifferenceVariance_cd25_ki67_3_01_256,cyto|Texture_DifferenceVariance_cd25_ki67_3_02_256,cyto|Texture_DifferenceVariance_cd25_ki67_12_02_256,cyto|Texture_DifferenceVariance_cd25_ki67_12_01_256,cyto|Texture_DifferenceVariance_cd25_ki67_12_03_256,cyto|Texture_DifferenceVariance_cd25_ki67_12_00_256,cyto|Texture_DifferenceVariance_cd25_12_03_256,cyto|Texture_DifferenceVariance_cd25_12_00_256,cyto|Texture_DifferenceVariance_cd25_12_02_256,cyto|Texture_DifferenceVariance_cd25_12_01_256,cyto|Texture_DifferenceVariance_cd25_3_03_256,cyto|Texture_DifferenceVariance_cd25_3_02_256,cyto|Texture_DifferenceVariance_cd25_3_01_256,cyto|Texture_DifferenceVariance_cd25_3_00_256,cyto|Texture_Contrast_cd25_3_02_256,cyto|Texture_Contrast_cd25_3_03_256,cyto|Texture_Contrast_cd25_3_01_256,cyto|Texture_Contrast_cd25_3_00_256,cyto|Texture_Contrast_cd25_ki67_3_03_256,cyto|Texture_Contrast_cd25_ki67_3_00_256,cyto|Texture_Contrast_cd25_ki67_3_01_256,cyto|Texture_Contrast_cd25_ki67_3_02_256,cyto|Texture_Contrast_cd25_ki67_12_02_256,cyto|Texture_Contrast_cd25_ki67_12_00_256,cyto|Texture_Contrast_cd25_ki67_12_03_256,cyto|Texture_Contrast_cd25_ki67_12_01_256,cyto|Texture_Contrast_cd25_12_00_256,cyto|Texture_Contrast_cd25_12_02_256,cyto|Texture_Contrast_cd25_12_01_256,cyto|Texture_Contrast_cd25_12_03_256,cyto|Texture_InverseDifferenceMoment_cd25_12_02_256,cyto|Texture_InverseDifferenceMoment_cd25_12_01_256,cyto|Texture_InverseDifferenceMoment_cd25_12_03_256,cyto|Texture_InverseDifferenceMoment_cd25_12_00_256,cyto|Texture_InverseDifferenceMoment_cd25_3_02_256,cyto|Texture_InverseDifferenceMoment_cd25_3_03_256,cyto|Texture_InverseDifferenceMoment_cd25_3_00_256,cyto|Texture_InverseDifferenceMoment_cd25_3_01_256,cyto|Texture_InverseDifferenceMoment_cd25_ki67_12_01_256,cyto|Texture_InverseDifferenceMoment_cd25_ki67_12_02_256,cyto|Texture_InverseDifferenceMoment_cd25_ki67_12_03_256,cyto|Texture_InverseDifferenceMoment_cd25_ki67_12_00_256,cyto|Texture_InverseDifferenceMoment_cd25_ki67_3_03_256,cyto|Texture_InverseDifferenceMoment_cd25_ki67_3_01_256,cyto|Texture_InverseDifferenceMoment_cd25_ki67_3_02_256,cyto|Texture_InverseDifferenceMoment_cd25_ki67_3_00_256,cyto|Texture_InfoMeas2_cd25_12_03_256,cyto|Texture_InfoMeas2_cd25_12_00_256,cyto|Texture_InfoMeas2_cd25_12_02_256,cyto|Texture_InfoMeas2_cd25_12_01_256,cyto|Texture_InfoMeas2_cd25_ki67_3_01_256,cyto|Texture_InfoMeas2_cd25_ki67_3_00_256,cyto|Texture_InfoMeas2_cd25_ki67_3_02_256,cyto|Texture_InfoMeas2_cd25_ki67_3_03_256,cyto|Texture_InfoMeas2_cd25_ki67_12_02_256,cyto|Texture_InfoMeas2_cd25_ki67_12_01_256,cyto|Texture_InfoMeas2_cd25_ki67_12_03_256,cyto|Texture_InfoMeas2_cd25_ki67_12_00_256,cyto|Texture_InfoMeas2_cd25_3_00_256,cyto|Texture_InfoMeas2_cd25_3_01_256,cyto|Texture_InfoMeas2_cd25_3_02_256,cyto|Texture_InfoMeas2_cd25_3_03_256,cyto|Texture_SumVariance_cd25_ki67_12_00_256,cyto|Texture_SumVariance_cd25_ki67_12_03_256,cyto|Texture_SumVariance_cd25_ki67_12_01_256,cyto|Texture_SumVariance_cd25_ki67_12_02_256,cyto|Texture_SumVariance_cd25_ki67_3_02_256,cyto|Texture_SumVariance_cd25_ki67_3_03_256,cyto|Texture_SumVariance_cd25_ki67_3_01_256,cyto|Texture_SumVariance_cd25_ki67_3_00_256,cyto|Texture_SumVariance_cd25_12_03_256,cyto|Texture_SumVariance_cd25_12_01_256,cyto|Texture_SumVariance_cd25_12_00_256,cyto|Texture_SumVariance_cd25_12_02_256,cyto|Texture_SumVariance_cd25_3_00_256,cyto|Texture_SumVariance_cd25_3_01_256,cyto|Texture_SumVariance_cd25_3_02_256,cyto|Texture_SumVariance_cd25_3_03_256,cyto|Texture_Correlation_cd25_ki67_3_03_256,cyto|Texture_Correlation_cd25_ki67_3_00_256,cyto|Texture_Correlation_cd25_ki67_3_01_256,cyto|Texture_Correlation_cd25_ki67_3_02_256,cyto|Texture_Correlation_cd25_ki67_12_02_256,cyto|Texture_Correlation_cd25_ki67_12_01_256,cyto|Texture_Correlation_cd25_ki67_12_03_256,cyto|Texture_Correlation_cd25_ki67_12_00_256,cyto|Texture_Correlation_cd25_12_01_256,cyto|Texture_Correlation_cd25_12_00_256,cyto|Texture_Correlation_cd25_12_03_256,cyto|Texture_Correlation_cd25_12_02_256,cyto|Texture_Correlation_cd25_3_03_256,cyto|Texture_Correlation_cd25_3_01_256,cyto|Texture_Correlation_cd25_3_00_256,cyto|Texture_Correlation_cd25_3_02_256,cyto|Intensity_MedianIntensity_actin,cyto|Intensity_MedianIntensity_mito,cyto|Intensity_MedianIntensity_tubulin,cyto|Intensity_MedianIntensity_lipids,cyto|Intensity_MedianIntensity_cd25,cyto|Intensity_MedianIntensity_ER,cyto|Intensity_MinIntensityEdge_tubulin,cyto|Intensity_MinIntensityEdge_cd25,cyto|Intensity_MinIntensityEdge_ER,cyto|Intensity_MinIntensityEdge_actin,cyto|Intensity_MinIntensityEdge_mito,cyto|Intensity_MinIntensityEdge_lipids,cyto|Intensity_MeanIntensityEdge_tubulin,cyto|Intensity_MeanIntensityEdge_mito,cyto|Intensity_MeanIntensityEdge_ER,cyto|Intensity_MeanIntensityEdge_cd25,cyto|Intensity_MeanIntensityEdge_actin,cyto|Intensity_MeanIntensityEdge_lipids,cyto|Intensity_StdIntensity_ER,cyto|Intensity_StdIntensity_mito,cyto|Intensity_StdIntensity_actin,cyto|Intensity_StdIntensity_tubulin,cyto|Intensity_StdIntensity_lipids,cyto|Intensity_StdIntensity_cd25,cyto|Intensity_MaxIntensity_ER,cyto|Intensity_MaxIntensity_actin,cyto|Intensity_MaxIntensity_cd25,cyto|Intensity_MaxIntensity_tubulin,cyto|Intensity_MaxIntensity_lipids,cyto|Intensity_MaxIntensity_mito,cyto|Intensity_StdIntensityEdge_mito,cyto|Intensity_StdIntensityEdge_ER,cyto|Intensity_StdIntensityEdge_tubulin,cyto|Intensity_StdIntensityEdge_cd25,cyto|Intensity_StdIntensityEdge_lipids,cyto|Intensity_StdIntensityEdge_actin,cyto|Intensity_MADIntensity_tubulin,cyto|Intensity_MADIntensity_ER,cyto|Intensity_MADIntensity_lipids,cyto|Intensity_MADIntensity_actin,cyto|Intensity_MADIntensity_cd25,cyto|Intensity_MADIntensity_mito,cyto|Intensity_MeanIntensity_cd25,cyto|Intensity_MeanIntensity_lipids,cyto|Intensity_MeanIntensity_mito,cyto|Intensity_MeanIntensity_tubulin,cyto|Intensity_MeanIntensity_ER,cyto|Intensity_MeanIntensity_actin,cyto|Intensity_MaxIntensityEdge_lipids,cyto|Intensity_MaxIntensityEdge_actin,cyto|Intensity_MaxIntensityEdge_mito,cyto|Intensity_MaxIntensityEdge_ER,cyto|Intensity_MaxIntensityEdge_tubulin,cyto|Intensity_MaxIntensityEdge_cd25,cyto|Intensity_LowerQuartileIntensity_actin,cyto|Intensity_LowerQuartileIntensity_lipids,cyto|Intensity_LowerQuartileIntensity_mito,cyto|Intensity_LowerQuartileIntensity_ER,cyto|Intensity_LowerQuartileIntensity_cd25,cyto|Intensity_LowerQuartileIntensity_tubulin,cyto|Intensity_IntegratedIntensityEdge_tubulin,cyto|Intensity_IntegratedIntensityEdge_ER,cyto|Intensity_IntegratedIntensityEdge_actin,cyto|Intensity_IntegratedIntensityEdge_lipids,cyto|Intensity_IntegratedIntensityEdge_cd25,cyto|Intensity_IntegratedIntensityEdge_mito,cyto|Intensity_UpperQuartileIntensity_lipids,cyto|Intensity_UpperQuartileIntensity_mito,cyto|Intensity_UpperQuartileIntensity_actin,cyto|Intensity_UpperQuartileIntensity_cd25,cyto|Intensity_UpperQuartileIntensity_tubulin,cyto|Intensity_UpperQuartileIntensity_ER,cyto|Intensity_MassDisplacement_cd25,cyto|Intensity_MassDisplacement_tubulin,cyto|Intensity_MassDisplacement_ER,cyto|Intensity_MassDisplacement_mito,cyto|Intensity_MassDisplacement_lipids,cyto|Intensity_MassDisplacement_actin,cyto|Intensity_MinIntensity_lipids,cyto|Intensity_MinIntensity_mito,cyto|Intensity_MinIntensity_actin,cyto|Intensity_MinIntensity_ER,cyto|Intensity_MinIntensity_cd25,cyto|Intensity_MinIntensity_tubulin,cyto|Intensity_IntegratedIntensity_lipids,cyto|Intensity_IntegratedIntensity_actin,cyto|Intensity_IntegratedIntensity_ER,cyto|Intensity_IntegratedIntensity_tubulin,cyto|Intensity_IntegratedIntensity_cd25,cyto|Intensity_IntegratedIntensity_mito,cyto|Location_MaxIntensity_X_ER,cyto|Location_MaxIntensity_X_lipids,cyto|Location_MaxIntensity_X_actin,cyto|Location_MaxIntensity_X_tubulin,cyto|Location_MaxIntensity_X_cd25,cyto|Location_MaxIntensity_X_mito,cyto|Location_MaxIntensity_Y_lipids,cyto|Location_MaxIntensity_Y_actin,cyto|Location_MaxIntensity_Y_tubulin,cyto|Location_MaxIntensity_Y_ER,cyto|Location_MaxIntensity_Y_mito,cyto|Location_MaxIntensity_Y_cd25,cyto|Location_MaxIntensity_Z_tubulin,cyto|Location_MaxIntensity_Z_ER,cyto|Location_MaxIntensity_Z_cd25,cyto|Location_MaxIntensity_Z_lipids,cyto|Location_MaxIntensity_Z_mito,cyto|Location_MaxIntensity_Z_actin,cyto|Location_CenterMassIntensity_Z_mito,cyto|Location_CenterMassIntensity_Z_lipids,cyto|Location_CenterMassIntensity_Z_tubulin,cyto|Location_CenterMassIntensity_Z_actin,cyto|Location_CenterMassIntensity_Z_cd25,cyto|Location_CenterMassIntensity_Z_ER,cyto|Location_CenterMassIntensity_Y_tubulin,cyto|Location_CenterMassIntensity_Y_cd25,cyto|Location_CenterMassIntensity_Y_ER,cyto|Location_CenterMassIntensity_Y_lipids,cyto|Location_CenterMassIntensity_Y_actin,cyto|Location_CenterMassIntensity_Y_mito,cyto|Location_CenterMassIntensity_X_cd25,cyto|Location_CenterMassIntensity_X_actin,cyto|Location_CenterMassIntensity_X_ER,cyto|Location_CenterMassIntensity_X_lipids,cyto|Location_CenterMassIntensity_X_mito,cyto|Location_CenterMassIntensity_X_tubulin,cyto|Location_Center_Y,cyto|Location_Center_X,cyto|Number_Object_Number,cyto|Parent_cell,cyto|Parent_cell_raw,Experiment|Pipeline_Pipeline,Experiment|ImageQuality_ThresholdStdOtsu_cd25_ki67_2W,Experiment|ImageQuality_ThresholdStdOtsu_cd25_2W,Experiment|ImageQuality_ThresholdStdOtsu_dna_2W,Experiment|ImageQuality_ThresholdStdOtsu_dna2_2W,Experiment|ImageQuality_ThresholdStdOtsu_ER_2W,Experiment|ImageQuality_ThresholdStdOtsu_ki67_2W,Experiment|ImageQuality_ThresholdStdOtsu_mito_2W,Experiment|ImageQuality_ThresholdStdOtsu_lipids_2W,Experiment|ImageQuality_ThresholdStdOtsu_actin_2W,Experiment|ImageQuality_ThresholdStdOtsu_tubulin_2W,Experiment|ImageQuality_ThresholdMedianOtsu_cd25_ki67_2W,Experiment|ImageQuality_ThresholdMedianOtsu_cd25_2W,Experiment|ImageQuality_ThresholdMedianOtsu_mito_2W,Experiment|ImageQuality_ThresholdMedianOtsu_ki67_2W,Experiment|ImageQuality_ThresholdMedianOtsu_tubulin_2W,Experiment|ImageQuality_ThresholdMedianOtsu_dna_2W,Experiment|ImageQuality_ThresholdMedianOtsu_dna2_2W,Experiment|ImageQuality_ThresholdMedianOtsu_actin_2W,Experiment|ImageQuality_ThresholdMedianOtsu_ER_2W,Experiment|ImageQuality_ThresholdMedianOtsu_lipids_2W,Experiment|ImageQuality_ThresholdMeanOtsu_ER_2W,Experiment|ImageQuality_ThresholdMeanOtsu_dna_2W,Experiment|ImageQuality_ThresholdMeanOtsu_actin_2W,Experiment|ImageQuality_ThresholdMeanOtsu_ki67_2W,Experiment|ImageQuality_ThresholdMeanOtsu_dna2_2W,Experiment|ImageQuality_ThresholdMeanOtsu_lipids_2W,Experiment|ImageQuality_ThresholdMeanOtsu_cd25_ki67_2W,Experiment|ImageQuality_ThresholdMeanOtsu_cd25_2W,Experiment|ImageQuality_ThresholdMeanOtsu_mito_2W,Experiment|ImageQuality_ThresholdMeanOtsu_tubulin_2W,Experiment|CellProfiler_Version,Experiment|Run_Timestamp,Experiment|Modification_Timestamp,lipids|Location_Center_X,lipids|Location_Center_Z,lipids|Location_Center_Y,lipids|Location_MaxIntensity_Y_lipids,lipids|Location_MaxIntensity_X_lipids,lipids|Location_MaxIntensity_Z_lipids,lipids|Location_CenterMassIntensity_Y_lipids,lipids|Location_CenterMassIntensity_X_lipids,lipids|Location_CenterMassIntensity_Z_lipids,lipids|Intensity_MeanIntensityEdge_lipids,lipids|Intensity_UpperQuartileIntensity_lipids,lipids|Intensity_IntegratedIntensity_lipids,lipids|Intensity_LowerQuartileIntensity_lipids,lipids|Intensity_MaxIntensityEdge_lipids,lipids|Intensity_MassDisplacement_lipids,lipids|Intensity_IntegratedIntensityEdge_lipids,lipids|Intensity_MeanIntensity_lipids,lipids|Intensity_MADIntensity_lipids,lipids|Intensity_MedianIntensity_lipids,lipids|Intensity_MaxIntensity_lipids,lipids|Intensity_StdIntensityEdge_lipids,lipids|Intensity_StdIntensity_lipids,lipids|Intensity_MinIntensity_lipids,lipids|Intensity_MinIntensityEdge_lipids,lipids|AreaShape_Center_X,lipids|AreaShape_Center_Y,lipids|AreaShape_BoundingBoxMaximum_Y,lipids|AreaShape_BoundingBoxMaximum_X,lipids|AreaShape_BoundingBoxMinimum_X,lipids|AreaShape_BoundingBoxMinimum_Y,lipids|AreaShape_Extent,lipids|AreaShape_MeanRadius,lipids|AreaShape_Orientation,lipids|AreaShape_MajorAxisLength,lipids|AreaShape_EulerNumber,lipids|AreaShape_BoundingBoxArea,lipids|AreaShape_MinFeretDiameter,lipids|AreaShape_EquivalentDiameter,lipids|AreaShape_MinorAxisLength,lipids|AreaShape_Compactness,lipids|AreaShape_Area,lipids|AreaShape_MedianRadius,lipids|AreaShape_Solidity,lipids|AreaShape_Perimeter,lipids|AreaShape_Eccentricity,lipids|AreaShape_ConvexArea,lipids|AreaShape_MaxFeretDiameter,lipids|AreaShape_FormFactor,lipids|AreaShape_MaximumRadius,lipids|Parent_cell,lipids|Number_Object_Number,mito|Location_CenterMassIntensity_X_mito,mito|Location_CenterMassIntensity_Z_mito,mito|Location_CenterMassIntensity_Y_mito,mito|Location_Center_Z,mito|Location_Center_X,mito|Location_Center_Y,mito|Location_MaxIntensity_Y_mito,mito|Location_MaxIntensity_X_mito,mito|Location_MaxIntensity_Z_mito,mito|AreaShape_MaxFeretDiameter,mito|AreaShape_Center_X,mito|AreaShape_Center_Y,mito|AreaShape_FormFactor,mito|AreaShape_ConvexArea,mito|AreaShape_MajorAxisLength,mito|AreaShape_Orientation,mito|AreaShape_MinorAxisLength,mito|AreaShape_BoundingBoxMaximum_X,mito|AreaShape_BoundingBoxMaximum_Y,mito|AreaShape_MaximumRadius,mito|AreaShape_Area,mito|AreaShape_MinFeretDiameter,mito|AreaShape_BoundingBoxMinimum_X,mito|AreaShape_BoundingBoxMinimum_Y,mito|AreaShape_Extent,mito|AreaShape_Perimeter,mito|AreaShape_MeanRadius,mito|AreaShape_Compactness,mito|AreaShape_Eccentricity,mito|AreaShape_BoundingBoxArea,mito|AreaShape_Solidity,mito|AreaShape_EulerNumber,mito|AreaShape_MedianRadius,mito|AreaShape_EquivalentDiameter,mito|Intensity_MassDisplacement_mito,mito|Intensity_IntegratedIntensityEdge_mito,mito|Intensity_MeanIntensityEdge_mito,mito|Intensity_MeanIntensity_mito,mito|Intensity_MinIntensity_mito,mito|Intensity_StdIntensityEdge_mito,mito|Intensity_StdIntensity_mito,mito|Intensity_MADIntensity_mito,mito|Intensity_LowerQuartileIntensity_mito,mito|Intensity_MinIntensityEdge_mito,mito|Intensity_UpperQuartileIntensity_mito,mito|Intensity_MaxIntensity_mito,mito|Intensity_MaxIntensityEdge_mito,mito|Intensity_MedianIntensity_mito,mito|Intensity_IntegratedIntensity_mito,mito|Parent_cell,mito|Number_Object_Number,mito|Children_mitoNetwork_Count,mitoNetwork|Intensity_MeanIntensityEdge_mito,mitoNetwork|Intensity_MinIntensityEdge_mito,mitoNetwork|Intensity_LowerQuartileIntensity_mito,mitoNetwork|Intensity_MedianIntensity_mito,mitoNetwork|Intensity_MeanIntensity_mito,mitoNetwork|Intensity_IntegratedIntensity_mito,mitoNetwork|Intensity_MaxIntensity_mito,mitoNetwork|Intensity_StdIntensity_mito,mitoNetwork|Intensity_IntegratedIntensityEdge_mito,mitoNetwork|Intensity_StdIntensityEdge_mito,mitoNetwork|Intensity_MADIntensity_mito,mitoNetwork|Intensity_UpperQuartileIntensity_mito,mitoNetwork|Intensity_MaxIntensityEdge_mito,mitoNetwork|Intensity_MinIntensity_mito,mitoNetwork|Intensity_MassDisplacement_mito,mitoNetwork|AreaShape_EquivalentDiameter,mitoNetwork|AreaShape_BoundingBoxMaximum_X,mitoNetwork|AreaShape_BoundingBoxMaximum_Y,mitoNetwork|AreaShape_FormFactor,mitoNetwork|AreaShape_Eccentricity,mitoNetwork|AreaShape_Solidity,mitoNetwork|AreaShape_Extent,mitoNetwork|AreaShape_MinFeretDiameter,mitoNetwork|AreaShape_MaximumRadius,mitoNetwork|AreaShape_Perimeter,mitoNetwork|AreaShape_BoundingBoxMinimum_X,mitoNetwork|AreaShape_BoundingBoxMinimum_Y,mitoNetwork|AreaShape_MinorAxisLength,mitoNetwork|AreaShape_MaxFeretDiameter,mitoNetwork|AreaShape_ConvexArea,mitoNetwork|AreaShape_MajorAxisLength,mitoNetwork|AreaShape_Center_X,mitoNetwork|AreaShape_Center_Y,mitoNetwork|AreaShape_BoundingBoxArea,mitoNetwork|AreaShape_Compactness,mitoNetwork|AreaShape_Orientation,mitoNetwork|AreaShape_Area,mitoNetwork|AreaShape_MedianRadius,mitoNetwork|AreaShape_MeanRadius,mitoNetwork|AreaShape_EulerNumber,mitoNetwork|Number_Object_Number,mitoNetwork|Location_Center_Y,mitoNetwork|Location_Center_X,mitoNetwork|Location_MaxIntensity_Y_mito,mitoNetwork|Location_MaxIntensity_X_mito,mitoNetwork|Location_MaxIntensity_Z_mito,mitoNetwork|Location_CenterMassIntensity_X_mito,mitoNetwork|Location_CenterMassIntensity_Y_mito,mitoNetwork|Location_CenterMassIntensity_Z_mito,mitoNetwork|Parent_cell,mitoNetwork|Parent_mito,ki67|AreaShape_Center_Y,ki67|AreaShape_Center_X,ki67|AreaShape_BoundingBoxMinimum_X,ki67|AreaShape_BoundingBoxMinimum_Y,ki67|AreaShape_MinFeretDiameter,ki67|AreaShape_Orientation,ki67|AreaShape_EquivalentDiameter,ki67|AreaShape_Area,ki67|AreaShape_FormFactor,ki67|AreaShape_BoundingBoxMaximum_Y,ki67|AreaShape_BoundingBoxMaximum_X,ki67|AreaShape_Extent,ki67|AreaShape_MaximumRadius,ki67|AreaShape_Solidity,ki67|AreaShape_MinorAxisLength,ki67|AreaShape_MaxFeretDiameter,ki67|AreaShape_Eccentricity,ki67|AreaShape_MedianRadius,ki67|AreaShape_EulerNumber,ki67|AreaShape_MajorAxisLength,ki67|AreaShape_ConvexArea,ki67|AreaShape_MeanRadius,ki67|AreaShape_Compactness,ki67|AreaShape_Perimeter,ki67|AreaShape_BoundingBoxArea,ki67|Number_Object_Number,ki67|Location_Center_X,ki67|Location_Center_Z,ki67|Location_Center_Y,ki67|Parent_cell
+    Representation of Nan/Inf:NaN
+    Add a prefix to file names?:Yes
+    Filename prefix:tglow_cat_2d_v4_
+    Overwrite existing files without warning?:No
+    Data to export:Image
+    Combine these object measurements with those of the previous object?:No
+    File name:\g<plate>_\g<well>_images.tsv
+    Use the object name for the file name?:Yes
+    Data to export:Experiment
+    Combine these object measurements with those of the previous object?:No
+    File name:\g<plate>_\g<well>_experiment.tsv
+    Use the object name for the file name?:Yes
+    Data to export:cell
+    Combine these object measurements with those of the previous object?:No
+    File name:\g<plate>_\g<well>_cells.tsv
+    Use the object name for the file name?:Yes
+    Data to export:cyto
+    Combine these object measurements with those of the previous object?:No
+    File name:DATA.csv
+    Use the object name for the file name?:Yes
+    Data to export:memb
+    Combine these object measurements with those of the previous object?:No
+    File name:DATA.csv
+    Use the object name for the file name?:Yes
+    Data to export:nucl
+    Combine these object measurements with those of the previous object?:No
+    File name:DATA.csv
+    Use the object name for the file name?:Yes
+    Data to export:Object relationships
+    Combine these object measurements with those of the previous object?:No
+    File name:\g<plate>_\g<well>_objectRelationships.tsv
+    Use the object name for the file name?:Yes
+    Data to export:mito
+    Combine these object measurements with those of the previous object?:No
+    File name:DATA.csv
+    Use the object name for the file name?:Yes
+    Data to export:ki67
+    Combine these object measurements with those of the previous object?:No
+    File name:DATA.csv
+    Use the object name for the file name?:Yes
+    Data to export:mitoNetwork
+    Combine these object measurements with those of the previous object?:No
+    File name:DATA.csv
+    Use the object name for the file name?:Yes
+    Data to export:lipids
+    Combine these object measurements with those of the previous object?:No
+    File name:DATA.csv
+    Use the object name for the file name?:Yes
