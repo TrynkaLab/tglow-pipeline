@@ -501,6 +501,8 @@ if __name__ == "__main__":
             raise RuntimeError(msg)
     
         calculator.save_scaling_factors("scale_factor")
+        calculator.apply_scaling_factor(args.q1, "scale_factor")
+        
     else:
         if calculator.channel_index['plate'].isnull().values.any():
             msg = "NA's found in scaling factors, usually due to misspecification of arguments, check 'channel_index_with_scaling.tsv' for issues."
@@ -508,7 +510,8 @@ if __name__ == "__main__":
             raise RuntimeError(msg)     
         calculator.save_scaling_factors("max_scale_total")
     
-    calculator.apply_scaling_factor(args.q1, "scale_factor")
+        calculator.apply_scaling_factor(args.q1, "max_scale_total")
+    
     calculator.save_density_plots(args.q1+"_scaled", vline=np.iinfo(np.uint16).max)
 
     #calculator.apply_scaling_factor("q99", "scale_factor")
