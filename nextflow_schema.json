@@ -39,6 +39,10 @@
           "format": "file-path",
           "mimetype": "text/csv"
         },
+        "rn_publish_dir": {
+          "type": "string",
+          "description": "Directory to store and cache the output. Generally name results"
+        },
         "rn_image_dir": {
           "type": "string",
           "description": "Permanent cache for images [optional] Defaults to: ${rn_publish_dir}/images",
