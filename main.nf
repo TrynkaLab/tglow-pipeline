@@ -1,4 +1,5 @@
 #!/usr/bin/env nextflow
+include { validateParameters } from 'plugin/nf-schema'
 
 // Validate parameters plugin
 validateParameters()
