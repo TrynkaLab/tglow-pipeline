@@ -182,15 +182,15 @@
           "description": "Number of images for independent sampling used for testing flatfield. Set 0 to skip flatfield evaluation."
         },
         "bp_merge_n": {
-          "type": "string",
+          "type": "integer",
           "description": "Number of images to max project into a compound \u2014 nimg times. If >1 basicpy run on nimg images each compound of merge_n images. Set null to run vanilla basicpy with no merging. Useful if low density images and flatfields tend to background signal rather than foreground. Recommended bp_nimg=100 and bp_merge_n=50 starting point but mileage varies. WARNING: samples same images into different compounds so some overlapping."
         },
         "bp_pseudoreplicates": {
-          "type": "string",
+          "type": "integer",
           "description": "Pseudoreplicate in memory related to merge_n but instead of disk I/O only nimg images read then pseudoreplicate compound images of size merge_n made. Sampling with replacement and overlaps possible. Goal similar to merge_n but avoids major IO load. Recommended to set nimg high to reduce overlap."
         },
         "bp_pseudoreplicates_test": {
-          "type": "string",
+          "type": "integer",
           "description": "Same as bp_pseudoreplicates but for flatfield evaluation"
         },
         "bp_use_ridge": {
