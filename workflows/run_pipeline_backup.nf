@@ -1,6 +1,5 @@
 #!/usr/bin/env nextflow
 
-// Processes
 include { convertChannelType; parseManifestFlatfields; readBlacklist} from '../lib/utils.nf'
 include { deconvolute } from '../processes/decon.nf'
 include { estimate_flatfield; stage_global_flatfield } from '../processes/flatfields.nf'
@@ -10,30 +9,100 @@ include { cellpose } from '../processes/segmentation.nf'
 include { cellprofiler; finalize; finalize_and_cellprofiler } from '../processes/features.nf'
 include { index_imagedir } from '../processes/staging.nf'
 
-// Subworkflows
-include { setup } from "../subworkflows/setup.nf"
 
 // Main workflow
 workflow run_pipeline {
 
     main:
+        //------------------------------------------------------------
+        // Defaults & sanity checks
+        //------------------------------------------------------------
+        if (params.rn_publish_dir == null) {
+            error "rn_publish_dir file parameter is required: --rn_publish_dir"
+        }
+        
+        if (params.rn_manifest == null) {
+            error "rn_manifest file parameter is required: --rn_manifest"
+        }
+        
+        if (params.rn_cache_images & !(params.rn_max_project | params.rn_hybrid)) {
+            log.warn "Caching images in 3d mode can take up a lot of space, are you sure this is what you want?"
+        }
+        
+        if (!params.rn_autoscale & params.rn_control_list != null) {
+            error "Provided --rn_control_list but --rn_autoscale false. Either drop --rn_control_list or set --rn_autoscale true"
+        }
+        
+        if ((params.rn_manualscale != null) & params.rn_autoscale) {
+            log.warn "Both rn_autoscale and rn_manualscale are provided, rn_manualscale will be overridden"
+        }
 
+
+        // Set runtime defaults, these are overidden when specified on commandline
+        params.rn_image_dir = params.rn_publish_dir + "/images"
+        params.rn_decon_dir = params.rn_publish_dir + "/decon"
+                
         //------------------------------------------------------------
-        // Run setup
+        // Read manifests & input files
         //------------------------------------------------------------
-        // Run the setup, parsing manifests and setting up channels
-        setup(params)
+        manifest = Channel.fromPath(params.rn_manifest)
+            .splitCsv(header:true, sep:"\t")
+            .map { row -> tuple(
+            row.plate,
+            row.index_xml,
+            (row.channels == null) ? "none" : tuple(row.channels.split(',')), 
+            (row.bp_channels == null) ? "none" : tuple(row.bp_channels.split(',')),
+            row.cp_nucl_channel,
+            row.cp_cell_channel,
+            row.dc_channels,
+            row.dc_psfs,
+            (row.mask_channels == null) ? "none" : tuple(row.mask_channels.split(',')))}
         
-        // Channels with file contents
-        manifest = setup.out.manifest
-        plates = setup.out.plates
-        manifest_registration = setup.out.manifest_registration
+        // Build a value channel for the plates in the manifest
+        // '<plate_1> <plate_2> <plate_N>'
+        plates_channel = manifest.map{row -> row[0]}.collect().map { it.join(' ') }
         
-        // Channels with file objects
-        manifest_registration_file = setup.out.manifest_registration_file
-        blacklist_file = setup.out.blacklist_file
-        control_file = setup.out.control_file
+        //------------------------------------------------------------------------
+        // Registration manifest
+        if (params.rn_manifest_registration != null) {
+            manifest_registration = Channel
+            .fromPath(params.rn_manifest_registration)
+            .splitCsv(header:true, sep:"\t")
+            .map{row -> tuple(
+                row.reference_plate,
+                row.reference_channel,
+                row.query_plates,
+                row.query_channels
+            )}               
+        } 
+    
+        //------------------------------------------------------------------------
+        // Blacklist channel, if missing just an empty channel
+        if (params.rn_blacklist == null) {
+            //log.info("No blacklist provided")
+            blacklist_channel = Channel.value(file('NO_BLACKLIST'))
+        } else {
+            blacklist_channel = Channel.value(file(params.rn_blacklist))
+        }
         
+        //------------------------------------------------------------------------
+        // Control list channel, if missing just an empty channel
+        if (params.rn_control_list == null) {
+            //log.info("No controlist provided")
+            control_list_channel = Channel.value(file('NO_CONTROL_LIST'))
+        } else {
+            control_list_channel = Channel.value(file(params.rn_control_list))
+        }
+    
+        //------------------------------------------------------------------------
+        // Registration manifest, if missing just an empty channel
+        if (params.rn_manifest_registration == null) {
+            //log.info("No registration provided")
+            manifest_registration_channel = Channel.value(file('NO_REGISTRATION_MANIFEST'))
+        } else {
+            manifest_registration_channel = Channel.value(file(params.rn_manifest_registration))
+        }
+    
         //------------------------------------------------------------
         // Run estimate_flatfield
         //------------------------------------------------------------
@@ -75,11 +144,11 @@ workflow run_pipeline {
             } else {
                 
                 flatfield_in_global = flatfield_in_global
-                .combine(plates)
+                .combine(plates_channel)
                 .map{row -> tuple( "0:" + row[1], 0, row[0], row[3].split(" "), row[1], row[2])} // key, cycle, plates, channel, index_xml
                 
                 flatfield_in = flatfield_in
-                .combine(plates)
+                .combine(plates_channel)
                 .map{row -> tuple("0:" + row[1], 0, row[0], row[3].split(" "), row[1], row[2])} // key, cycle, plates, channel, index_xml
             }
         } else {
@@ -94,7 +163,7 @@ workflow run_pipeline {
             if (params.bp_global_flatfield) {
 
                 // Runs only one model per plate
-                global_flatfield = estimate_flatfield(flatfield_in_global, blacklist_file).flatfield_out
+                global_flatfield = estimate_flatfield(flatfield_in_global, blacklist_channel).flatfield_out
                 
                 // Now need to make a channel like flatfield_in, but replacing the path with global_flatfield
                 // Combine on the channel
@@ -111,7 +180,7 @@ workflow run_pipeline {
                 
                 flatfield_out = stage_global_flatfield(global_flatfield_in).flatfield_out
             } else {
-                flatfield_out = estimate_flatfield(flatfield_in, blacklist_file).flatfield_out
+                flatfield_out = estimate_flatfield(flatfield_in, blacklist_channel).flatfield_out
             }
             
             
@@ -232,12 +301,18 @@ workflow run_pipeline {
             cellpose_out = Channel.empty()
         }
     
+    
         //------------------------------------------------------------
         // Scaling
         //------------------------------------------------------------
         // Get scaling string
         if (params.rn_manualscale != null) {    
             scaling_channel = channel.value(file(params.rn_manualscale))
+            // Old way, makes a text channel of the file content
+            //scaling_channel = Channel
+            //.fromPath(params.rn_manualscale)
+            //.map { file ->  file.text}
+            //.first() // Makes sure it is a value channel
         } else {
             scaling_channel = Channel.value(file("NO_SCALE"))
         }
@@ -281,8 +356,8 @@ workflow run_pipeline {
                     Channel.value(file("${params.rn_publish_dir}/registration")),
                     Channel.value(file("${params.rn_publish_dir}/masks")),
                     flatfield_out_string,
-                    blacklist_file,
-                    control_file
+                    blacklist_channel,
+                    control_list_channel
                 ).plate_offset
             } else {
                 control_dir = Channel.value(file('NO_CONTROL_DIR'))
@@ -293,9 +368,9 @@ workflow run_pipeline {
 
             // Start running only if all the plate offsets have been calculated
             scaling_channel = calculate_scaling_factors(cellpose_in.last(),
-                blacklist_file,
-                plates,
-                manifest_registration_file,
+                blacklist_channel,
+                plates_channel,
+                manifest_registration_channel,
                 control_dir.collect(), // ensures this only runs when control dir is done
                 demultiplex_channelstring).scaling_factors.first() // Emit the scale factor file as a value channel
             
