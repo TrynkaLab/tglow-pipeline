@@ -27,6 +27,12 @@ process fetch_model {
         --output ./
         """
         cmd
+    stub:
+        """
+        mkdir -p models/$channels/$type
+        cd models/$channels/$type
+        touch model_config.yaml
+        """
 }
 
 
@@ -78,6 +84,11 @@ process subcell {
             """
         }
         
-        
         cmd
+    stub:
+        """
+        mkdir -p features/$plate/$row/$col
+        cd features/$plate/$row/$col
+        touch ${plate}_${well}.txt
+        """
 }

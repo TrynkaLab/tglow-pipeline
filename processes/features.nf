@@ -149,6 +149,12 @@ process finalize_and_cellprofiler {
         }
 
         cmd
+    stub:
+        """
+        mkdir -p features/$plate/$row/$col
+        cd features/$plate/$row/$col
+        touch ${plate}_${well}.txt
+        """
 }
 
 process finalize {
@@ -263,6 +269,14 @@ process finalize {
         }
         
         cmd
+    stub:
+        """
+        mkdir -p $plate/$row/$col
+        cd $plate/$row/$col
+        touch ${plate}_${well}_ch0.tiff
+        cd ../../
+        touch channel_indices.tsv
+        """ 
 }
 
 
@@ -328,5 +342,11 @@ process cellprofiler {
         }
 
         cmd
+    stub:
+        """
+        mkdir -p features/$plate/$row/$col
+        cd features/$plate/$row/$col
+        touch ${plate}_${well}.txt
+        """ 
     
 }

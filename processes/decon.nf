@@ -47,4 +47,10 @@ process deconvolute {
         }
         
         cmd
+    stub:
+        """
+        mkdir -p "$plate/$row/$col"
+        cd "$plate/$row/$col"
+        touch 1.ome.tiff
+        """
 }

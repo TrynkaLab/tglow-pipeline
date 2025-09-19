@@ -102,5 +102,11 @@ process cellpose {
         
         }
         cmd
-
+    stub:
+        """
+        mkdir -p "$plate/$row/$col"
+        cd "$plate/$row/$col"
+        touch 1_cell_mask_d38_ch${cell_channel}_cp_masks.tiff
+        touch 1_nucl_mask_d30_ch${nucl_channel}_cp_masks.tiff
+        """
 }

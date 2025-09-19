@@ -1,6 +1,6 @@
 # Tglow: Nextflow pipeline for analyzing HCI data
 
-This is the Beta branch. Under active development to undergo a major re-work.
+This is the Beta branch. Under active development to undergo a major re-work. 
 
 This repo contains the nextflow pipeline and binaries and scripts to run a tglow-pipeline instance for the analysis of high content imaging data.
 A detailled walkthrough of the steps, installation and configuration is given on the [wiki](https://gitlab.internal.sanger.ac.uk/TrynkaLab/tglow-pipeline/-/wikis/home)

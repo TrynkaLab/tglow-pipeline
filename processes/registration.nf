@@ -49,6 +49,11 @@ process register {
         }
         
         cmd
-
+    stub:
+        """
+        mkdir -p "$plate/$row/$col"
+        cd "$plate/$row/$col"
+        touch registration.npy
+        """
 }
 

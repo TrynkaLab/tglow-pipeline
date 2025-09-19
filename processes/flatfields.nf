@@ -85,6 +85,12 @@ process estimate_flatfield {
         }
           
         cmd
+    stub:
+        """
+        mkdir ${plate}_ch${img_channel}
+        cd ${plate}_ch${img_channel}
+        touch flatfield.npy
+        """
 }
 
 // Copy the global flatfield to per plate folders
@@ -100,7 +106,13 @@ process stage_global_flatfield {
         path "${plate}_ch${img_channel}", emit: basicpy_file_out
         tuple val(key), val(cycle), val(plate), val(plates), val(img_channel),  path("${plate}_ch${img_channel}"), emit: flatfield_out      
     script:
-    """
-    cp -r $refdir ${plate}_ch${img_channel}
-    """
+        """
+        cp -r $refdir ${plate}_ch${img_channel}
+        """
+    stub:
+        """
+        mkdir ${plate}_ch${img_channel}
+        cd ${plate}_ch${img_channel}
+        touch flatfield.npy
+        """
 }

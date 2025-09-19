@@ -1,0 +1,156 @@
+#!/usr/bin/env bash
+# Assumes this is being called from a scripts folder, will put the nextflow workdir 
+# one level up
+
+#-----------------------------------------------------------------------
+# Setup
+set -e
+
+timestamp_folder_name() {
+  date '+%Y%m%d_%H%M'
+}
+ 
+module load HGI/common/nextflow/25.04.6
+ 
+export HTTP_PROXY='http://wwwcache.sanger.ac.uk:3128'
+export HTTPS_PROXY='http://wwwcache.sanger.ac.uk:3128'
+export NXF_OPTS="-Xms14G -Xmx14G -Dnxf.pool.maxThreads=2000"
+ 
+# Set this to true to enable a more fancy logging.
+# This fancy logging is a bit funky and designed for interactive sessions!
+# Alternatively: tail -f <logfile>  or watch -n 1 tail -10 <logfile> 
+# if not suing an interactive session
+export NXF_ANSI_LOG=true
+ 
+# General Nextflow variables #
+ 
+# Nextflow version, change depending on installation you use
+export NXF_VER=25.04.6
+ 
+# Singularity cache folder to use
+# Currently doesn't use signularity, but will do in the future
+export NXF_SINGULARITY_CACHEDIR=/lustre/scratch125/humgen/teams_v2/trynka/resources/singularity_cache
+ 
+# Path to nextflow file, MUST BE ABSOLUTE
+NF_FILE=/software/teamtrynka/installs/tglow-pipeline/dev/beta/main.nf
+ 
+prefix="$(timestamp_folder_name)"
+mkdir -p logs/${prefix}
+#-----------------------------------------------------------------
+# Print usage
+usage() {
+    echo -e "Usage: $0 <stage|run_pipeline> [-c <file.nf>] [-l] -- [nextflow pipeline args]"
+    echo -e "<stage|run_pipeline>\t\tThe workflow to run"
+    echo -e "-c\t\t\t\t<path/to/config.nf> Nextflow config file for the run"
+    echo -e "-l\t\t\t\tRun nextflow locally instead of submitting to oversubscribed"
+    echo -e "-- The rest is passed to nextlfow and overrides -c"
+    echo -e ""
+    echo -e ""
+    echo -e "Examples:"
+    echo -e "tglow-pipeline enrich -c conf.nf -l"
+    echo -e "tglow-pipeline enrich -c conf.nf -- --rn_manifest rn_manifest.tsv --rn_wells A1,B2,C3"
+    exit 1
+}
+
+#-----------------------------------------------------------------
+if [ -z "$1" ]; then
+    echo "Error: No workflow provided."
+    usage
+fi
+
+WORKFLOW="$1"
+ALLOWED=("stage" "run_pipeline")
+
+if [[ ! " ${ALLOWED[*]} " =~ " ${WORKFLOW} " ]]; then
+    echo "❌ Error: Invalid workflow '$WORKFLOW'"
+    echo "Allowed commands are: ${ALLOWED[*]}"
+    exit 1
+fi
+
+# Remove first argument so we can parse the rest
+shift
+
+SUBMIT=1
+while getopts ":c:hl" opt; do
+    case $opt in
+        c)
+            CONFIG_FILE="$OPTARG"
+            ;;
+        l)
+            SUBMIT=0
+            ;;
+        h)
+            usage
+            CMD="nextflow run ${NF_FILE} --help"
+            eval $CMD
+            exit 0
+            ;;
+        \?)
+            # Do nothing for invalid options: silently ignore them
+            ;;
+        :)
+            # Option requires an argument, handle error if needed or ignore
+            ;;
+    esac
+done
+
+# Drop all remaining arguments
+shift $((OPTIND - 1))
+
+# Check that -c was provided
+if [ -z "$CONFIG_FILE" ]; then
+    echo "❌ WARN: Missing -c <config.nf> argument"
+    #usage
+fi
+
+# Check .nf extension
+if [[ ! "$CONFIG_FILE" =~ \.config$ ]]; then
+    echo "❌ WARN: -c File '$CONFIG_FILE' does not have have .config extension"
+    #exit 1
+fi
+
+echo "⬆️  Workflow: $WORKFLOW"
+echo "📄 Config file: $CONFIG_FILE"
+echo "📒 Logs: logs/${prefix}"
+echo "🟠 Arguments: $@"
+
+# Build the nextflow command, in this case, parameters are specified through the config
+CMD="nextflow \
+-log logs/${prefix}/${WORKFLOW}.nextflow.log \
+run ${NF_FILE} \
+-profile lsf \
+-w ../workdir \
+-resume \
+-entry ${WORKFLOW} \
+-with-report logs/${prefix}/${WORKFLOW}.nextflow.html \
+-with-trace logs/${prefix}/${WORKFLOW}.nextflow.trace"
+
+# Add the config if exists
+if [ -e "$CONFIG_FILE" ]; then
+    CMD="$CMD -c ${CONFIG_FILE}"
+fi
+
+# Add the remaining arguments
+CMD="$CMD $@"
+
+echo "--------------------------------------------------------------------"
+echo $CMD
+echo "--------------------------------------------------------------------"
+if [ $SUBMIT -eq 0 ]; then
+    # This runs the nextflow job locally
+    eval $CMD
+else
+    # This submits the nextflow runner to the cluster, in this case LSF, but update
+    # this for your cluster configuration
+    CMD="bsub -n 1 \
+    -G teamtrynka \
+    -M 8000 \
+    -q oversubscribed \
+    -W 120:00 \
+    -R 'span[hosts=1] select[mem>8000] rusage[mem=8000]' \
+    -o logs/${prefix}/${WORKFLOW}-%J.out \
+    -e logs/${prefix}/${WORKFLOW}-%J.err \
+    $CMD"
+
+    eval $CMD
+fi

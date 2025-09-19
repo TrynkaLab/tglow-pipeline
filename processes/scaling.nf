@@ -60,6 +60,14 @@ process calculate_scaling_factors {
         // TMP dummy variable
         //cmd = "echo test > scaling_factors.txt"   
         cmd
+    stub:
+        """
+        touch scaling_factors.txt
+        touch raw_scaling_factors.txt
+        touch intensity_summary.tsv
+        touch channel_index_with_scaling.tsv
+        mkdir histograms
+        """
 }
 
 // Determine offsets for scaling factors based on controls
@@ -133,5 +141,11 @@ process calculate_plate_offsets {
             cmd += " --mask_pattern *_nucl_mask_*_cp_masks.tiff"
             cmd += " --mask_channels $mask_channels"
         }
+    stub:
+        """
+        mkdir $plate
+        cd $plate
+        touch plate_offset.txt
+        """
 
 }

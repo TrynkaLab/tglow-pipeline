@@ -22,6 +22,13 @@ process fetch_raw {
         --well $well
         
         md5sum $plate/$row/$col/*.ome.tiff > $plate/$row/$col/CHECKSUMS.txt
+        """
+    stub:
+        """
+        mkdir -p "$plate/$row/$col"
+        cd "$plate/$row/$col"
+        touch 1.ome.tiff
+        touch CHECKSUMS.txt
         """         
 }
 
@@ -47,7 +54,15 @@ process prepare_manifest {
         
         cp '$index_xml' ./
         """
-        cmd    
+        cmd
+    
+    stub:
+        """
+        touch manifest.tsv
+        touch Index.json
+        touch Index.xml
+        touch acquisition_info.txt
+        """    
 }
 
 // Create a manifest for a dir of images if it does not exist yet
@@ -64,10 +79,16 @@ process index_imagedir {
     output:
         path "$plate/manifest.tsv"
     script:
-    """
-    index_folder.py \
-    --input ${params.rn_publish_dir}/$input_dir/ \
-    --plates $plate \
-    --output ./
-    """
+        """
+        index_folder.py \
+        --input ${params.rn_publish_dir}/$input_dir/ \
+        --plates $plate \
+        --output ./
+        """
+    stub:
+        """
+        mkdir -p $plate
+        cd $plate
+        touch manifest.tsv
+        """
 }
