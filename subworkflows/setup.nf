@@ -1,5 +1,7 @@
 #!/usr/bin/env nextflow
 
+import ManifestRecord
+import RegistrationRecord
 
 workflow setup {
     
@@ -34,20 +36,23 @@ workflow setup {
         //------------------------------------------------------------
         manifest = Channel.fromPath(params.rn_manifest)
             .splitCsv(header:true, sep:"\t")
-            .map { row -> tuple(
-            row.plate,
-            row.index_xml,
-            (row.channels == null) ? "none" : tuple(row.channels.split(',')), 
-            (row.bp_channels == null) ? "none" : tuple(row.bp_channels.split(',')),
-            row.cp_nucl_channel,
-            row.cp_cell_channel,
-            row.dc_channels,
-            row.dc_psfs,
-            (row.mask_channels == null) ? "none" : tuple(row.mask_channels.split(',')))}
+            .map { row -> 
+                new ManifestRecord(
+                    plate: row.plate,
+                    index_xml: row.index_xml,
+                    channels: (row.channels == null) ? "none" : row.channels,
+                    bp_channels: (row.bp_channels == null) ? "none" : row.bp_channels,
+                    cp_nucl_channel: row.cp_nucl_channel,
+                    cp_cell_channel: row.cp_cell_channel,
+                    dc_channels: row.dc_channels,
+                    dc_psfs: row.dc_psfs,
+                    mask_channels: (row.mask_channels == null) ? "none" : row.mask_channels
+            )
+        }
         
         // Build a value channel for the plates in the manifest
         // '<plate_1> <plate_2> <plate_N>'
-        plates = manifest.map{row -> row[0]}.collect().map { it.join(' ') }
+        plates = manifest.map{row -> row.plate}.collect().map { it.join(' ') }
         
         //------------------------------------------------------------------------
         // Registration manifest
@@ -55,12 +60,14 @@ workflow setup {
             manifest_registration = Channel
             .fromPath(params.rn_manifest_registration)
             .splitCsv(header:true, sep:"\t")
-            .map{row -> tuple(
-                row.reference_plate,
-                row.reference_channel,
-                row.query_plates,
-                row.query_channels
-            )}               
+            .map { row -> 
+                new RegistrationRecord(
+                    ref_plate: row.reference_plate,
+                    ref_channel: row.reference_channel,
+                    qry_plates: row.query_plates,
+                    qry_channels: row.query_channels
+                )
+            }               
         } 
         
         // Registration manifest, if missing just an empty channel

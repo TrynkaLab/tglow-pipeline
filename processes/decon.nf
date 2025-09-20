@@ -1,5 +1,7 @@
 #!/usr/bin/env nextflow
 
+import Well
+import ManifestRecord
 
 // Deconvolute
 process deconvolute {
@@ -10,17 +12,21 @@ process deconvolute {
     scratch params.rn_scratch
 
     input:
-        tuple val(plate), val(well), val(row), val(col), val(nucl_channel), val(cell_channel), val(psf_string), path(psfs)
+        tuple val(well), val(manifest), val(psf_string), path(psfs), path(images, stageAs: "input_images/")
     output:
-        tuple val(plate), val(well), val(row), val(col), val(nucl_channel), val(cell_channel), path("$plate/$row/$col")
+        tuple val(well), val(manifest), path("${well.plate}/${well.row}/${well.col}/")
     script:
         cmd =
         """
+        # Workarround as we cannot use variables from the same tuple in stageAs
+        mkdir -p input/${well.plate}/${well.row}
+        ln -s input_images/* input/${well.plate}/${well.row}
+
         run_richardson_lucy.py \
-        --input $params.rn_image_dir \
-        --plate $plate \
-        --well $well \
-        --psf $psf_string \
+        --input input/ \
+        --plate ${well.plate} \
+        --well ${well.well} \
+        --psf ${psf_string} \
         --output ./ \
         --clip_max $params.dc_clip_max \
         --niter $params.dc_niter\
@@ -49,8 +55,8 @@ process deconvolute {
         cmd
     stub:
         """
-        mkdir -p "$plate/$row/$col"
-        cd "$plate/$row/$col"
+        mkdir -p "${well.relpath}"
+        cd "${well.relpath}"
         touch 1.ome.tiff
         """
 }

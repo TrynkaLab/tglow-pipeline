@@ -73,15 +73,16 @@ process index_imagedir {
     //storeDir "${params.rn_publish_dir}/$input_dir"
     publishDir "${params.rn_publish_dir}/$input_dir", mode: "copy"
     input:
+        val previous_completed
         val input_dir
-        val x
+        path images, stageAs: "input_images"
         val plate
     output:
         path "$plate/manifest.tsv"
     script:
         """
         index_folder.py \
-        --input ${params.rn_publish_dir}/$input_dir/ \
+        --input input_images \
         --plates $plate \
         --output ./
         """

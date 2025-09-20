@@ -7,20 +7,24 @@ process register {
     conda params.tg_conda_env
     storeDir "${params.rn_publish_dir}/registration/"
     input:
-        tuple val(plate), val(well), val(row), val(col), val(reference_channel), val(query_plates), val(query_channels)
+        tuple val(well), val(registration), path(image_dir, stageAs: "input_images/*")
     output:
-        tuple val(plate), val(well), val(row), val(col), val(query_plates), path("${plate}/${row}/${col}")
+        tuple val(well), val(registration), path("${well.plate}/${well.row}/${well.col}")
     script:
         cmd =
         """
+        # Workarround as we cannot use variables from the same tuple in stageAs
+        mkdir -p input/${well.plate}/${well.row}
+        ln -s input_images/* input/${well.plate}/${well.row}/
+        
         run_registration.py \
-        --input $params.rn_image_dir \
+        --input input/ \
         --output ./ \
-        --well $well \
-        --plate $plate \
-        --plate_merge $query_plates \
-        --ref_channel $reference_channel \
-        --qry_channel $query_channels\
+        --well ${well.well} \
+        --plate ${well.plate} \
+        --plate_merge ${registration.qry_plates.join(" ")} \
+        --ref_channel ${registration.ref_channel} \
+        --qry_channel ${registration.qry_channels.join(" ")} \
         """
         
         if (params.rg_plot) {
@@ -51,8 +55,8 @@ process register {
         cmd
     stub:
         """
-        mkdir -p "$plate/$row/$col"
-        cd "$plate/$row/$col"
+        mkdir -p "${well.relpath}"
+        cd "${well.relpath}"
         touch registration.npy
         """
 }

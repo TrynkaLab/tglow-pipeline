@@ -9,59 +9,57 @@ process cellpose {
     scratch params.rn_scratch
 
     input:
-        tuple val(plate), val(well), val(row), val(col), val(nucl_channel), val(cell_channel)
+        tuple val(well), val(manifest), path(images, stageAs: "input_images/")
     output:
-        tuple val(plate), val(well), val(row), val(col), path("${plate}/${row}/${col}/*_cell_mask*_ch${cell_channel}*.*"), path("${plate}/${row}/${col}/*_nucl_mask*_ch${nucl_channel}*.*"), emit: cellpose_out //, path("${plate}/${row}/${col}/*_nucl_mask*.tif"), emit: cellpose_out
-        
+        tuple val(well), val(manifest), path("${well.relpath}/*_cell_mask*_ch${manifest.cp_cell_channel}*.*"), path("${well.relpath}/*_nucl_mask*_ch${manifest.cp_nucl_channel}*.*"), emit: cellpose_out
     script:
         cmd =
         """
+        # Workarround as we cannot use variables from the same tuple in stageAs
+        mkdir -p input/${well.plate}/${well.row}
+        ln -s input_images/* input/${well.plate}/${well.row}
+        
         run_cellpose.py \
+        --input input/ \
         --output ./ \
-        --plate $plate \
-        --well $well \
-        --cell_channel $cell_channel \
+        --plate ${well.plate} \
+        --well ${well.well} \
+        --cell_channel ${manifest.cp_cell_channel} \
         --gpu \
-        --diameter $params.cp_cell_size \
-        --model $params.cp_model\
+        --diameter ${params.cp_cell_size} \
+        --model ${params.cp_model}\
         """
-        
-        if (params.dc_run) {
-            cmd += " --input $params.rn_decon_dir"
-        } else {
-            cmd += " --input $params.rn_image_dir"
-        }
-        
-        if (nucl_channel >= 0) {
+
+        if (manifest.cp_nucl_channel >= 0) {
             cmd +=
             """ \
-            --nucl_channel $nucl_channel  \
-            --diameter_nucl $params.cp_nucl_size\
+            --nucl_channel ${manifest.cp_nucl_channel} \
+            --diameter_nucl ${params.cp_nucl_size} \
             """
         }    
         
         if (params.cp_min_cell_area) {
-            cmd += " --min_cell_area $params.cp_min_cell_area"
+            cmd += " --min_cell_area ${params.cp_min_cell_area}"
         }
         
         if (params.cp_min_nucl_area) {
-            cmd += " --min_nucl_area $params.cp_min_nucl_area"
+            cmd += " --min_nucl_area ${params.cp_min_nucl_area}"
         }
         
         if (params.cp_cell_flow_thresh) {
-            cmd += " --cell_flow_thresh $params.cp_cell_flow_thresh"
+            cmd += " --cell_flow_thresh ${params.cp_cell_flow_thresh}"
         }
         
         if (params.cp_nucl_flow_thresh) {
-            cmd += " --nucl_flow_thresh $params.cp_nucl_flow_thresh"
+            cmd += " --nucl_flow_thresh ${params.cp_nucl_flow_thresh}"
         }
         
         if (params.cp_cell_prob_threshold) {
-            cmd += " --cell_prob_threshold $params.cp_cell_prob_threshold"
+            cmd += " --cell_prob_threshold ${params.cp_cell_prob_threshold}"
         }
         
         if (params.cp_nucl_prob_threshold) {
-            cmd += " --nucl_prob_threshold $params.cp_nucl_prob_threshold"
+            cmd += " --nucl_prob_threshold ${params.cp_nucl_prob_threshold}"
         }
         
         if (params.rn_max_project & !params.rn_hybrid) {
@@ -73,11 +71,11 @@ process cellpose {
         }
         
         if (params.cp_cell_power) {
-            cmd += " --cell_power $params.cp_cell_power"
+            cmd += " --cell_power ${params.cp_cell_power}"
         }
         
         if (params.cp_nucl_power) {
-            cmd += " --nucl_power $params.cp_nucl_power"
+            cmd += " --nucl_power ${params.cp_nucl_power}"
         }
         
         if (params.cp_dont_post_process) {
@@ -85,7 +83,7 @@ process cellpose {
         }
         
         if (params.cp_downsample) {
-            cmd += " --downsample $params.cp_downsample"
+            cmd += " --downsample ${params.cp_downsample}"
         }
         
         // Add a fake nucleus channel because nextflow doesn't play nicely with 
@@ -93,20 +91,20 @@ process cellpose {
         // matched turns into a pain
         // If its stupid and it works, it is not stupid, hopefully in future, nextflow
         // will deal better with optional files or just accept null for file objects
-        if (nucl_channel < 0) {
+        if (manifest.cp_nucl_channel < 0) {
             cmd += 
             """
             
-            touch ${plate}/${row}/${col}/NO_NUCL_MASK_nucl_mask_ch${nucl_channel}_dummy.tif
+            touch ${well.relpath}/NO_NUCL_MASK_nucl_mask_ch${manifest.cp_nucl_channel}_dummy.tif
             """
         
         }
         cmd
     stub:
         """
-        mkdir -p "$plate/$row/$col"
-        cd "$plate/$row/$col"
-        touch 1_cell_mask_d38_ch${cell_channel}_cp_masks.tiff
-        touch 1_nucl_mask_d30_ch${nucl_channel}_cp_masks.tiff
+        mkdir -p "${well.relpath}"
+        cd "${well.relpath}"
+        touch 1_cell_mask_d38_ch${manifest.cp_cell_channel}_cp_masks.tiff
+        touch 1_nucl_mask_d30_ch${manifest.cp_nucl_channel}_cp_masks.tiff
         """
 }

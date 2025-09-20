@@ -3,6 +3,9 @@
 include { parseManifestFlatfields } from '../lib/utils.nf'
 include { estimate_flatfield; stage_global_flatfield } from '../processes/flatfields.nf'
 
+import ManifestRecord
+import RegistrationRecord
+
 workflow flatfield_estimation {
     
     take:
@@ -35,24 +38,27 @@ workflow flatfield_estimation {
                 
                 // Create a flat [<plate> <cycle>] channel
                 plate_cycle = manifest_registration
-                .map{row -> [row[0], *row[2].split(",")]}
+                .map{row -> [row.ref_plate, *row.qry_plates]}
                 .flatMap { row -> row.withIndex().collect { item, index ->[item, index] }}
                 
                 // Create a channel per cycle <ref_plate> <cycle> [<plate1> <plateN>]
+                // ref_plate here is not the same as ref_plate in the registration, but just indicates where the global flatfield will be saved 
                 per_cycle = plate_cycle
                 .groupTuple(by:1)
                 .map{row -> tuple(row[0][0], row[1], row[0])}
-                
+                                
                 // Subtract one from the channel here, as we combine the manifest which is one indexed
+                // key, cycle, plate, plate(s), channel, index xml
                 flatfield_in_global = per_cycle
-                .combine(manifest, by:0)
-                .flatMap{row -> row[5].collect{ channel -> tuple(row[1] + ":" + (channel.toInteger()-1).toString(), row[1], row[2][0], row[2],  channel.toInteger() - 1, row[3])}} // key, cycle, plate, plate(s), channel, index xml
+                .combine(manifest.map{row -> tuple(row.plate, row)}, by:0)
+                .flatMap(row -> row[3].channels.collect{channel -> tuple(row[1] + ":" + channel.toString(), row[1], row[2][0], row[2], channel, row[3].index_xml)}) 
+                
                 
                 // These have already been converted to zero indexed
                 flatfield_in = flatfield_in
                 .combine(plate_cycle, by:0)
                 .map{row -> tuple(row[3] + ":" + row[1], row[3], row[0], [row[0]],row[1], row[2])} // key, cycle, plate, plate(s), channel, index xml
-                                
+                
             } else {
                 
                 flatfield_in_global = flatfield_in_global
@@ -74,7 +80,7 @@ workflow flatfield_estimation {
         if (run_flatfield) {
             if (bp_global_flatfield) {
                 // Runs only one model per plate
-                global_flatfield = estimate_flatfield(flatfield_in_global, blacklist_file).flatfield_out
+                global_flatfield = estimate_flatfield(flatfield_in_global, file(params.rn_image_dir), blacklist_file).flatfield_out
                 
                 // Now need to make a channel like flatfield_in, but replacing the path with global_flatfield
                 // Combine on the channel
@@ -91,23 +97,31 @@ workflow flatfield_estimation {
                 
                 flatfield_out = stage_global_flatfield(global_flatfield_in).flatfield_out
             } else {
-                flatfield_out = estimate_flatfield(flatfield_in, blacklist_file).flatfield_out
+                flatfield_out = estimate_flatfield(flatfield_in, file(params.rn_image_dir), blacklist_file).flatfield_out
             }
             
             // Concat to plate string format // plate : channel = path
             flatfield_out_string = flatfield_out.map{ row -> (
-                row[2] + "_ch" + row[4] + "=" + ((row[5] instanceof List) ? row[5].findAll{!it.fileName.name.startsWith("global_refplate")}[0] : row[5])
+                row[2] + "_ch" + row[4] + "=" + ((row[5] instanceof List) ? row[5].findAll{!it.fileName.name.startsWith("global_refplate").fileName}[0] : row[5].fileName)
             )
             }.collect().map{it.join(" ")}
             
+            // Combine into a single channel with files tuple, and plate=file string
+            flatfield_out_final = flatfield_out
+            .map{row -> file(row[5])}
+            .collect()
+            .concat(flatfield_out_string)
+            .toList()
+            .map({ files, string -> tuple(files, string) })
+            
         } else {
             flatfield_out = Channel.empty()
-            flatfield_out_string = Channel.value(false)
+            //flatfield_out_string = Channel.value(false)
         }
         
         emit:
-            flatfield_out = flatfield_out
-            flatfield_out_string = flatfield_out_string
+            flatfield_out = flatfield_out_final
+            //flatfield_out_string = flatfield_out_string
          
     
 }

@@ -83,7 +83,7 @@ process calculate_plate_offsets {
         tuple val(plate), val(mask_channels), val(merge_plates)
         path registration, stageAs:"registration"
         path masks, stageAs: 'masks'
-        val basicpy_string
+        tuple path(bp_files) val(basicpy_string)
         path blacklist
         path control_list
     output:

@@ -1,15 +1,14 @@
 #!/usr/bin/env nextflow
 
 // Estimate_flatfield
-// normal queue
 process estimate_flatfield {
-    //label 'himem'
     label params.bp_label
     conda params.tg_conda_env
     storeDir "${params.rn_publish_dir}/flatfields/${plate}" //, mode: 'copy'
 
     input:
         tuple val(key), val(cycle), val(plate), val(plates), val(img_channel), val(pe_index)
+        path images, stageAs: 'input_images'
         path blacklist
     output:
         path "*${plate}_ch${img_channel}", emit: basicpy_file_out
@@ -19,7 +18,7 @@ process estimate_flatfield {
         """
         run_flatfield_estimation.py \
         --mode $params.bp_mode \
-        --input $params.rn_image_dir \
+        --input $images \
         --output ./ \
         --nimg $params.bp_nimg \
         --plot \
