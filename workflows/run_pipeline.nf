@@ -44,7 +44,7 @@ workflow run_pipeline {
         //------------------------------------------------------------
         // Loop over previously generated manifests assuming stage has been run
         if (params.rn_manifest_well == null) {            
-            manifests_in = manifest.map{row -> "${params.rn_image_dir}/" + row[0] + "/manifest.tsv"}
+            manifests_in = manifest.map{row -> "${params.rn_image_dir}/" + row.plate + "/manifest.tsv"}
         } else {
             manifests_in = Channel.from(params.rn_manifest_well.split(','))
         }
@@ -126,7 +126,7 @@ workflow run_pipeline {
             // Well, RegistrationRecord, path to images
             registration_in = well_channel
             .combine(manifest_registration.map{row -> tuple(row.ref_plate, row)}, by:0)
-            .map{ row -> tuple(row[1], row[2], file(params.rn_image_dir + "/" + row[1].relpath))} 
+            .map{ row -> tuple(row[1], row[2], file(params.rn_image_dir))} 
 
             // Run registration
             registration_out = register(registration_in)

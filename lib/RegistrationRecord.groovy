@@ -3,14 +3,14 @@
 class RegistrationRecord {
     
     String ref_plate
-    String ref_channel
+    def ref_channel
     def qry_plates
     def qry_channels
 
     RegistrationRecord(Map args) {
         
         this.ref_plate = args.ref_plate
-        this.ref_channel = args.ref_channel
+        this.ref_channel = args.ref_channel as Integer - 1
         this.qry_plates = args.qry_plates.split(',')
         this.qry_channels = args.qry_channels.split(',').collect { it as Integer - 1 }
     }  

@@ -21,19 +21,19 @@ process finalize {
         // Stage the masks so cellprofiler can access them
         cmd =
         """
-        mkdir -p ./masks/${well.relpath}"
-        ln -s cell_masks/*  ./masks/${well.relpath}/
+        mkdir -p ./masks/${well.relpath}
+        ln -s \$(pwd)/cell_masks/*  ./masks/${well.relpath}/
         """
         
         if (!nucl_masks[0].name.startsWith("NO_NUCL_MASK")) {
-            cmd += "ln -s nucl_masks/* ./masks/${well.relpath}/"
+            cmd += "ln -s \$(pwd)/nucl_masks/* ./masks/${well.relpath}/"
         }
         
         // Stage the registration 
         cmd += 
         """
         mkdir -p registration/${well.plate}/${well.row}/
-        ln -s registration_tmp/* registration/${well.plate}/${well.row}/
+        ln -s \$(pwd)/registration_tmp/* registration/${well.plate}/${well.row}/
         """
         
         // Outputs the proccessed images
@@ -49,7 +49,7 @@ process finalize {
         """
         
         if (merge_plates) {
-            cmd += " --plate_merge " + merge_plates
+            cmd += " --plate_merge " + merge_plates.joint(" ")
         }
         
         if (registration.fileName.name != "NO_REGISTRATION") {
@@ -79,7 +79,7 @@ process finalize {
         if (params.rn_hybrid & manifest.mask_channels != "none") {
             cmd += " --mask_dir ./masks"
             cmd += " --mask_pattern *_nucl_mask_*_cp_masks.tiff"
-            cmd += " --mask_channels ${manifest.mask_channels.join(' ')}"
+            cmd += " --mask_channels ${manifest.mask_channels.collect{ well.plate + "=" + it }.join(' ')}"
         }
         
         if (params.rn_hybrid) {

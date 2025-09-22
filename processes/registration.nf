@@ -7,18 +7,18 @@ process register {
     conda params.tg_conda_env
     storeDir "${params.rn_publish_dir}/registration/"
     input:
-        tuple val(well), val(registration), path(image_dir, stageAs: "input_images/*")
+        tuple val(well), val(registration), path(image_dir, stageAs: "input_images")
     output:
         tuple val(well), val(registration), path("${well.plate}/${well.row}/${well.col}")
     script:
         cmd =
         """
         # Workarround as we cannot use variables from the same tuple in stageAs
-        mkdir -p input/${well.plate}/${well.row}
-        ln -s input_images/* input/${well.plate}/${well.row}/
+        #mkdir -p input/${well.plate}/${well.row}
+        #ln -s \$(pwd)/input_images/* input/${well.plate}/${well.row}/
         
         run_registration.py \
-        --input input/ \
+        --input input_images/ \
         --output ./ \
         --well ${well.well} \
         --plate ${well.plate} \
@@ -47,8 +47,8 @@ process register {
             cmd +=
             """ \
             --eval_merge \
-            --ref_channel_eval $reference_channel \
-            --qry_channel_eval $query_channels
+            --ref_channel_eval ${registration.ref_channel} \
+            --qry_channel_eval ${registration.qry_channels.join(" ")} \
             """
         }
         
