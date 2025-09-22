@@ -13,10 +13,6 @@ process register {
     script:
         cmd =
         """
-        # Workarround as we cannot use variables from the same tuple in stageAs
-        #mkdir -p input/${well.plate}/${well.row}
-        #ln -s \$(pwd)/input_images/* input/${well.plate}/${well.row}/
-        
         run_registration.py \
         --input input_images/ \
         --output ./ \

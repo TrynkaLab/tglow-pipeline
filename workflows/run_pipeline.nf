@@ -6,7 +6,7 @@ include { deconvolute } from '../processes/decon.nf'
 include { register } from '../processes/registration.nf'
 include { cellpose } from '../processes/segmentation.nf'
 include { cellprofiler;  finalize_and_cellprofiler } from '../processes/cellprofiler.nf'
-include { finalize } from '../processes/finalize.nf'
+include { finalize; index_cellcrops; cellcrops } from '../processes/finalize.nf'
 include { index_imagedir } from '../processes/staging.nf'
 
 // Subworkflows
@@ -22,6 +22,37 @@ import RegistrationRecord
 workflow run_pipeline {
 
     main:
+    
+        //------------------------------------------------------------
+        // Check the input parameters
+        //------------------------------------------------------------
+        // Sanity check input
+        if (params.cpr_run) {
+            if (params.rn_max_project || params.rn_hybrid) {
+                if (params.cpr_pipeline_2d == null) {
+                    error("Running in hybrid or 2d mode with cpr_run=true, but cpr_pipeline_2d is not set")
+                }
+                
+                if (!file(params.cpr_pipeline_2d).exists()) {
+                    error("Specified cellprofiler pipeline is not accessible")
+                }
+                
+            } else {
+                if (params.cpr_pipeline_3d == null) {
+                    error("Running in 3d mode with cpr_run=true, but cpr_pipeline_3d is not set")
+                }
+                
+                if (!file(params.cpr_pipeline_3d).exists()) {
+                    error("Specified cellprofiler pipeline is not accessible")
+                }
+                
+            }
+        }
+        
+        // Check cellcrops
+        if (params.rn_make_cellcrops && !params.rn_cache_images) {
+            error("rn_cache_images must be true when rn_make_cellcrops is true")
+        }
 
         //------------------------------------------------------------
         // Run setup
@@ -246,19 +277,56 @@ workflow run_pipeline {
                                     flatfield_out,
                                     scaling_file,
                                     slope_file,
-                                    bias_file)[0]
+                                    bias_file)
                                     
             // Create the plate manfiests once finalize is done
-            index_imagedir(finalize_out.last(),
-                            "processed_images",
-                            file(params.rn_publish_dir + "/processed_images"),
-                            finalize_out.map{row -> row[0].plate}.unique())
+            //index_imagedir(finalize_out.processed_output.last(),
+            //                "processed_images",
+            //                file(params.rn_publish_dir + "/processed_images"),
+            //                finalize_out.processed_output.map{row -> row[0].plate}.unique())
+                        
+            if (params.rn_make_cellcrops) {
+                 
+                // Construct the channel to update the indiced
+                channel_map = finalize_out.channel_indices.unique()
+                .flatMap{ manifest_path -> file(manifest_path)
+                .splitCsv(header:["ref_plate", "plate", "cycle", "channel", "name", "orig_channel", "orig_name"], sep:"\t")
+                }
+                .map(row -> tuple(row.plate + ":" + row.orig_channel, row.channel))
+                                        
+                manifest_registration_updated = manifest_registration
+                .flatMap {row ->
+                    def result = [] 
+                    row.qry_plates.eachWithIndex{
+                        val, idx -> 
+                        result <<  tuple(val + ":" + row.qry_channels[idx], row.ref_plate, row.ref_channel, val, row.qry_channels[idx])    
+                    }
+                    return result
+                }
+                .join(channel_map, by: 0)
+                .map(row -> tuple(row[1], row[2], row[3], row[5]))
+                .groupTuple(by: 0)
+                .map(row -> new RegistrationRecord(row[0], row[1][0], row[2], row[3]))
+                
+                    
+                cellcrop_in = finalize_out.processed_output
+                .map(row -> tuple(row[0].plate, row[0], row[1]))
+                .combine(manifest_registration_updated.map(row -> tuple(row.ref_plate, row)), by: 0)
+                .map(row -> tuple(row[1], row[3], row[2]))
+                
+                // Create cellcrops
+                cellcrop_out = cellcrops(cellcrop_in)
+                
+                // Index cellcrops
+                index_cellcrops(cellcrop_out.h5.last(), file(params.rn_publish_dir + "/cellcrops"))
+                
+            }            
         }
         
         //------------------------------------------------------------
         //                       Cellprofiler
         //------------------------------------------------------------
-        // Run cellprofiler
+        // Run cellprofiler        
         if (params.cpr_run && params.rn_cache_images) {
             // Run cellprofiler on cached images
             cellprofiler_out = cellprofiler(finalize_out)

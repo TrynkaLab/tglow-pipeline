@@ -54,3 +54,8 @@ Nextflow processes (in order):
 
 ## Known issues
 See the [wiki](https://gitlab.internal.sanger.ac.uk/TrynkaLab/tglow-pipeline/-/wikis/home) for known issues. If you find an issue please raise it on the git or contact us directly.
+
+
+# Authors:
+- Olivier Bakker
+- Francesco Cisterno

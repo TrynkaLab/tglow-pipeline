@@ -14,8 +14,8 @@ process finalize {
         path slope_file
         path bias_file
     output:
-        tuple val(well), path("${well.relpath}/*.tiff")
-        path "${well.plate}/channel_indices.tsv"
+        tuple val(well), path("${well.relpath}/*.tiff"), emit: processed_output
+        path "${well.plate}/channel_indices.tsv", emit: channel_indices
     script:
     
         // Stage the masks so cellprofiler can access them
@@ -49,7 +49,7 @@ process finalize {
         """
         
         if (merge_plates) {
-            cmd += " --plate_merge " + merge_plates.joint(" ")
+            cmd += " --plate_merge " + merge_plates.join(" ")
         }
         
         if (registration.fileName.name != "NO_REGISTRATION") {
@@ -122,3 +122,53 @@ process finalize {
         """ 
 }
 
+process cellcrops {
+    label params.cpr_label
+    conda params.tg_conda_env
+    storeDir "$params.rn_publish_dir/cellcrops"
+    scratch params.rn_scratch
+
+    input:
+        tuple val(well), val(registration),  path(images, stageAs: "input_images/")
+    output:
+        tuple val(well), path("${well.relpath}/*.h5"), emit: h5
+        tuple val(well), path("${well.relpath}/*.csv"), emit: index
+    script:
+    """
+    mkdir -p input/${well.relpath}
+    ln -s \$(pwd)/input_images/* input/${well.relpath}
+    
+    run_cellsampling.py \
+    --input input \
+    --cell_mask_dir input \
+    --nucl_mask_dir input \
+    --output ./ \
+    --plate ${well.plate} \
+    --well ${well.well} \
+    --ref_channel ${registration.ref_channel} \
+    --qry_channels ${registration.qry_channels.join(" ")} \
+    --max_per_field $params.rn_max_per_field
+    """   
+}
+
+process index_cellcrops {
+    label params.cpr_label
+    conda params.tg_conda_env
+    publishDir "$params.rn_publish_dir/cellcrops", mode: "copy"
+    
+    input:
+        val previous_completed
+        path input, stageAs: "input_cellcrops"
+    output:
+        path "cellcrop_index.csv.gz"
+    script:
+    """
+    # Get the header from the first CSV file
+    find input_cellcrops/ -name "*.csv" -type f -print0 | head -z -n1 | xargs -0 head -n1 > cellcrop_index.csv
+    
+    # Append all CSV files without their headers
+    find input_cellcrops/ -name "*.csv" -type f -print0 | xargs -0 tail -q -n+2 >> cellcrop_index.csv
+    
+    gzip -f cellcrop_index.csv    
+    """
+}

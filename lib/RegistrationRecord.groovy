@@ -7,6 +7,14 @@ class RegistrationRecord {
     def qry_plates
     def qry_channels
 
+    RegistrationRecord(String ref_plate, Integer ref_channel, List qry_plates, List qry_channels) {
+        this.ref_plate=ref_plate
+        this.ref_channel=ref_channel
+        this.qry_plates=qry_plates
+        this.qry_channels=qry_channels
+    }
+
+
     RegistrationRecord(Map args) {
         
         this.ref_plate = args.ref_plate
