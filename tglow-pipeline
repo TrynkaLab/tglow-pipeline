@@ -20,7 +20,7 @@ export NXF_OPTS="-Xms14G -Xmx14G -Dnxf.pool.maxThreads=2000"
 # This fancy logging is a bit funky and designed for interactive sessions!
 # Alternatively: tail -f <logfile>  or watch -n 1 tail -10 <logfile> 
 # if not suing an interactive session
-export NXF_ANSI_LOG=true
+export NXF_ANSI_LOG=false
  
 # General Nextflow variables #
  
@@ -142,6 +142,8 @@ if [ $SUBMIT -eq 0 ]; then
 else
     # This submits the nextflow runner to the cluster, in this case LSF, but update
     # this for your cluster configuration
+    #    -q oversubscribed \
+    #-W 120:00 \
     CMD="bsub -n 1 \
     -G teamtrynka \
     -M 8000 \

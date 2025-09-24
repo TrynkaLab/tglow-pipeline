@@ -280,35 +280,50 @@ workflow run_pipeline {
                                     bias_file)
                                     
             // Create the plate manfiests once finalize is done
-            //index_imagedir(finalize_out.processed_output.last(),
-            //                "processed_images",
-            //                file(params.rn_publish_dir + "/processed_images"),
-            //                finalize_out.processed_output.map{row -> row[0].plate}.unique())
+            index_imagedir(finalize_out.processed_output.last(),
+                            "processed_images",
+                            file(params.rn_publish_dir + "/processed_images"),
+                            finalize_out.processed_output.map{row -> row[0].plate}.unique())
                         
             if (params.rn_make_cellcrops) {
                  
-                // Construct the channel to update the indiced
-                channel_map = finalize_out.channel_indices.unique()
+                // Construct the channel to update the indices of <plate>:<old_channel> <registered_channel>
+                // Used .unique() before, but replaced with custom logic so it doesn't need to wait for the channel to complete
+                def seen = []
+                channel_map = finalize_out.channel_indices
+                .map { item -> 
+                    if( !seen.contains(item) ) {
+                        seen << item
+                        return item
+                    }
+                    return null
+                }
+                .filter { it != null }
                 .flatMap{ manifest_path -> file(manifest_path)
                 .splitCsv(header:["ref_plate", "plate", "cycle", "channel", "name", "orig_channel", "orig_name"], sep:"\t")
                 }
                 .map(row -> tuple(row.plate + ":" + row.orig_channel, row.channel))
-                                        
+                
+                // Create a new registration channel where the channel has been updated to the post-registration channel index      
                 manifest_registration_updated = manifest_registration
                 .flatMap {row ->
                     def result = [] 
+                    
+                    // Add the ref plate
+                    result <<  tuple(row.ref_plate + ":" + row.ref_channel, groupKey(row.ref_plate, row.qry_channels.size()+1), row.ref_channel, null, null)
+                    
+                    // Add the query plates
                     row.qry_plates.eachWithIndex{
                         val, idx -> 
-                        result <<  tuple(val + ":" + row.qry_channels[idx], row.ref_plate, row.ref_channel, val, row.qry_channels[idx])    
+                        result <<  tuple(val + ":" + row.qry_channels[idx], groupKey(row.ref_plate, row.qry_channels.size()+1), row.ref_channel, val, row.qry_channels[idx])    
                     }
                     return result
                 }
-                .join(channel_map, by: 0)
+                .combine(channel_map, by: 0)
                 .map(row -> tuple(row[1], row[2], row[3], row[5]))
                 .groupTuple(by: 0)
-                .map(row -> new RegistrationRecord(row[0], row[1][0], row[2], row[3]))
-                
-                    
+                .map(row -> new RegistrationRecord(row[0].getGroupTarget(), row[1][0], row[2].findAll(), row[3].findAll{ idx -> row[2][row[3].indexOf(idx)] != null})) // findall removes the null (refplates) so they are not treated as qry
+
                 cellcrop_in = finalize_out.processed_output
                 .map(row -> tuple(row[0].plate, row[0], row[1]))
                 .combine(manifest_registration_updated.map(row -> tuple(row.ref_plate, row)), by: 0)

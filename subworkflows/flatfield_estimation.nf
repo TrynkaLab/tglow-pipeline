@@ -47,20 +47,18 @@ workflow flatfield_estimation {
                 .groupTuple(by:1)
                 .map{row -> tuple(row[0][0], row[1], row[0])}
                                 
-                // Subtract one from the channel here, as we combine the manifest which is one indexed
                 // key, cycle, plate, plate(s), channel, index xml
                 flatfield_in_global = per_cycle
                 .combine(manifest.map{row -> tuple(row.plate, row)}, by:0)
-                .flatMap(row -> row[3].channels.collect{channel -> tuple(row[1] + ":" + channel.toString(), row[1], row[2][0], row[2], channel, row[3].index_xml)}) 
-                
-                
+                .flatMap(row -> row[3].bp_channels.collect{channel -> tuple(row[1] + ":" + channel.toString(), row[1], row[2][0], row[2], channel, row[3].index_xml)}) 
+                                
                 // These have already been converted to zero indexed
                 flatfield_in = flatfield_in
                 .combine(plate_cycle, by:0)
                 .map{row -> tuple(row[3] + ":" + row[1], row[3], row[0], [row[0]],row[1], row[2])} // key, cycle, plate, plate(s), channel, index xml
                 
             } else {
-                
+                // TODO: this will likely crash
                 flatfield_in_global = flatfield_in_global
                 .combine(plates)
                 .map{row -> tuple( "0:" + row[1], 0, row[0], row[3].split(" "), row[1], row[2])} // key, cycle, plates, channel, index_xml

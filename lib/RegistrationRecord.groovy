@@ -1,5 +1,3 @@
-
-
 class RegistrationRecord {
     
     String ref_plate
@@ -26,4 +24,5 @@ class RegistrationRecord {
     String toString() {
         return "RegistrationRecord(ref_plate=${ref_plate}, ref_channel=${ref_channel}, qry_plates=${qry_plates}, qry_channels=${qry_channels})"
     }    
+
 }

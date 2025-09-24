@@ -80,13 +80,20 @@ class CellSampler:
         for idx in list(range(1, np.max(cell_mask))):  # Skip background (assumed 0)
 
             # Compute bounding box dimensions (zyx)
-            msk_region = np.where(cell_mask == idx)
+            msk_region = np.array(np.where(cell_mask == idx))
+            
+            # Deals with missing indexes. Not sure why this happens, it seems rare
+            if msk_region.size == 0:
+                log.warning(f"Masked region is array of size 0, for {idx}. Skipping idx")
+                continue
             
             depth = msk_region[1].max() - msk_region[1].min()
             width = msk_region[2].max() - msk_region[2].min()
             height = msk_region[3].max() - msk_region[3].min()
             
+            # Deals with single pixel objects by removing them
             if (width == 0) or (height == 0):
+                log.warning(f"Masked region has 0 height or width {msk_region.shape} for {idx}. Skipping idx")
                 continue
             
             centroid = center_of_mass(cell_mask == idx)
@@ -112,12 +119,13 @@ class CellSampler:
 
             cell_mask_bin = ((cell_mask[:,:,y0:y1, x0:x1]) == idx).astype(np.uint8)
             
+            #log.info(f"Centroid {centroid}, diameter {diameter}, image size {cell_img.shape}")
 
             #-------------------------------------------------------------
             # Calculate the correlation between the registration channels
             # Prepare row for output DataFrame
             df_row = {
-                'plate': iq.plate, 'row': iq.get_row_letter(), 'col': iq.col, 'field': iq.field, 'well': iq.get_well_id(), 'cell_index': str(idx).zfill(4), 'W': width, 'H': height, 'centroid_x': centroid[0], 'centroid_y': centroid[1],  'diameter': diameter
+                'plate': iq.plate, 'row': iq.get_row_letter(), 'col': iq.col, 'field': iq.field, 'well': iq.get_well_id(), 'cell_index': str(idx).zfill(4), 'W': width, 'H': height, 'centroid_z': centroid[1], 'centroid_y': centroid[2], 'centroid_x': centroid[3],  'diameter': diameter
             }
             
             if self.nuclear_registration:
@@ -134,7 +142,7 @@ class CellSampler:
                 # If there is no nucleus, calculate it in the cell region
                 for qry_channel in self.qry_nucl_channels:
                     try:
-                        corr = np.corrcoef(cell_img[self.ref_nucl_channel,cell_mask_bin[0]], cell_img[self.qry_channel, cell_mask_bin[0]])[1, 0]
+                        corr = np.corrcoef(cell_img[self.ref_nucl_channel,cell_mask_bin[0]], cell_img[qry_channel, cell_mask_bin[0]])[1, 0]
                     except Exception:
                         corr = np.nan         
                     
@@ -154,7 +162,7 @@ class CellSampler:
             if nuclei_mask is not None:
                 cell_img = np.concatenate((cell_img, nucl_mask_bin), 0)
 
-            #log.info(f"Final image {idx} of shape {cell_img.shape}")
+            #log.info(f"Final image {idx} of shape {cell_img.shape} with corr {corr}")
             
             # Save cell image as dataset in the group /row/col/image
             h5f.create_dataset(str(idx).zfill(4), data=cell_img, compression='gzip')
