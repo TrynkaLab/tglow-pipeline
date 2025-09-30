@@ -128,10 +128,10 @@ class RunDecon:
     
     def run(self):
         
-        for field in self.fields:
+        row, col = ImageQuery.well_id_to_index(self.well)
+        for field in self.reader.fields[self.plate][str(row)][str(col)]:
             self.run_decon(field)
     
-        row, col = ImageQuery.well_id_to_index(self.well)
         self.writer.write_image_stats( ImageQuery(self.plate, row, col, 1))
 
     

@@ -1,0 +1,10 @@
+aicsimageio==4.14.0
+basicpy==1.2.0
+matplotlib==3.8.3
+numpy==1.24.4
+ome_model==6.3.6
+pystackreg==0.2.7
+scikit_image==0.18.3
+scipy==1.9.0
+setuptools==69.2.0
+tifffile==2022.4.8

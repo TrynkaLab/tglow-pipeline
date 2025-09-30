@@ -85,15 +85,13 @@ class MergeAndAlign:
         # Loop over possible plates
         for plate in self.plates:
                 
-            # Assume all plates have the same fields
-            if self.fields is None:
-                fields = self.provider.plate_reader.fields[plate]
-            else:
-                fields = self.fields
-                
-            for field in fields:
+            for field in self.provider.plate_reader.fields[plate][str(row)][str(col)]:
                 iq = ImageQuery(plate, row, col, field)
                 stack = self.provider.fetch_image(iq)
+                
+                # This happens if the subsequent cycles have missing fields
+                if stack is None:
+                    continue
                 
                 if self.output_format == "CP":
                     self.write_cellprofiler(stack, iq)

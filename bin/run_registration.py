@@ -133,11 +133,15 @@ class Registration:
         if self.eval_merge:
             cols = ['well', 'row', 'col', 'field', 'ref_plate', 'qry_plate', 'ref_ch', 'qry_ch', 'offset_x', "offset_y", 'r_b', 'r_a', 'nobj_ref', 'nobj_qry', 'nobj_qry_a', 'pobj_ba', 'ppix_ba', 'ppix_ab']
             self.eval_data = pd.DataFrame(columns=cols)
-        
-        for field in self.fields:
+            
+        for field in self.plate_reader.fields[self.ref_plate][str(row)][str(col)]:
             cur_iq = ImageQuery(self.ref_plate, row, col, field)
             
             alignment_matrices = self.align_field(cur_iq, reg_dir)
+            
+            if alignment_matrices is None:
+                continue
+            
             if self.save_reg:
                 alignment_matrices['transform'] = self.transform
                 pickle.dump(alignment_matrices, open(f"{reg_dir}/{field}.pickle", "wb")) 
@@ -165,6 +169,11 @@ class Registration:
         # Loop over plates to merge onto ref
         for plate_merge in self.plates_merge:
             log.info(f"Processing field {iq.field} plate {plate_merge}")
+            
+            if iq.field not in self.plate_reader.fields[plate_merge][str(iq.row)][str(iq.col)]:
+                log.warning(f"Missing field {iq.field} in merge plate {plate_merge}, skipping")
+                return None
+
             if i==0:
                 alignment_matrices[plate_merge] = {} 
                 i+=1

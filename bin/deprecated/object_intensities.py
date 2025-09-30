@@ -85,10 +85,10 @@ class ObjectIntensityCalculator():
         
         intensity_summary = None
         row, col = ImageQuery.well_id_to_index(well)
-        fields = self.provider.plate_reader.fields[plate]
+        fields = self.provider.plate_reader.fields_global[plate]
         pb = tqdm(total=len(fields), desc='Reading control images', unit='image')
         
-        for field in fields:
+        for field in self.provider.plate_reader.fields[plate][str(row)][str(col)]:
             
             iq = ImageQuery(plate, row, col, field)
             img = self.provider.fetch_image(iq)

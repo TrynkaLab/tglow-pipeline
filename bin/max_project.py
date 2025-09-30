@@ -41,10 +41,10 @@ if __name__ == "__main__":
 
     reader = AICSImageReader(args.input, args.plates, fields_filter=args.fields, pattern=args.pattern)
     
+    row, col = ImageQuery.well_id_to_index(args.well)
     for plate in args.plates:
-        for field in reader.fields.get(plate):
+        for field in reader.fields[plate][str(row)][str(col)]:
             log.info(f"Running field {field}")
-            row, col = ImageQuery.well_id_to_index(args.well)
             iq = ImageQuery(plate, row, col, field, channel=int(args.channel))
             img = reader.read_image(iq)
             img = np.max(img, axis=0)

@@ -722,7 +722,7 @@ if __name__ == "__main__":
     
     img_id = 0
     cell_id = 0
-    for field in img_reader.fields[args.plate]:
+    for field in img_reader.fields[args.plate][str(row)][str(col)]:
         iq = ImageQuery(args.plate, row, col, field)
         
         pb.set_description(f"Reading field {field}")

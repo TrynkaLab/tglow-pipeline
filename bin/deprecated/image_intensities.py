@@ -85,14 +85,14 @@ class ObjectIntensityCalculator():
         
         intensity_summary = None
         row, col = ImageQuery.well_id_to_index(well)
-        fields = self.provider.plate_reader.fields[plate]
+        fields = self.provider.plate_reader.fields_global[plate]
         pb = tqdm(total=len(fields), desc='Reading control images', unit='image')
         
         
         df = pd.DataFrame(colnames=["plate", "row", "col", "image", "channel", "q0", "q0.1", "q1", "q5", "q25", "q50", "q75", "q95", "q99", "q99.9", "q99.99", "q99.999", "q99.9999", "99.99999", "q100", "mean"])
         i = 0
 
-        for field in fields:
+        for field in self.provider.plate_reader.fields[plate][str(row)][str(col)]:
             
             iq = ImageQuery(plate, row, col, field)
             img = self.provider.fetch_image(iq)

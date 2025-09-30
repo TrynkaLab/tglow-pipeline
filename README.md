@@ -59,3 +59,4 @@ See the [wiki](https://gitlab.internal.sanger.ac.uk/TrynkaLab/tglow-pipeline/-/w
 # Authors:
 - Olivier Bakker
 - Francesco Cisterno
+- 

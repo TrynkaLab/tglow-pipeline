@@ -20,7 +20,7 @@ export NXF_OPTS="-Xms14G -Xmx14G -Dnxf.pool.maxThreads=2000"
 # This fancy logging is a bit funky and designed for interactive sessions!
 # Alternatively: tail -f <logfile>  or watch -n 1 tail -10 <logfile> 
 # if not suing an interactive session
-export NXF_ANSI_LOG=false
+export NXF_ANSI_LOG=true
  
 # General Nextflow variables #
  

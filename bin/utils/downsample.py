@@ -84,7 +84,7 @@ if __name__ == "__main__":
             
         for well in wells:
             row, col = ImageQuery.well_id_to_index(well)
-            for field in reader.fields.get(plate):
+            for field in reader.fields[plate][str(row)][str(col)]:
                 log.info(f"Running well {well} field {field}")
                 
                 iq = ImageQuery(plate, row, col, field)

@@ -396,14 +396,15 @@ if __name__ == "__main__":
     # Loop, ideally one plate and well at the time is supplied, but can run all
     for plate in args.plate:
         for well in args.well:
-            row_col = ImageQuery.well_id_to_index(well)    
+            row, col = ImageQuery.well_id_to_index(well)    
             #log.debug(f"Detected row_col {row_col} for well {well} in {plate}")
             #log.debug(f"{runner.reader.index.keys()}")
 
-            fields = runner.reader.index[plate][str(row_col[0])][str(row_col[1])].keys()
+            #fields = runner.reader.index[plate][str(row_col[0])][str(row_col[1])].keys()
+            fields = runner.reader.fields[plate][str(row)][str(col)]
             log.info(f"Detected fields {fields} for well {well} in {plate}")
             
             for field in fields:
-                q = ImageQuery(plate, row_col[0], row_col[1], field)
+                q = ImageQuery(plate, row, col, field)
                 log.info(f"Running for {q.to_string()}")
                 runner.run_model(q)

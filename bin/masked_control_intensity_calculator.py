@@ -80,7 +80,7 @@ class MaskedControlIntensityCalculator():
     def fetch_dummy_object_intensity(self):  
         intensity_summary=None
         for control in self.controls:
-            for field in self.provider.plate_reader.fields[control.plate]:
+            for field in self.provider.plate_reader.fields[control.plate][str(control.row)][str(control.col)]:
                 for channel in control.channels:
                     cols=["label", "centroid", "area", "intensity_max", "intensity_mean", "intensity_min"]
                     df = pd.DataFrame([[1] * len(cols)], columns=cols)
@@ -102,7 +102,7 @@ class MaskedControlIntensityCalculator():
         pb = tqdm(total=len(self.controls * 9), desc='Reading control images', unit='image')
         for control in self.controls:
             
-            for field in self.provider.plate_reader.fields[control.plate]:
+            for field in self.provider.plate_reader.fields[control.plate][str(control.row)][str(control.col)]:
                 img = self.provider.fetch_image(control.get_query(field))
                 mask = self.cell_mask_reader.read_image(control.get_query(field))
                 pb.update(1)
