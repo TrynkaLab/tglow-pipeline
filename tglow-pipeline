@@ -39,9 +39,10 @@ mkdir -p logs/${prefix}
 #-----------------------------------------------------------------
 # Print usage
 usage() {
-    echo -e "Usage: $0 <stage|run_pipeline> [-c <file.nf>] [-l] -- [nextflow pipeline args]"
+    echo -e "Usage: $0 <stage|run_pipeline> [-c <file.nf>] [-p <profile>] [-l] -- [nextflow pipeline args]"
     echo -e "<stage|run_pipeline>\t\tThe workflow to run"
     echo -e "-c\t\t\t\t<path/to/config.nf> Nextflow config file for the run"
+    echo -e "-p\t\t\t\t<profile> Nextflow profile for the run [local|lsf|lsf_ignore_errors]"
     echo -e "-l\t\t\t\tRun nextflow locally instead of submitting to oversubscribed"
     echo -e "-- The rest is passed to nextlfow and overrides -c"
     echo -e ""
@@ -54,7 +55,7 @@ usage() {
 
 #-----------------------------------------------------------------
 if [ -z "$1" ]; then
-    echo "Error: No workflow provided."
+    echo "ERROR: No workflow provided."
     usage
 fi
 
@@ -62,7 +63,7 @@ WORKFLOW="$1"
 ALLOWED=("stage" "run_pipeline")
 
 if [[ ! " ${ALLOWED[*]} " =~ " ${WORKFLOW} " ]]; then
-    echo "❌ Error: Invalid workflow '$WORKFLOW'"
+    echo "❌ ERROR: Invalid workflow '$WORKFLOW'"
     echo "Allowed commands are: ${ALLOWED[*]}"
     exit 1
 fi
@@ -70,11 +71,17 @@ fi
 # Remove first argument so we can parse the rest
 shift
 
+# Defaults
 SUBMIT=1
-while getopts ":c:hl" opt; do
+PROFILE="lsf"
+
+while getopts ":c:p:hl" opt; do
     case $opt in
         c)
             CONFIG_FILE="$OPTARG"
+            ;;
+        p)
+            PROFILE="$OPTARG"
             ;;
         l)
             SUBMIT=0
@@ -109,8 +116,18 @@ if [[ ! "$CONFIG_FILE" =~ \.config$ ]]; then
     #exit 1
 fi
 
+# Check the profiles
+ALLOWED=("local" "lsf" "lsf_ignore_errors")
+
+if [[ ! " ${ALLOWED[*]} " =~ " ${PROFILE} " ]]; then
+    echo "❌ ERROR: Invalid profile '$PROFILE'"
+    echo "Allowed commands are: ${ALLOWED[*]}"
+    exit 1
+fi
+
 echo "⬆️  Workflow: $WORKFLOW"
 echo "📄 Config file: $CONFIG_FILE"
+echo "🎨 Profile: $PROFILE"
 echo "📒 Logs: logs/${prefix}"
 echo "🟠 Arguments: $@"
 
@@ -118,7 +135,7 @@ echo "🟠 Arguments: $@"
 CMD="nextflow \
 -log logs/${prefix}/${WORKFLOW}.nextflow.log \
 run ${NF_FILE} \
--profile lsf \
+-profile ${PROFILE} \
 -w ../workdir \
 -resume \
 -entry ${WORKFLOW} \

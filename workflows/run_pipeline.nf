@@ -344,7 +344,7 @@ workflow run_pipeline {
         // Run cellprofiler        
         if (params.cpr_run && params.rn_cache_images) {
             // Run cellprofiler on cached images
-            cellprofiler_out = cellprofiler(finalize_out)
+            cellprofiler_out = cellprofiler(finalize_out.processed_output)
         } else if (params.cpr_run) {
             // This does not cache images
             cellprofiler_out = finalize_and_cellprofiler(finalize_in,

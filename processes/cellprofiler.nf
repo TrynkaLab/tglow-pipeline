@@ -23,7 +23,7 @@ process finalize_and_cellprofiler {
         // Stage the masks
         cmd =
         """
-        mkdir -p ./masks/${well.relpath}"
+        mkdir -p ./masks/${well.relpath}
         ln -s \$(pwd)/cell_masks/*  ./masks/${well.relpath}/
         """
         
@@ -42,7 +42,7 @@ process finalize_and_cellprofiler {
         cmd += 
         """
         # Stage files
-        stage_cellprofiler.py 
+        stage_cellprofiler.py \
         --input ./input_images \
         --output ./images \
         --output_format CP \
@@ -79,7 +79,7 @@ process finalize_and_cellprofiler {
             cmd += " --max_project --no_zstack"
         }
         
-        if (params.rn_hybrid & mask_channels != "none") {
+        if (params.rn_hybrid & manifest.mask_channels != "none") {
             cmd += " --mask_dir ./masks"
             cmd += " --mask_pattern *_nucl_mask_*_cp_masks.tiff"
             cmd += " --mask_channels ${manifest.mask_channels.collect{ well.plate + "=" + it }.join(' ')}"
