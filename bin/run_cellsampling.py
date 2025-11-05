@@ -56,9 +56,13 @@ class CellSampler:
             self.nucl_mask_reader = AICSImageReader(nucl_mask_dir,  pattern=nucl_mask_pattern)
         else:
             self.nucl_mask_reader = None
-            
-        self.ref_nucl_channel=int(ref_channel)
-        self.qry_nucl_channels=[int(x) for x in qry_channels]
+        
+        if ref_channel is not None:
+            self.ref_nucl_channel=int(ref_channel)
+            self.qry_nucl_channels=[int(x) for x in qry_channels]
+        else:
+            self.ref_nucl_channel=None
+            self.qry_nucl_channels=[]
         
 
     def save_cell_crops(self, img, cell_mask, nuclei_mask, iq):
@@ -127,26 +131,30 @@ class CellSampler:
             df_row = {
                 'plate': iq.plate, 'row': iq.get_row_letter(), 'col': iq.col, 'field': iq.field, 'well': iq.get_well_id(), 'cell_index': str(idx).zfill(4), 'W': width, 'H': height, 'centroid_z': centroid[1], 'centroid_y': centroid[2], 'centroid_x': centroid[3],  'diameter': diameter
             }
-            
-            if self.nuclear_registration:
+
+            if nuclei_mask is not None:
                 nucl_mask_bin = ((nuclei_mask[:,:,y0:y1, x0:x1]) == idx).astype(np.uint8)
-                # Compute correlation between two channels in the nucleus region
-                for qry_channel in self.qry_nucl_channels:
-                    try:
-                        corr = np.corrcoef(cell_img[self.ref_nucl_channel, nucl_mask_bin[0] == cell_mask_bin[0]], cell_img[qry_channel, nucl_mask_bin[0] == cell_mask_bin[0]])[1, 0]
-                    except Exception:
-                        corr = np.nan
+
+            if self.ref_nucl_channel is not None:
+                if self.nuclear_registration:
+                    # Compute correlation between two channels in the nucleus region
+                    for qry_channel in self.qry_nucl_channels:
+                        try:
+                            corr = np.corrcoef(cell_img[self.ref_nucl_channel, nucl_mask_bin[0] == cell_mask_bin[0]], cell_img[qry_channel, nucl_mask_bin[0] == cell_mask_bin[0]])[1, 0]
+                        except Exception:
+                            corr = np.nan
+                            
+                        df_row[f"corr_{self.ref_nucl_channel}_{qry_channel}"] = corr
+                else:
+                    # If there is no nucleus, calculate it in the cell region
+                    for qry_channel in self.qry_nucl_channels:
+                        try:
+                            corr = np.corrcoef(cell_img[self.ref_nucl_channel,cell_mask_bin[0]], cell_img[qry_channel, cell_mask_bin[0]])[1, 0]
+                        except Exception:
+                            corr = np.nan         
                         
-                    df_row[f"corr_{self.ref_nucl_channel}_{qry_channel}"] = corr
-            else:
-                # If there is no nucleus, calculate it in the cell region
-                for qry_channel in self.qry_nucl_channels:
-                    try:
-                        corr = np.corrcoef(cell_img[self.ref_nucl_channel,cell_mask_bin[0]], cell_img[qry_channel, cell_mask_bin[0]])[1, 0]
-                    except Exception:
-                        corr = np.nan         
-                    
-                    df_row[f"corr_{self.ref_nucl_channel}_{qry_channel}"] = corr
+                        df_row[f"corr_{self.ref_nucl_channel}_{qry_channel}"] = corr
+                        
                     
             #-------------------------------------------------------------
             # Get max value per channel
@@ -237,8 +245,8 @@ if __name__ == "__main__":
     parser.add_argument('--cell_mask_pattern', help="The pattern to discover masks, defaults to match run_cellpose.py nucleus. <pattern>.tiff", default="*_cell_mask_*_cp_masks.tiff")
     parser.add_argument('--nucl_mask_dir', help="Path to mask root storing masks <plate>/<row>/<col>/<field><mask_pattern>.tiff", default=None)
     parser.add_argument('--nucl_mask_pattern', help="The pattern to discover masks, defaults to match run_cellpose.py nucleus. <pattern>.tiff", default="*_nucl_mask_*_cp_masks.tiff")
-    parser.add_argument('--ref_channel', help="The registration channel in reference plate", required=True)
-    parser.add_argument('--qry_channels', help="The registration channel in query plates", required=True, nargs="+")
+    parser.add_argument('--ref_channel', help="The registration channel in reference plate", required=False, default=None)
+    parser.add_argument('--qry_channels', help="The registration channel in query plates", required=False, nargs="+", default=[])
     parser.add_argument('--max_per_field', help="Max number of cells per field to consider", default=5000)
 
     # Parse the arguments

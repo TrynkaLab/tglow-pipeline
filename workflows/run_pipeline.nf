@@ -288,56 +288,61 @@ workflow run_pipeline {
                             finalize_out.processed_output.map{row -> row[0].plate}.unique())
                         
             if (params.rn_make_cellcrops) {
-                 
-                // Construct the channel to update the indices of <plate>:<old_channel> <registered_channel>
-                // Used .unique() before, but replaced with custom logic so it doesn't need to wait for the channel to complete
-                def seen = []
-                channel_map = finalize_out.channel_indices
-                .map { item -> 
-                    if( !seen.contains(item) ) {
-                        seen << item
-                        return item
+                if (params.rn_manifest_registration != null) {
+                    // If we are registering cycles, we need to update the manifest to reflect the new channel indices
+                    // This is used to calculate the cycle correlations 
+                    // Construct the channel to update the indices of <plate>:<old_channel> <registered_channel>
+                    // Used .unique() before, but replaced with custom logic so it doesn't need to wait for the channel to complete
+                    def seen = []
+                    channel_map = finalize_out.channel_indices
+                    .map { item -> 
+                        if( !seen.contains(item) ) {
+                            seen << item
+                            return item
+                        }
+                        return null
                     }
-                    return null
-                }
-                .filter { it != null }
-                .flatMap{ manifest_path -> file(manifest_path)
-                .splitCsv(header:["ref_plate", "plate", "cycle", "channel", "name", "orig_channel", "orig_name"], sep:"\t")
-                }
-                .map(row -> tuple(row.plate + ":" + row.orig_channel, row.channel))
-                
-                // Create a new registration channel where the channel has been updated to the post-registration channel index      
-                manifest_registration_updated = manifest_registration
-                .flatMap {row ->
-                    def result = [] 
-                    
-                    // Add the ref plate
-                    result <<  tuple(row.ref_plate + ":" + row.ref_channel, groupKey(row.ref_plate, row.qry_channels.size()+1), row.ref_channel, null, null)
-                    
-                    // Add the query plates
-                    row.qry_plates.eachWithIndex{
-                        val, idx -> 
-                        result <<  tuple(val + ":" + row.qry_channels[idx], groupKey(row.ref_plate, row.qry_channels.size()+1), row.ref_channel, val, row.qry_channels[idx])    
+                    .filter { it != null }
+                    .flatMap{ manifest_path -> file(manifest_path)
+                    .splitCsv(header:["ref_plate", "plate", "cycle", "channel", "name", "orig_channel", "orig_name"], sep:"\t")
                     }
-                    return result
-                }
-                .combine(channel_map, by: 0)
-                .map(row -> tuple(row[1], row[2], row[3], row[5]))
-                .groupTuple(by: 0)
-                .map(row -> new RegistrationRecord(row[0].getGroupTarget(), row[1][0], row[2].findAll(), row[3].findAll{ idx -> row[2][row[3].indexOf(idx)] != null})) // findall removes the null (refplates) so they are not treated as qry
+                    .map(row -> tuple(row.plate + ":" + row.orig_channel, row.channel)) 
+                    
+                    // Create a new registration channel where the channel has been updated to the post-registration channel index      
+                    manifest_registration_updated = manifest_registration
+                    .flatMap {row ->
+                        def result = [] 
+                        
+                        // Add the ref plate
+                        result <<  tuple(row.ref_plate + ":" + row.ref_channel, groupKey(row.ref_plate, row.qry_channels.size()+1), row.ref_channel, null, null)
+                        
+                        // Add the query plates
+                        row.qry_plates.eachWithIndex{
+                            val, idx -> 
+                            result <<  tuple(val + ":" + row.qry_channels[idx], groupKey(row.ref_plate, row.qry_channels.size()+1), row.ref_channel, val, row.qry_channels[idx])    
+                        }
+                        return result
+                    }
+                    .combine(channel_map, by: 0)
+                    .map(row -> tuple(row[1], row[2], row[3], row[5]))
+                    .groupTuple(by: 0)
+                    .map(row -> new RegistrationRecord(row[0].getGroupTarget(), row[1][0], row[2].findAll(), row[3].findAll{ idx -> row[2][row[3].indexOf(idx)] != null})) // findall removes the null (refplates) so they are not treated as qry
 
-                cellcrop_in = finalize_out.processed_output
-                .map(row -> tuple(row[0].plate, row[0], row[1]))
-                .combine(manifest_registration_updated.map(row -> tuple(row.ref_plate, row)), by: 0)
-                .map(row -> tuple(row[1], row[3], row[2]))
+                    // Create the cellcrop input channel with the updated registration record that has the registered channel indices to correlate
+                    cellcrop_in = finalize_out.processed_output
+                    .map(row -> tuple(row[0].plate, row[0], row[1]))
+                    .combine(manifest_registration_updated.map(row -> tuple(row.ref_plate, row)), by: 0)
+                    .map(row -> tuple(row[1], row[3], row[2]))
+                } else {
+                    // No registration, just pass through, setting registration to null
+                    cellcrop_in = finalize_out.processed_output.map(row -> tuple(row[0], null, row[1]))
+                }
                 
                 // Create cellcrops
                 cellcrop_out = cellcrops(cellcrop_in)
                 
                 // Index cellcrops
-                cellcrop_out.h5.last().ifPresent { h5 ->
-                    index_cellcrops(h5, file(params.rn_publish_dir + "/cellcrops"))
-                }  
+                index_cellcrops(cellcrop_out.h5.last(), file(params.rn_publish_dir + "/cellcrops"))
             }            
         }
         

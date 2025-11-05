@@ -108,7 +108,7 @@ process finalize {
             }
 
         } else {
-            cmd += "\nmv ./masks/${well.relpath}/* ./${well.relpath}/"
+            cmd += "\nrsync --copy-links ./masks/${well.relpath}/* ./${well.relpath}/"
         }
         
         cmd
@@ -134,7 +134,8 @@ process cellcrops {
         tuple val(well), path("${well.relpath}/*.h5"), emit: h5
         tuple val(well), path("${well.relpath}/*.csv"), emit: index
     script:
-    """
+
+    cmd = """
     mkdir -p input/${well.relpath}
     ln -s \$(pwd)/input_images/* input/${well.relpath}
     
@@ -145,10 +146,13 @@ process cellcrops {
     --output ./ \
     --plate ${well.plate} \
     --well ${well.well} \
-    --ref_channel ${registration.ref_channel} \
-    --qry_channels ${registration.qry_channels.join(" ")} \
-    --max_per_field $params.rn_max_per_field
+    --max_per_field $params.rn_max_per_field \
     """   
+    if (registration != null) {
+        cmd += "--ref_channel ${registration.ref_channel} --qry_channels ${registration.qry_channels.join(" ")}"
+    }
+    
+    cmd
 }
 
 process index_cellcrops {
