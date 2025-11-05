@@ -17,6 +17,7 @@ workflow flatfield_estimation {
         bp_run
         bp_channels
         bp_global_flatfield
+        plates
     main:
         //------------------------------------------------------------
         // Run estimate_flatfield
@@ -113,7 +114,7 @@ workflow flatfield_estimation {
             .map({ files, string -> tuple(files, string) })
             
         } else {
-            flatfield_out = Channel.empty()
+            flatfield_out_final = Channel.empty()
             //flatfield_out_string = Channel.value(false)
         }
         

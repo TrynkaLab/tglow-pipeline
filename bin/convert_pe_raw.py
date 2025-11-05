@@ -78,9 +78,12 @@ def main(input_file, output_path, wells):
             log.info(f"Processing {q.to_string()}")
             
             stack = pe_reader.read_stack(q)
-                        
-            writer.write_stack(stack, q)
-    
+             
+            if (stack is not None):           
+                writer.write_stack(stack, q)
+            else:
+                log.warning(f"Stack is None for {q.to_string()}. Skipping writing this stack. This usually happens if an export is incomplete.") 
+                
         # Write intensity statistics        
         writer.write_image_stats( ImageQuery(pe_reader.pe_index.plate["name"], row, col, 1))
         

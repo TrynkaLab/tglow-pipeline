@@ -74,6 +74,7 @@ workflow setup {
         if (params.rn_manifest_registration == null) {
             //log.info("No registration provided")
             manifest_registration_file = Channel.value(file('NO_REGISTRATION_MANIFEST'))
+            manifest_registration = Channel.empty()
         } else {
             manifest_registration_file = Channel.value(file(params.rn_manifest_registration))
         }

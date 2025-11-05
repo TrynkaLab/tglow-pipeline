@@ -113,7 +113,8 @@ workflow run_pipeline {
             params.rn_manifest_registration,
             params.bp_run,
             params.bp_channels,
-            params.bp_global_flatfield
+            params.bp_global_flatfield,
+            plates
         )
         
         flatfield_out = flatfield_estimation.out.flatfield_out
@@ -258,13 +259,13 @@ workflow run_pipeline {
             finalize_in = finalize_in.join(registration_out, by: 0)                
         } else {
             finalize_in = cellpose_out.map{row -> tuple(
-                row[0], // key
-                row[1], // Well
-                row[2], // ManifestRecord
-                row[3], // cell masks,
-                row[4], // nucl masks,
-                row[5], // cycle plates
-                null,   // merge plates
+                row[0].key, // key,
+                row[0], // Well
+                row[1], // ManifestRecord
+                row[2], // cell masks,
+                row[3], // nucl masks,
+                null, // decon plates TODO: figure out what this does, it doesn't seem to be used in finalize or cellprofiler
+                null, // merge plates
                 file('NO_REGISTRATION')   // registration path
             )}
         }
@@ -272,6 +273,7 @@ workflow run_pipeline {
         //--------------------------------------------------------------------
         // Cache the final images for feature extraction
         if (params.rn_cache_images) {
+                        
             finalize_out = finalize(finalize_in,
                                     image_dir_file,
                                     flatfield_out,
@@ -333,8 +335,9 @@ workflow run_pipeline {
                 cellcrop_out = cellcrops(cellcrop_in)
                 
                 // Index cellcrops
-                index_cellcrops(cellcrop_out.h5.last(), file(params.rn_publish_dir + "/cellcrops"))
-                
+                cellcrop_out.h5.last().ifPresent { h5 ->
+                    index_cellcrops(h5, file(params.rn_publish_dir + "/cellcrops"))
+                }  
             }            
         }
         
