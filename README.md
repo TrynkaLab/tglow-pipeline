@@ -21,9 +21,13 @@ The following readme gives a high level overview, for more detailed guide please
 - stage: prepare and standardize raw images into a well/field-organized OME-TIFF layout with metadata.
 - run_pipeline: perform image processing and feature extraction on the staged images.
 
-Both stages are implemented as Nextflow workflows and can be run independently using `-entry stage|run_pipeline`. The pipeline is intended to run on high performance compute (HPC) clusters, and bundled resource profiles should work for most HPC, but  some tweaks to GPU settings may be required as flags differ between vendors. See conf/processes.config and search for `clusterOptions` to update. Furthermore, you may need to add a profile for your HPC enviroment in the conf folder, nf-core's config directory may be of help for your HPC: https://nf-co.re/configs/.   
+Both stages are implemented as Nextflow workflows and can be run independently using `-entry stage|run_pipeline`. 
 
-If you want to run the pipeline locally, supply `-profile local`.
+> Some steps in the pipeline require GPU's to be available. These are semgmentation and deconvolution. Deconvolution will not run without GPU. Segmentation (CellPose) will run, but we only reccomend this in cases where you are generating masks in 2D. In 3d the computational burden for large datasets will be too much for CPU. 
+
+> The pipeline is intended to run on high performance compute (HPC) clusters, and bundled resource profiles should work for most HPC, but some tweaks to queue names and GPU settings may be required as flags differ between vendors and HPC configurations. Go to conf/processes.config and search for `queue` and `clusterOptions` to update. Furthermore each HPC is different, with different machines and resource limits. You may need to add a profile for your HPC enviroment in the conf folder. The nf-core config directory may be of help for your HPC: https://nf-co.re/configs/. If something is unclear, feel free to raise an issue on github.  
+
+> If you dont want to run the pipeline on HPC but run it locally, supply `-profile local`.
 
 ## 1) stage
 Purpose: Stage PerkinElmer (currently Phenix or Operetta) acquisitions into a reproducible plate/row/col/field.ome.tiff structure and capture metadata (channel names, pixel sizes, channel order, original index files).
@@ -50,20 +54,31 @@ Output:
 - Segmentation outputs, registration matrices, flatfields, extracted feature tables, and logs/artifacts needed for downstream analysis.
 
 Main processing steps (in typical execution order — each step can be enabled/disabled via config):
-1. estimate flatfield (optional)
-   - Parallelization: per-plate + channel or single flatfield for all plates.
+1. estimate flatfield (Polynomial / BaSiCPY) (optional)
+   - Parallelization: per-plate + channel or single flatfield for all plates + channels.
    - Output: flatfield images only (no transformed images saved).
 2. register (cross correlation / pystackreg) (optional)
-   - Parallelization: per-well (all fields).
+   - Parallelization: per-well
    - Output: registration matrices (no transformed images saved).
 3. cellpose segmentation
-   - Parallelization: per-well (all fields), GPU-enabled.
+   - Parallelization: per-well, GPU-enabled
    - Notes: If registration is used, segmentation currently runs on the reference plate. Nucleus channel optional but segmentation is required.
-4. deconvolute (optional)
-   - Runs on GPU; produces deconvolved images (separate data copy).
-5. feature extraction (CellProfiler or custom)
+   - Output: 2D or 3D cell & nucleus masks as tiffs
+4. deconvolute with CLIJ2-fft (optional)
+   - Parallelization: per-well, GPU-enabled
+   - Output: deconvolved images (creates a data copy)
+5. finalizing images
+   - Parallelization: per-well
+   - Applies all the registration, flatfields, scaling, max projection to the (deconvolved) images and collects the masks
+   - Output: Analysis reade OME-TIFFs
+6. feature extraction with CellProfiler
+   - Parallelization: per-well
    - Stage images into a CellProfiler-compatible layout, apply flatfields and registration (if enabled), and run feature extraction.
-   - Outputs: feature tables and CellProfiler artifacts.
+   - Outputs: CellProfiler artifacts as a zip archive per well
+7. cellcrops (optional)
+   - Parallelization: per-well
+   - Produces a HDF5 file for each field where each h5 group is a cell
+   - Outputs: h5 file with fully processed cellcrops   
 
 # Options
 See nextflow.config or the [wiki - tbd]() for available options and their descriptions.
@@ -128,3 +143,4 @@ We will put known issues here, or in the issue tracker. If you find an issue ple
 - https://scikit-image.org/
 - https://github.com/MouseLand/cellpose
 - https://github.com/glichtner/pystackreg/tree/master
+- https://basicpy.readthedocs.io/en/latest/
