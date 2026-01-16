@@ -64,7 +64,7 @@ workflow run_pipeline {
         manifest = setup.out.manifest
         plates = setup.out.plates
         manifest_registration = setup.out.manifest_registration
-        
+                
         // Channels with file objects
         manifest_registration_file = setup.out.manifest_registration_file
         blacklist_file = setup.out.blacklist_file

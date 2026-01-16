@@ -78,7 +78,7 @@ workflow setup {
         } else {
             manifest_registration_file = Channel.value(file(params.rn_manifest_registration))
         }
-    
+            
         //------------------------------------------------------------------------
         // Blacklist channel, if missing just an empty channel
         if (params.rn_blacklist == null) {

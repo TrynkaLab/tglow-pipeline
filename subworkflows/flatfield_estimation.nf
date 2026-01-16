@@ -27,24 +27,24 @@ workflow flatfield_estimation {
         if (bp_channels == null) {
             // Manually parse the manifest to also grab the first record which is hard to do with channels
             flatfield_channels = parseManifestFlatfields(rn_manifest)
-            
+                        
             if (flatfield_channels[0].size() > 0) {run_flatfield = true}
             
             // These have the channel already zero indexed
             flatfield_in = Channel.from(flatfield_channels[0])
             flatfield_in_global = Channel.from(flatfield_channels[1])
+                   
                             
-            if (rn_manifest_registration) {
-                //log.info("Estimating one global flatfield per cycle")
-                
+            if (rn_manifest_registration) {                
                 // Create a flat [<plate> <cycle>] channel
                 plate_cycle = manifest_registration
                 .map{row -> [row.ref_plate, *row.qry_plates]}
                 .flatMap { row -> row.withIndex().collect { item, index ->[item, index] }}
                 
+
                 // Create a channel per cycle <ref_plate> <cycle> [<plate1> <plateN>]
                 // ref_plate here is not the same as ref_plate in the registration, but just indicates where the global flatfield will be saved 
-                per_cycle = plate_cycle
+                 per_cycle = plate_cycle
                 .groupTuple(by:1)
                 .map{row -> tuple(row[0][0], row[1], row[0])}
                                 
