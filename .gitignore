@@ -1,16 +1,3 @@
 .DS_Store
-tglow/.DS_Store
-tglow/cellprofiler/.DS_Store
-tglow/cellprofiler/.DS_Store
-tglow/cellprofiler/.DS_Store
-**/testing/**
-**/tglow_core.egg-info/**
-**/__pycache__/**
-**/.nextflow/**
-**/work/**
-**.nextflow.log*
-**/psfs
-**/output
-**/archives
-dummy_flow.txt
+**/.DS_Store
 beta_whishlist.txt
