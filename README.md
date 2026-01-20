@@ -30,15 +30,17 @@ Both stages are implemented as Nextflow workflows and can be run independently u
 > If you dont want to run the pipeline on HPC but run it locally, supply `-profile local`.
 
 ## 1) stage
-Purpose: Stage PerkinElmer (currently Phenix or Operetta) acquisitions into a reproducible plate/row/col/field.ome.tiff structure and capture metadata (channel names, pixel sizes, channel order, original index files).
+Purpose: Stage Revity/PerkinElmer (currently Phenix or Operetta) acquisitions into a reproducible plate/row/col/field.ome.tiff structure and capture metadata (channel names, pixel sizes, channel order, original index files).
+
+> If you don't have a Phenix or Operetta export, you can skip this step, but will need to organize the images using your own script. See more details here: [manual staging - tbd]()
 
 Input:
 - PerkinElmer index.xml / index.idx.xml and raw instrument files (or manually organized raw files).
 
 Output:
 - plate_name/row/col/field.ome.tiff (with metadata)
-- auxiliary files to capture provenance (index.xml, channel maps, etc.)
-- manifest listing wells/fields to process (used as a Nextflow channel)
+- manifest listing wells to process (used as a Nextflow channel)
+- auxiliary files to capture provenance (index.xml, channel maps, etc.) (optional)
 
 Nextflow processes:
 1. prepare_manifest — create a manifest with wells/fields to run (re-usable Nextflow channel)
