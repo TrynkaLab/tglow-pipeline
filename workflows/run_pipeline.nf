@@ -7,7 +7,7 @@ include { register } from '../processes/registration.nf'
 include { cellpose } from '../processes/segmentation.nf'
 include { cellprofiler;  finalize_and_cellprofiler } from '../processes/cellprofiler.nf'
 include { finalize; index_cellcrops; cellcrops } from '../processes/finalize.nf'
-include { index_imagedir } from '../processes/staging.nf'
+include { index_images; index_imagedir } from '../processes/staging.nf'
 
 // Subworkflows
 include { setup } from "../subworkflows/setup.nf"
@@ -73,17 +73,19 @@ workflow run_pipeline {
         //------------------------------------------------------------
         // Prepare per well input channels
         //------------------------------------------------------------
+
+        
         // Loop over previously generated manifests assuming stage has been run
         if (params.rn_manifest_well == null) {            
-            manifests_in = manifest.map{row -> "${params.rn_image_dir}/" + row.plate + "/manifest.tsv"}
+            //manifests_in = manifest.map{row -> "${params.rn_image_dir}/" + row.plate + "/manifest.tsv"}
+            manifests_in = index_imagedir(params.rn_image_dir, file(params.rn_image_dir), manifest.map{row -> row.plate}.unique())
         } else {
             manifests_in = Channel.from(params.rn_manifest_well.split(','))
         }
         
         // Construct the channel on the well level
-        well_channel = manifests_in
-            .flatMap{ manifest_path -> file(manifest_path)
-            .splitCsv(header:["well", "row", "col", "plate"], sep:"\t")}
+        // This was needed without the indexing step file(manifest_path)
+        well_channel = manifests_in.flatMap{ manifest_path -> manifest_path.splitCsv(header:["well", "row", "col", "plate"], sep:"\t")}
             .map( row -> new Well(well: row.well, row: row.row, col: row.col, plate: row.plate) )
 
                 
@@ -282,7 +284,7 @@ workflow run_pipeline {
                                     bias_file)
                                     
             // Create the plate manfiests once finalize is done
-            index_imagedir(finalize_out.processed_output.last(),
+            index_images(finalize_out.processed_output.last(),
                             "processed_images",
                             file(params.rn_publish_dir + "/processed_images"),
                             finalize_out.processed_output.map{row -> row[0].plate}.unique())
@@ -349,10 +351,18 @@ workflow run_pipeline {
         //------------------------------------------------------------
         //                       Cellprofiler
         //------------------------------------------------------------
+        
+        // Construct the pipeline channel
+        if (params.rn_max_project | params.rn_hybrid) {
+           cpr_pipeline = Channel.fromPath(params.cpr_pipeline_2d)
+        } else {
+           cpr_pipeline = Channel.fromPath(params.cpr_pipeline_3d)
+        }      
+        
         // Run cellprofiler        
         if (params.cpr_run && params.rn_cache_images) {
             // Run cellprofiler on cached images
-            cellprofiler_out = cellprofiler(finalize_out.processed_output)
+            cellprofiler_out = cellprofiler(finalize_out.processed_output, cpr_pipeline)
         } else if (params.cpr_run) {
             // This does not cache images
             cellprofiler_out = finalize_and_cellprofiler(finalize_in,
@@ -360,7 +370,8 @@ workflow run_pipeline {
                                                         flatfield_out,
                                                         scaling_file,
                                                         slope_file, 
-                                                        bias_file)
+                                                        bias_file,
+                                                        cpr_pipeline)
         } 
         
          
