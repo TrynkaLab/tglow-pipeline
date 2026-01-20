@@ -15,6 +15,7 @@ process finalize_and_cellprofiler {
         path scaling_file
         path slope_file
         path bias_file
+        path pipeline
 
     output:
         path "features/${well.relpath}/*"
@@ -119,6 +120,7 @@ process finalize_and_cellprofiler {
         """
         # Run cellprofiler
         cellprofiler \
+        -p ${pipeline} \
         -c \
         -r \
         -o ./features/${well.relpath} \
@@ -128,12 +130,6 @@ process finalize_and_cellprofiler {
         if (params.cpr_plugins) {
             cmd += " --plugins-directory $params.cpr_plugins"
         }
-    
-        if (params.rn_max_project | params.rn_hybrid) {
-           cmd += " -p $params.cpr_pipeline_2d"
-        } else {
-           cmd += " -p $params.cpr_pipeline_3d"
-        }      
         
         // Zip output to save of lustre filecount
         if (!params.cpr_no_zip) {
@@ -163,6 +159,7 @@ process cellprofiler {
 
     input:
         tuple val(well), path(images, stageAs: "input_images/*")
+        path pipeline
     output:
         path "features/${well.relpath}/*"
     script:
@@ -187,6 +184,7 @@ process cellprofiler {
         """
         # Run cellprofiler
         cellprofiler \
+        -p ${pipeline} \
         -c \
         -r \
         -o ./features/${well.relpath} \
@@ -197,12 +195,6 @@ process cellprofiler {
             cmd += " --plugins-directory $params.cpr_plugins"
         }
     
-        if (params.rn_max_project | params.rn_hybrid) {
-           cmd += " -p $params.cpr_pipeline_2d"
-        } else {
-           cmd += " -p $params.cpr_pipeline_3d"
-        }      
-        
         // Zip output to save of lustre filecount
         if (!params.cpr_no_zip) {
             cmd +=

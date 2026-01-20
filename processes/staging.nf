@@ -66,7 +66,7 @@ process prepare_manifest {
 }
 
 // Create a manifest for a dir of images if it does not exist yet
-process index_imagedir {
+process index_images {
     label "normal"
     conda params.tg_conda_env
     //storeDir "${params.rn_publish_dir}/$input_dir/", saveAs: { filename -> filename.split('/')[-1] }
@@ -74,6 +74,33 @@ process index_imagedir {
     publishDir "${params.rn_publish_dir}/$input_dir", mode: "copy"
     input:
         val previous_completed
+        val input_dir
+        path images, stageAs: "input_images"
+        val plate
+    output:
+        path "$plate/manifest.tsv"
+    script:
+        """
+        index_folder.py \
+        --input input_images \
+        --plates $plate \
+        --output ./
+        """
+    stub:
+        """
+        mkdir -p $plate
+        cd $plate
+        touch manifest.tsv
+        """
+}
+
+// Create a manifest for a dir of images if it does not exist yet
+process index_imagedir {
+    label "normal"
+    conda params.tg_conda_env
+    storeDir "${input_dir}"
+    
+    input:
         val input_dir
         path images, stageAs: "input_images"
         val plate
