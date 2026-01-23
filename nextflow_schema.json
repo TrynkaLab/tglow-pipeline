@@ -41,17 +41,20 @@
         },
         "rn_publish_dir": {
           "type": "string",
-          "description": "Directory to store and cache the output. Generally name results"
+          "description": "Directory to store and cache the output. Generally name results",
+          "default": "../results"
         },
         "rn_image_dir": {
           "type": "string",
           "description": "Permanent cache for images [optional] Defaults to: ${rn_publish_dir}/images",
-          "format": "directory-path"
+          "format": "directory-path",
+          "default": "../results/images"
         },
         "rn_decon_dir": {
           "type": "string",
           "description": "Permanent cache for deconvolutions [optional] Defaults to: ${rn_publish_dir}/decon",
-          "format": "directory-path"
+          "format": "directory-path",
+          "default": "../results/decon"
         },
         "rn_max_project": {
           "type": "boolean",
@@ -116,10 +119,24 @@
           "type": "boolean",
           "description": "When calculating plate offsets, threshold channel images prior to calculating mean object intensities. Background regions ignored. Otsu threshold on whole image used."
         },
+        "rn_make_cellcrops": {
+          "type": "boolean",
+          "default": true,
+          "description": "Produce h5 files with cellcrops"
+        },
+        "rn_max_per_field": {
+          "type": "integer",
+          "default": 1000,
+          "description": "When making cellcrops, if there are more then this many cells per field, skip the field"
+        },
         "tg_conda_env": {
           "type": "string",
           "default": "/software/teamtrynka/installs/tglow",
           "description": "Tglow conda env path"
+        },
+        "tg_container": {
+          "type": "string",
+          "description": "Container for the tglow environment"
         }
       },
       "required": ["rn_manifest"]
@@ -224,7 +241,7 @@
         "rg_mode": {
           "type": "string",
           "default": "CROSS",
-          "description": "Mode use skimage phase cross correlation or pystackreg with translation. CROSS or STACKREG"
+          "description": "Mode use skimage phase cross correlation or pystackreg with translation. CROSS or STACKREG. Currently STACKREG is disabled."
         },
         "rg_label": {
           "type": "string",
@@ -401,10 +418,11 @@
         },
         "cpr_plugins": {
           "type": "string",
-          "default": "/Users/ob7/Documents/projects/tglow-pipeline/bin/cellprofiler/plugins"
+          "default": "$projectDir/bin/cellprofiler/plugins"
         },
         "cpr_run": {
-          "type": "boolean"
+          "type": "boolean",
+          "default": true
         },
         "cpr_pipeline_2d": {
           "type": "string"
@@ -414,6 +432,10 @@
         },
         "cpr_no_zip": {
           "type": "boolean"
+        },
+        "cpr_container": {
+          "type": "string",
+          "description": "Container for the cellprofiler enviroment"
         }
       }
     },
@@ -426,57 +448,67 @@
         "sc_label": {
           "type": "string",
           "default": "gpu_short",
-          "description": "Resource label for subcell"
+          "description": "Resource label for subcell",
+          "hidden": true
         },
         "sc_gpu": {
           "type": "boolean",
           "default": true,
-          "description": "Should GPU be used, make sure to set sc_label to gpu_<x>"
+          "description": "Should GPU be used, make sure to set sc_label to gpu_<x>",
+          "hidden": true
         },
         "sc_dont_mask": {
           "type": "boolean",
-          "description": "Should the cell crops not be masked by the cell object prior to embedding"
+          "description": "Should the cell crops not be masked by the cell object prior to embedding",
+          "hidden": true
         },
         "sc_conda_env": {
           "type": "string",
-          "default": "/software/teamtrynka/installs/subcell",
-          "description": "Subcell conda env path"
+          "description": "Subcell conda env path",
+          "hidden": true
         },
         "sc_dl_conda_env": {
           "type": "string",
-          "default": "/software/teamtrynka/installs/subcell_model_dl",
-          "description": "Subcell model download conda env path"
+          "description": "Subcell model download conda env path",
+          "hidden": true
         },
         "sc_model_ref_channels": {
           "type": "string",
           "default": "rybg",
-          "description": "Subcell model reference channels string like \"rybg\""
+          "description": "Subcell model reference channels string like \"rybg\"",
+          "hidden": true
         },
         "sc_model": {
           "type": "string",
           "default": "mae_contrast_supcon_model",
-          "description": "Subcell model string like \"mae_contrast_supcon_model\""
+          "description": "Subcell model string like \"mae_contrast_supcon_model\"",
+          "hidden": true
         },
         "sc_channels": {
           "type": "string",
-          "description": "Channels to find localization for should be string '<name>=<channel> <name>=<channel>'"
+          "description": "Channels to find localization for should be string '<name>=<channel> <name>=<channel>'",
+          "hidden": true
         },
         "sc_nucl": {
           "type": "integer",
-          "description": "Nucleus channel"
+          "description": "Nucleus channel",
+          "hidden": true
         },
         "sc_tub": {
           "type": "integer",
-          "description": "Tubulin channel"
+          "description": "Tubulin channel",
+          "hidden": true
         },
         "sc_er": {
           "type": "integer",
-          "description": "Endoplasmic reticulum channel"
+          "description": "Endoplasmic reticulum channel",
+          "hidden": true
         },
         "sc_scale": {
           "type": "number",
           "default": 1.8625,
-          "description": "Scale factor to get pixel size to 80nm. In Phenix 1px=149nm at 40x, so sc_scale=149/80. TODO set properly using physical pixel size attribute if available"
+          "description": "Scale factor to get pixel size to 80nm. In Phenix 1px=149nm at 40x, so sc_scale=149/80. TODO set properly using physical pixel size attribute if available",
+          "hidden": true
         }
       }
     }
