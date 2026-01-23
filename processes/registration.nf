@@ -4,7 +4,10 @@
 process register {
     //label 'normal'
     label params.rg_label
+    
     conda params.tg_conda_env
+    container params.tg_container
+    
     storeDir "${params.rn_publish_dir}/registration/"
     input:
         tuple val(well), val(registration), path(image_dir, stageAs: "input_images")

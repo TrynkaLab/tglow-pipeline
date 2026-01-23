@@ -32,20 +32,16 @@ workflow run_pipeline {
                 if (params.cpr_pipeline_2d == null) {
                     error("Running in hybrid or 2d mode with cpr_run=true, but cpr_pipeline_2d is not set")
                 }
-                
                 if (!file(params.cpr_pipeline_2d).exists()) {
                     error("Specified cellprofiler pipeline is not accessible")
-                }
-                
+                }    
             } else {
                 if (params.cpr_pipeline_3d == null) {
                     error("Running in 3d mode with cpr_run=true, but cpr_pipeline_3d is not set")
                 }
-                
                 if (!file(params.cpr_pipeline_3d).exists()) {
                     error("Specified cellprofiler pipeline is not accessible")
                 }
-                
             }
         }
         

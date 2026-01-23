@@ -4,7 +4,10 @@
 // regular queue
 process finalize_and_cellprofiler {
     label params.cpr_label
+    
     conda params.cpr_conda_env
+    container params.cpr_container
+    
     storeDir "$params.rn_publish_dir/features/cellprofiler"
     scratch params.rn_scratch
 
@@ -153,7 +156,10 @@ process finalize_and_cellprofiler {
 
 process cellprofiler {
     label params.cpr_label
+    
     conda params.cpr_conda_env
+    container params.cpr_container
+    
     storeDir "$params.rn_publish_dir/features/cellprofiler"
     scratch params.rn_scratch
 

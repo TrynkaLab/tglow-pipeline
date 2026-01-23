@@ -2,14 +2,13 @@
 # Assumes this is being called from a scripts folder, will put the nextflow workdir 
 # one level up
 
-#-----------------------------------------------------------------------
-# Setup
 set -e
 
-timestamp_folder_name() {
-  date '+%Y%m%d_%H%M'
-}
- 
+#-----------------------------------------------------------------------
+#                 Update these for your installation
+#-----------------------------------------------------------------------
+
+# Source your nextflow installation here
 module load HGI/common/nextflow/25.04.6
  
 export HTTP_PROXY='http://wwwcache.sanger.ac.uk:3128'
@@ -34,6 +33,12 @@ export NXF_SINGULARITY_CACHEDIR=/lustre/scratch125/humgen/teams_v2/trynka/resour
 # Path to nextflow file, MUST BE ABSOLUTE
 NF_FILE=/software/teamtrynka/installs/tglow-pipeline/dev/beta/main.nf
  
+ 
+#-----------------------------------------------------------------
+timestamp_folder_name() {
+  date '+%Y%m%d_%H%M'
+}
+
 prefix="$(timestamp_folder_name)"
 mkdir -p logs/${prefix}
 #-----------------------------------------------------------------
@@ -157,6 +162,9 @@ if [ $SUBMIT -eq 0 ]; then
     # This runs the nextflow job locally
     eval $CMD
 else
+    #-----------------------------------------------------------------------
+    #                 Update this for your installation
+    #-----------------------------------------------------------------------
     # This submits the nextflow runner to the cluster, in this case LSF, but update
     # this for your cluster configuration
     #    -q oversubscribed \

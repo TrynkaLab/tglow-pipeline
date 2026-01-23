@@ -5,7 +5,10 @@
 process fetch_raw {
     scratch params.rn_scratch
     label params.st_label
+    
     conda params.tg_conda_env
+    container params.tg_container
+    
     storeDir "${params.rn_image_dir}"
 
     input:
@@ -68,7 +71,10 @@ process prepare_manifest {
 // Create a manifest for a dir of images if it does not exist yet
 process index_images {
     label "normal"
+    
     conda params.tg_conda_env
+    container params.tg_container
+    
     //storeDir "${params.rn_publish_dir}/$input_dir/", saveAs: { filename -> filename.split('/')[-1] }
     //storeDir "${params.rn_publish_dir}/$input_dir"
     publishDir "${params.rn_publish_dir}/$input_dir", mode: "copy"
@@ -97,7 +103,10 @@ process index_images {
 // Create a manifest for a dir of images if it does not exist yet
 process index_imagedir {
     label "normal"
+    
     conda params.tg_conda_env
+    container params.tg_container
+    
     storeDir "${input_dir}"
     
     input:
