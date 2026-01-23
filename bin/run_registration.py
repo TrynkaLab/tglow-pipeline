@@ -11,7 +11,7 @@ from basicpy import BaSiC
 from pathlib import Path
 from skimage import transform, io, exposure, color, util, filters, measure
 from matplotlib import pyplot as plt
-from pystackreg import StackReg
+#from pystackreg import StackReg
 from skimage.filters import threshold_otsu
 from skimage.measure import label, regionprops
 from skimage.morphology import closing, square
@@ -88,7 +88,8 @@ class Registration:
         # Registration options
         self.plot=args.plot
         self.save_reg=True
-        self.transform=StackReg.TRANSLATION
+        #self.transform=StackReg.TRANSLATION
+        self.transform='TRANSLATION'
         self.eval_merge=args.eval_merge
         
         if self.eval_merge:
@@ -200,8 +201,9 @@ class Registration:
             #qry_stack_in = qry_stack_in * (qry_stack_in > threshold_otsu(qry_stack_in))
             if self.mode == "STACKREG":
                 # Calculate the offsets
-                sr = StackReg(self.transform)
-                align_mat = sr.register(ref_stack, qry_stack_in)
+                raise NotImplementedError("STACKREG mode is not currently supported, as pystackreg causes a depency conflict in pandas")
+                #sr = StackReg(self.transform)
+                #align_mat = sr.register(ref_stack, qry_stack_in)
             elif self.mode == "CROSS":
                 align_mat = np.eye(3, dtype=np.float64)
                 #offset, _, _ = phase_cross_correlation(ref_stack, qry_stack_in, reference_mask=ref_mask, return_error='always')
@@ -372,7 +374,7 @@ if __name__ == "__main__":
     parser.add_argument('--qry_channel_eval', help='[OPTIONAL] Query channel for registration evaluation (nucleus)', nargs='+', default=None)
     parser.add_argument('--offset_x', help='[OPTIONAL] Constant offset to apply in x (if registration is very off)', default=0)
     parser.add_argument('--offset_y', help='[OPTIONAL] Constant offset to apply in y (if registration is very off)', default=0)
-    parser.add_argument('--mode', help='Algorithm for registration, STACKREG | CROSS ', default="CROSS")
+    parser.add_argument('--mode', help='Algorithm for registration, STACKREG | CROSS. Stackreg currently disabled ', default="CROSS")
 
     args = parser.parse_args()
   

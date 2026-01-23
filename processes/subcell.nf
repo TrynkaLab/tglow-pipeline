@@ -4,6 +4,8 @@
 process fetch_model {
     label "normal"
     conda params.sc_dl_conda_env
+    container params.sc_dl_container
+    
     storeDir "${params.rn_publish_dir}/subcell/" 
     input:
         val channels
@@ -38,7 +40,10 @@ process fetch_model {
 
 process subcell {
     label params.sc_label
+    
     conda params.sc_conda_env
+    container params.sc_container
+    
     storeDir "${params.rn_publish_dir}/subcell/" 
     
     input:

@@ -7,7 +7,10 @@ import ManifestRecord
 process deconvolute {
     //label 'gpu_midmem'
     label params.dc_label
+    
     conda params.tg_conda_env
+    container params.tg_container
+
     storeDir "${params.rn_decon_dir}"
     scratch params.rn_scratch
 

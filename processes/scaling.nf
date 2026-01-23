@@ -3,7 +3,10 @@
 // Determine scaling factors
 process calculate_scaling_factors {
     label 'normal'
+    
     conda params.tg_conda_env
+    container params.tg_container
+    
     storeDir "$params.rn_publish_dir/scaling"
    // publishDir "$params.rn_publish_dir/", mode: 'copy'
 
@@ -73,7 +76,10 @@ process calculate_scaling_factors {
 // Determine offsets for scaling factors based on controls
 process calculate_plate_offsets {
     label 'normal_plus'
+    
     conda params.tg_conda_env
+    container params.tg_container
+    
     storeDir "$params.rn_publish_dir/scaling/offsets/"
     stageInMode 'symlink'
    // publishDir "$params.rn_publish_dir/", mode: 'copy'

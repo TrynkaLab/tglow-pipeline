@@ -2,7 +2,10 @@
 
 process finalize {
     label params.cpr_label
+    
     conda params.cpr_conda_env
+    container params.tg_container
+    
     storeDir "$params.rn_publish_dir/processed_images"
     scratch params.rn_scratch
 
@@ -124,7 +127,10 @@ process finalize {
 
 process cellcrops {
     label params.cpr_label
+    
     conda params.tg_conda_env
+    container params.tg_container
+
     storeDir "$params.rn_publish_dir/cellcrops"
     scratch params.rn_scratch
 
@@ -157,7 +163,10 @@ process cellcrops {
 
 process index_cellcrops {
     label params.cpr_label
+    
     conda params.tg_conda_env
+    container params.tg_container
+    
     publishDir "$params.rn_publish_dir/cellcrops", mode: "copy"
     
     input:

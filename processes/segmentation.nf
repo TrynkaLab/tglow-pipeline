@@ -4,7 +4,10 @@
 // Cellpose
 process cellpose {
     label params.cp_label
+    
     conda params.tg_conda_env
+    container params.tg_container
+    
     storeDir "${params.rn_publish_dir}/masks/"
     scratch params.rn_scratch
 

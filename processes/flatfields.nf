@@ -3,7 +3,10 @@
 // Estimate_flatfield
 process estimate_flatfield {
     label params.bp_label
+    
     conda params.tg_conda_env
+    container params.tg_container
+
     storeDir "${params.rn_publish_dir}/flatfields/${plate}" //, mode: 'copy'
 
     input:
@@ -95,7 +98,10 @@ process estimate_flatfield {
 // Copy the global flatfield to per plate folders
 process stage_global_flatfield {
     label "tiny"
+    
     conda params.tg_conda_env
+    container params.tg_container
+    
     storeDir "${params.rn_publish_dir}/flatfields/${plate}/" //, mode: 'copy'
     //publishDir "${params.rn_publish_dir}/flatfields/${plate}", mode: 'copy'
     

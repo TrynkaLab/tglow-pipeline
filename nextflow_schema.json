@@ -41,17 +41,20 @@
         },
         "rn_publish_dir": {
           "type": "string",
-          "description": "Directory to store and cache the output. Generally name results"
+          "description": "Directory to store and cache the output. Generally name results",
+          "default": "../results"
         },
         "rn_image_dir": {
           "type": "string",
           "description": "Permanent cache for images [optional] Defaults to: ${rn_publish_dir}/images",
-          "format": "directory-path"
+          "format": "directory-path",
+          "default": "../results/images"
         },
         "rn_decon_dir": {
           "type": "string",
           "description": "Permanent cache for deconvolutions [optional] Defaults to: ${rn_publish_dir}/decon",
-          "format": "directory-path"
+          "format": "directory-path",
+          "default": "../results/decon"
         },
         "rn_max_project": {
           "type": "boolean",
@@ -75,51 +78,24 @@
           "default": true,
           "description": "Cache the final output images (flatfield, decon, demultiplexed, registered, scaled, max_projected) They are saved as plate/row/col/field.ome.tiff in CZYX with additional cycle channels sequentially added. If storage is a concern, disable this and enable rn_scratch to not save large intermediates. NOTE: When mode is hybrid or max project, the storage this generates will not be that bad, so it\u2019s enabled by default. NOTE: This must be true when running subcell, but as subcell only works with max projected images, the storage overhead should be ok NOTE: These are not directly compatible with cellprofiler when working in 3d as they are saved in .ome.tiff for pipeline compatibility, which CPR does not handle. Prior to running cellprofiler they are split up into <field><plate><well>_ch<channel>.tiff which is compatible with both 2d and 3d formats. Use this pattern to set up your pipeline."
         },
-        "rn_manualscale": {
-          "type": "string",
-          "description": "Path to scaling_factors.txt with line formatted: <plate>_ch<channel>=<scale> <plate>_ch<channel>=<scale> <plate>_ch<channel>=<scale> Space separated Channels zero indexed <plate> is the reference plate <channel> after merging cycles <scale> factor by which channel in plate is divided",
-          "format": "file-path",
-          "mimetype": "text/plain"
-        },
-        "rn_scale_slope": {
-          "type": "string",
-          "description": "Path to scaling_<slope/bias>.txt with one line formatted: <plate>_ch<channel>=<slope/bias> <plate>_ch<channel>=<slope/bias> <plate>_ch<channel>=<slope/bias> Sets shape of sigmoid curve used to weigh scaling factors differently in intensity ranges. Background pixels remain unscaled, smooth transition scales foreground pixels. Pipeline supports only pre-calculated slope and bias, cannot auto-estimate. Must supply both slope and bias if used. If null, scaling_factors applied uniformly. Works with --rn_manualscale and --rn_autoscale.",
-          "format": "file-path",
-          "mimetype": "text/plain"
-        },
-        "rn_scale_bias": {
-          "type": "string",
-          "description": "See rn_scale_slope (must supply with rn_scale_slope if supplied)",
-          "format": "file-path",
-          "mimetype": "text/plain"
-        },
-        "rn_autoscale": {
+        "rn_make_cellcrops": {
           "type": "boolean",
-          "description": "Automatically determine scaling factors based on all images in manifest (excluding blacklist) Overrides rn_manualscale Runs after dc_clip_max applied Waits till deconvolution queue empty No feature extraction jobs submitted until autoscale completes Interacts with rn_controllist so dynamic range is optimal after plate offset factors. If rn_controllist is provided, rn_autoscale is on by default."
+          "default": true,
+          "description": "Produce h5 files with cellcrops"
         },
-        "rn_autoscale_q1": {
-          "type": "string",
-          "default": "q99.9999",
-          "description": "Controls value to scale to within an image (quantiles of pixels). Valid options: 'q0', 'q0.1', 'q1', 'q5', 'q25', 'q50', 'q75', 'q90', 'q99', 'q99.9', 'q99.99', 'q99.999', 'q99.9999', 'q99.99999', 'q100', 'mean' Not all options practically sensible, recommend not below q99."
-        },
-        "rn_autoscale_q2": {
+        "rn_max_per_field": {
           "type": "integer",
-          "default": 95,
-          "description": "Controls which quantile is taken across all images for chosen q1 Valid options: 0 - 1"
-        },
-        "rn_dummy_mode": {
-          "type": "boolean",
-          "description": "Generate plate offsets in dummy mode (returns all 1\u2019s for equal scaling, just for testing)",
-          "hidden": true
-        },
-        "rn_threshold": {
-          "type": "boolean",
-          "description": "When calculating plate offsets, threshold channel images prior to calculating mean object intensities. Background regions ignored. Otsu threshold on whole image used."
+          "default": 1000,
+          "description": "When making cellcrops, if there are more then this many cells per field, skip the field"
         },
         "tg_conda_env": {
           "type": "string",
           "default": "/software/teamtrynka/installs/tglow",
           "description": "Tglow conda env path"
+        },
+        "tg_container": {
+          "type": "string",
+          "description": "Container for the tglow environment"
         }
       },
       "required": ["rn_manifest"]
@@ -224,7 +200,7 @@
         "rg_mode": {
           "type": "string",
           "default": "CROSS",
-          "description": "Mode use skimage phase cross correlation or pystackreg with translation. CROSS or STACKREG"
+          "description": "Mode use skimage phase cross correlation or pystackreg with translation. CROSS or STACKREG. Currently STACKREG is disabled."
         },
         "rg_label": {
           "type": "string",
@@ -385,6 +361,56 @@
         }
       }
     },
+    "scaling": {
+      "title": "Scaling",
+      "type": "object",
+      "description": "",
+      "default": "",
+      "properties": {
+        "rn_manualscale": {
+          "type": "string",
+          "description": "Path to scaling_factors.txt with line formatted: <plate>_ch<channel>=<scale> <plate>_ch<channel>=<scale> <plate>_ch<channel>=<scale> Space separated Channels zero indexed <plate> is the reference plate <channel> after merging cycles <scale> factor by which channel in plate is divided",
+          "format": "file-path",
+          "mimetype": "text/plain"
+        },
+        "rn_scale_slope": {
+          "type": "string",
+          "description": "Path to scaling_<slope/bias>.txt with one line formatted: <plate>_ch<channel>=<slope/bias> <plate>_ch<channel>=<slope/bias> <plate>_ch<channel>=<slope/bias> Sets shape of sigmoid curve used to weigh scaling factors differently in intensity ranges. Background pixels remain unscaled, smooth transition scales foreground pixels. Pipeline supports only pre-calculated slope and bias, cannot auto-estimate. Must supply both slope and bias if used. If null, scaling_factors applied uniformly. Works with --rn_manualscale and --rn_autoscale.",
+          "format": "file-path",
+          "mimetype": "text/plain"
+        },
+        "rn_scale_bias": {
+          "type": "string",
+          "description": "See rn_scale_slope (must supply with rn_scale_slope if supplied)",
+          "format": "file-path",
+          "mimetype": "text/plain"
+        },
+        "rn_autoscale": {
+          "type": "boolean",
+          "description": "Automatically determine scaling factors based on all images in manifest (excluding blacklist) Overrides rn_manualscale Runs after dc_clip_max applied Waits till deconvolution queue empty No feature extraction jobs submitted until autoscale completes Interacts with rn_controllist so dynamic range is optimal after plate offset factors. If rn_controllist is provided, rn_autoscale is on by default."
+        },
+        "rn_autoscale_q1": {
+          "type": "string",
+          "default": "q99.9999",
+          "description": "Controls value to scale to within an image (quantiles of pixels). Valid options: 'q0', 'q0.1', 'q1', 'q5', 'q25', 'q50', 'q75', 'q90', 'q99', 'q99.9', 'q99.99', 'q99.999', 'q99.9999', 'q99.99999', 'q100', 'mean' Not all options practically sensible, recommend not below q99."
+        },
+        "rn_autoscale_q2": {
+          "type": "integer",
+          "default": 95,
+          "description": "Controls which quantile is taken across all images for chosen q1 Valid options: 0 - 1"
+        },
+        "rn_dummy_mode": {
+          "type": "boolean",
+          "description": "Generate plate offsets in dummy mode (returns all 1\u2019s for equal scaling, just for testing)",
+          "hidden": true
+        },
+        "rn_threshold": {
+          "type": "boolean",
+          "description": "When calculating plate offsets, threshold channel images prior to calculating mean object intensities. Background regions ignored. Otsu threshold on whole image used.",
+          "hidden": true
+        }
+      }
+    },
     "cellprofiler": {
       "title": "Cellprofiler",
       "type": "object",
@@ -401,10 +427,11 @@
         },
         "cpr_plugins": {
           "type": "string",
-          "default": "/Users/ob7/Documents/projects/tglow-pipeline/bin/cellprofiler/plugins"
+          "default": "$projectDir/bin/cellprofiler/plugins"
         },
         "cpr_run": {
-          "type": "boolean"
+          "type": "boolean",
+          "default": true
         },
         "cpr_pipeline_2d": {
           "type": "string"
@@ -414,6 +441,10 @@
         },
         "cpr_no_zip": {
           "type": "boolean"
+        },
+        "cpr_container": {
+          "type": "string",
+          "description": "Container for the cellprofiler enviroment"
         }
       }
     },
@@ -426,57 +457,67 @@
         "sc_label": {
           "type": "string",
           "default": "gpu_short",
-          "description": "Resource label for subcell"
+          "description": "Resource label for subcell",
+          "hidden": true
         },
         "sc_gpu": {
           "type": "boolean",
           "default": true,
-          "description": "Should GPU be used, make sure to set sc_label to gpu_<x>"
+          "description": "Should GPU be used, make sure to set sc_label to gpu_<x>",
+          "hidden": true
         },
         "sc_dont_mask": {
           "type": "boolean",
-          "description": "Should the cell crops not be masked by the cell object prior to embedding"
+          "description": "Should the cell crops not be masked by the cell object prior to embedding",
+          "hidden": true
         },
         "sc_conda_env": {
           "type": "string",
-          "default": "/software/teamtrynka/installs/subcell",
-          "description": "Subcell conda env path"
+          "description": "Subcell conda env path",
+          "hidden": true
         },
         "sc_dl_conda_env": {
           "type": "string",
-          "default": "/software/teamtrynka/installs/subcell_model_dl",
-          "description": "Subcell model download conda env path"
+          "description": "Subcell model download conda env path",
+          "hidden": true
         },
         "sc_model_ref_channels": {
           "type": "string",
           "default": "rybg",
-          "description": "Subcell model reference channels string like \"rybg\""
+          "description": "Subcell model reference channels string like \"rybg\"",
+          "hidden": true
         },
         "sc_model": {
           "type": "string",
           "default": "mae_contrast_supcon_model",
-          "description": "Subcell model string like \"mae_contrast_supcon_model\""
+          "description": "Subcell model string like \"mae_contrast_supcon_model\"",
+          "hidden": true
         },
         "sc_channels": {
           "type": "string",
-          "description": "Channels to find localization for should be string '<name>=<channel> <name>=<channel>'"
+          "description": "Channels to find localization for should be string '<name>=<channel> <name>=<channel>'",
+          "hidden": true
         },
         "sc_nucl": {
           "type": "integer",
-          "description": "Nucleus channel"
+          "description": "Nucleus channel",
+          "hidden": true
         },
         "sc_tub": {
           "type": "integer",
-          "description": "Tubulin channel"
+          "description": "Tubulin channel",
+          "hidden": true
         },
         "sc_er": {
           "type": "integer",
-          "description": "Endoplasmic reticulum channel"
+          "description": "Endoplasmic reticulum channel",
+          "hidden": true
         },
         "sc_scale": {
           "type": "number",
           "default": 1.8625,
-          "description": "Scale factor to get pixel size to 80nm. In Phenix 1px=149nm at 40x, so sc_scale=149/80. TODO set properly using physical pixel size attribute if available"
+          "description": "Scale factor to get pixel size to 80nm. In Phenix 1px=149nm at 40x, so sc_scale=149/80. TODO set properly using physical pixel size attribute if available",
+          "hidden": true
         }
       }
     }
@@ -499,6 +540,9 @@
     },
     {
       "$ref": "#/$defs/segmentation"
+    },
+    {
+      "$ref": "#/$defs/scaling"
     },
     {
       "$ref": "#/$defs/cellprofiler"

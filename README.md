@@ -1,19 +1,16 @@
 # Tglow: Nextflow pipeline for analyzing HCI data
 
 This repo contains the nextflow pipeline and binaries and scripts to run a tglow-pipeline instance for the analysis of high content imaging data.
-A detailed walkthrough of the steps, installation and configuration is given on the [wiki - tbd]()
+A detailed walkthrough of the steps, installation and configuration is given on the [wiki](https://github.com/TrynkaLab/tglow-pipeline/wiki) and a full list of options can be found in [docs/parameters.md](docs/parameters.md) and a guided tutorial with example data can be found here [TBD]().
 
 There are three components to the overall workflow
-1. [tglow-pipeline] - this repo - Nextflow files and Python scripts for running pipeline processes
-2. [tglow-core](https://github.com/TrynkaLab/tglow-core) A python library with IO, parsing and convenience functions based on AICSImageIO.
-3. [tglow-r](https://github.com/TrynkaLab/tglow-r) A Seurat-like R package for analyzing HCI features at scale
+1. [tglow-pipeline](https://github.com/TrynkaLab/tglow-pipeline) - Nextflow files and Python scripts for running pipeline processes
+2. [tglow-core](https://github.com/TrynkaLab/tglow-core) - A python library with IO, parsing and convenience functions based on AICSImageIO.
+3. [tglow-r](https://github.com/TrynkaLab/tglow-r) - A Seurat-like R package for analyzing the output HCI features 
 
 
 # Installation & dependencies
-
-The pipeline currently uses conda as package manager and relies on pre-creating the conda environments needed. In future we will streamline the install process.
-
-See [here - tbd]() for full install instructions of all pipeline components.
+See [here](https://github.com/TrynkaLab/tglow-pipeline/wiki/1_installation) for full install instructions of all pipeline components.
 
 # Pipeline overview
 
@@ -22,6 +19,9 @@ The following readme gives a high level overview, for more detailed guide please
 - run_pipeline: perform image processing and feature extraction on the staged images.
 
 Both stages are implemented as Nextflow workflows and can be run independently using `-entry stage|run_pipeline`. 
+
+<img src="docs/workflow.png" style="width:50%; height:auto;">
+
 
 > Some steps in the pipeline require GPU's to be available. These are semgmentation and deconvolution. Deconvolution will not run without GPU. Segmentation (CellPose) will run, but we only reccomend this in cases where you are generating masks in 2D. In 3d the computational burden for large datasets will be too much for CPU. 
 
@@ -83,16 +83,15 @@ Main processing steps (in typical execution order — each step can be enabled/d
    - Outputs: h5 file with fully processed cellcrops   
 
 # Options
-See nextflow.config or the [wiki - tbd]() for available options and their descriptions.
+See nextflow.config or the [docs/parameters.md](docs/parameters.md) for available options and their descriptions.
 
 # Quick Usage
 
 Prerequisites:
 - Nextflow and conda
-- Create required conda environments (see install instructions)
-- Ensure GPU drivers are available in the conda env when running GPU steps (cellpose, deconvolution)
+- Completed [install instructions](https://github.com/TrynkaLab/tglow-pipeline/wiki/1_installation)
 
-I strongly reccomend to configure through a configuration file. Altough parameters can be overridden on the commandline. I would reccomend a project structure as follows:
+I strongly reccomend to configure through a configuration file, altough parameters can be overridden on the commandline. I would reccomend a project structure as follows:
 
 - my_project
   - results: By default this is where the pipeline stores outputs
@@ -132,8 +131,8 @@ run </path/to/main.nf> \
 -c my_config.config"
 ```
 
-# Known issues
-We will put known issues here, or in the issue tracker. If you find an issue please raise it on the git or contact us directly.
+# Getting help
+We will put known issues [here - TBD](), or in the issue tracker. If you find an issue please raise it on the git or contact us directly.
 
 # Authors:
 - Olivier Bakker
