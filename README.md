@@ -1,62 +1,147 @@
 # Tglow: Nextflow pipeline for analyzing HCI data
 
-This is the Beta branch. Under active development to undergo a major re-work. 
-
 This repo contains the nextflow pipeline and binaries and scripts to run a tglow-pipeline instance for the analysis of high content imaging data.
-A detailled walkthrough of the steps, installation and configuration is given on the [wiki](https://gitlab.internal.sanger.ac.uk/TrynkaLab/tglow-pipeline/-/wikis/home)
+A detailed walkthrough of the steps, installation and configuration is given on the [wiki](https://github.com/TrynkaLab/tglow-pipeline/wiki) and a full list of options can be found in [docs/parameters.md](docs/parameters.md) and a guided tutorial with example data can be found here [TBD]().
 
 There are three components to the overall workflow
-1. [tglow-core](https://gitlab.internal.sanger.ac.uk/TrynkaLab/tglow-core) A python library with IO, parsing and convience functions based on AICSImageIO.
-2. [tglow-pipeline](https://gitlab.internal.sanger.ac.uk/TrynkaLab/tglow-pipeline) Nextflow files and binary python scripts for running pipeline processes
-3. [tglow-r-core](https://gitlab.internal.sanger.ac.uk/TrynkaLab/tglow-r-core) A Seurat like R package for analyzing HCI features at scale
+1. [tglow-pipeline](https://github.com/TrynkaLab/tglow-pipeline) - Nextflow files and Python scripts for running pipeline processes
+2. [tglow-core](https://github.com/TrynkaLab/tglow-core) - A python library with IO, parsing and convenience functions based on AICSImageIO.
+3. [tglow-r](https://github.com/TrynkaLab/tglow-r) - A Seurat-like R package for analyzing the output HCI features 
 
 
 # Installation & dependencies
+See [here](https://github.com/TrynkaLab/tglow-pipeline/wiki/1_installation) for full install instructions of all pipeline components.
 
-See [here](https://gitlab.internal.sanger.ac.uk/TrynkaLab/tglow-pipeline/-/wikis/home/1_installation) for install instructions
+# Pipeline overview
 
-The pipeline currently uses conda as package manager through Nextflow.
+The following readme gives a high level overview, for more detailed guide please see the wiki. The pipeline consists of two main stages:
+- stage: prepare and standardize raw images into a well/field-organized OME-TIFF layout with metadata.
+- run_pipeline: perform image processing and feature extraction on the staged images.
 
-This repo relies on the core tglow python library of tglow which should be installed into python [tglow-core](https://gitlab.internal.sanger.ac.uk/TrynkaLab/tglow-core)
+Both stages are implemented as Nextflow workflows and can be run independently using `-entry stage|run_pipeline`. 
 
-# Quick overview of pipeline flow
-
-The pipeline runs in two stages. One where data is staged, this can be done manually, or through the workflow 'stage' if the raw data has a perkin elmer index.xml or index.idx.xml file. Then the pipeline can be configured and run using workflow 'run_pipeline'
-
-## Options
-See nextflow.config or the [wiki](https://gitlab.internal.sanger.ac.uk/TrynkaLab/tglow-pipeline/-/wikis/home/options) for available options and their descriptions.
-
-## Workflows
-See [wiki](https://gitlab.internal.sanger.ac.uk/TrynkaLab/tglow-pipeline/-/wikis/home/2_setup_and_stage) for more detaills.
-
-### 1. stage:
-
-This workflow takes a perkin elmer (currently only works for phenix) index xml and stages the files into a plate_name/row/col/field.ome.tiff file structure. IO is handled through AICSImageio, channel names and pixel sizes are extracted from the index.xml and set as metadata items in the ome tiff. Some additional files are staged for reproducabillity and ease of reading channel orders etc. This output is also intended to be backed up to iRODS.
-
-Nextflow proccess:
-1. prepare_manifest: Create a manifest with the wells to run to re-use later as a nextflow channel
-2. fetch_raw: Read the files from /nfs and save directly into the above format
-
-### 2. run_pipeline:
-
-This takes as input the images produced during staging and then runs the following processes.
-
-Nextflow processes (in order):
-1. estimate flatfield [optional]: parallelized on the plate + channel level or runs one flatfield for all plates in a run. Only flatfields are saved, no images are stored
-2. register (pystackreg) [optional]: parallelized on the well level (all fields). Only registration matrices are saved, no images are stored
-3. cellpose: parallelized on the well level (all fields), runs on GPU. If registering, currently only runs on the reference plate. Must run a cell segmentation, can optionally provide nucleus channel as well.
-4. deconvolute [optional]: Will spin out another copy of the data, runs on GPU
-5. estimate scaling factors: Given aquisitions may vary a lot in intensity bewtween channels, this calculates how to scale the intensities for each channel by a constant factor across all plates to maximize the dynamic range in unint16. This is usefull if you have dim channels/stains as with dim channels and no rescaling histogram based image tasks (e.g. textures etc) become problematic. As the scaling factor is the same for all plates, intensity values can still be safely compared accross plates. 
-6. feature extraction (cellprofiler): 
-    1. Stage the files into a cellprofiler compatable format, apply flatfields, bring together imaging cylces and apply registration if applicable
-    2. run feature extraction (cellprofiler) or other custom script
+<img src="docs/workflow.png" style="width:50%; height:auto;">
 
 
-## Known issues
-See the [wiki](https://gitlab.internal.sanger.ac.uk/TrynkaLab/tglow-pipeline/-/wikis/home) for known issues. If you find an issue please raise it on the git or contact us directly.
+> Some steps in the pipeline require GPU's to be available. These are semgmentation and deconvolution. Deconvolution will not run without GPU. Segmentation (CellPose) will run, but we only reccomend this in cases where you are generating masks in 2D. In 3d the computational burden for large datasets will be too much for CPU. 
 
+> The pipeline is intended to run on high performance compute (HPC) clusters, and bundled resource profiles should work for most HPC, but some tweaks to queue names and GPU settings may be required as flags differ between vendors and HPC configurations. Go to conf/processes.config and search for `queue` and `clusterOptions` to update. Furthermore each HPC is different, with different machines and resource limits. You may need to add a profile for your HPC enviroment in the conf folder. The nf-core config directory may be of help for your HPC: https://nf-co.re/configs/. If something is unclear, feel free to raise an issue on github.  
+
+> If you dont want to run the pipeline on HPC but run it locally, supply `-profile local`.
+
+## 1) stage
+Purpose: Stage Revity/PerkinElmer (currently Phenix or Operetta) acquisitions into a reproducible plate/row/col/field.ome.tiff structure and capture metadata (channel names, pixel sizes, channel order, original index files).
+
+> If you don't have a Phenix or Operetta export, you can skip this step, but will need to organize the images using your own script. See more details here: [manual staging - tbd]()
+
+Input:
+- PerkinElmer index.xml / index.idx.xml and raw instrument files (or manually organized raw files).
+
+Output:
+- plate_name/row/col/field.ome.tiff (with metadata)
+- manifest listing wells to process (used as a Nextflow channel)
+- auxiliary files to capture provenance (index.xml, channel maps, etc.) (optional)
+
+Nextflow processes:
+1. prepare_manifest — create a manifest with wells/fields to run (re-usable Nextflow channel)
+2. fetch_raw — read raw files and write standardized OME-TIFFs and metadata
+
+## 2) run_pipeline
+Purpose: Run the core image-processing and feature-extraction steps on the staged images. The workflow is modular — many steps are optional or configurable.
+
+Input:
+- Staged OME-TIFFs (from `stage`) and optional per-plate/field metadata (flatfields, registration references, etc.)
+
+Output:
+- Segmentation outputs, registration matrices, flatfields, extracted feature tables, and logs/artifacts needed for downstream analysis.
+
+Main processing steps (in typical execution order — each step can be enabled/disabled via config):
+1. estimate flatfield (Polynomial / BaSiCPY) (optional)
+   - Parallelization: per-plate + channel or single flatfield for all plates + channels.
+   - Output: flatfield images only (no transformed images saved).
+2. register (cross correlation / pystackreg) (optional)
+   - Parallelization: per-well
+   - Output: registration matrices (no transformed images saved).
+3. cellpose segmentation
+   - Parallelization: per-well, GPU-enabled
+   - Notes: If registration is used, segmentation currently runs on the reference plate. Nucleus channel optional but segmentation is required.
+   - Output: 2D or 3D cell & nucleus masks as tiffs
+4. deconvolute with CLIJ2-fft (optional)
+   - Parallelization: per-well, GPU-enabled
+   - Output: deconvolved images (creates a data copy)
+5. finalizing images
+   - Parallelization: per-well
+   - Applies all the registration, flatfields, scaling, max projection to the (deconvolved) images and collects the masks
+   - Output: Analysis reade OME-TIFFs
+6. feature extraction with CellProfiler
+   - Parallelization: per-well
+   - Stage images into a CellProfiler-compatible layout, apply flatfields and registration (if enabled), and run feature extraction.
+   - Outputs: CellProfiler artifacts as a zip archive per well
+7. cellcrops (optional)
+   - Parallelization: per-well
+   - Produces a HDF5 file for each field where each h5 group is a cell
+   - Outputs: h5 file with fully processed cellcrops   
+
+# Options
+See nextflow.config or the [docs/parameters.md](docs/parameters.md) for available options and their descriptions.
+
+# Quick Usage
+
+Prerequisites:
+- Nextflow and conda
+- Completed [install instructions](https://github.com/TrynkaLab/tglow-pipeline/wiki/1_installation)
+
+I strongly reccomend to configure through a configuration file, altough parameters can be overridden on the commandline. I would reccomend a project structure as follows:
+
+- my_project
+  - results: By default this is where the pipeline stores outputs
+  - scripts
+    - logs
+    - my_config.config
+    - run_pipeline.sh
+  - workdir: By default this is the Nextflow workdir
+
+Quick examples:
+
+Stage PerkinElmer data from a raw export:
+```
+nextflow \
+-log logs/stage.nextflow.log \
+run </path/to/main.nf> \
+-profile <your profile> \
+-w ../workdir \
+-resume \
+-entry stage \
+-with-report logs/stage.nextflow.html \
+-with-trace logs/stage.nextflow.trace \
+-c my_config.config"
+```
+
+Run the main pipeline on staged images:
+```
+nextflow \
+-log logs/run_pipeline.nextflow.log \
+run </path/to/main.nf> \
+-profile <your profile> \
+-w ../workdir \
+-resume \
+-entry run_pipeline \
+-with-report logs/run_pipeline.nextflow.html \
+-with-trace logs/run_pipeline.nextflow.trace \
+-c my_config.config"
+```
+
+# Getting help
+We will put known issues [here - TBD](), or in the issue tracker. If you find an issue please raise it on the git or contact us directly.
 
 # Authors:
 - Olivier Bakker
 - Francesco Cisterno
-- 
+
+# References
+- https://github.com/clij/clij2-fft
+- https://cellprofiler.org/
+- https://scikit-image.org/
+- https://github.com/MouseLand/cellpose
+- https://github.com/glichtner/pystackreg/tree/master
+- https://basicpy.readthedocs.io/en/latest/

@@ -78,47 +78,6 @@
           "default": true,
           "description": "Cache the final output images (flatfield, decon, demultiplexed, registered, scaled, max_projected) They are saved as plate/row/col/field.ome.tiff in CZYX with additional cycle channels sequentially added. If storage is a concern, disable this and enable rn_scratch to not save large intermediates. NOTE: When mode is hybrid or max project, the storage this generates will not be that bad, so it\u2019s enabled by default. NOTE: This must be true when running subcell, but as subcell only works with max projected images, the storage overhead should be ok NOTE: These are not directly compatible with cellprofiler when working in 3d as they are saved in .ome.tiff for pipeline compatibility, which CPR does not handle. Prior to running cellprofiler they are split up into <field><plate><well>_ch<channel>.tiff which is compatible with both 2d and 3d formats. Use this pattern to set up your pipeline."
         },
-        "rn_manualscale": {
-          "type": "string",
-          "description": "Path to scaling_factors.txt with line formatted: <plate>_ch<channel>=<scale> <plate>_ch<channel>=<scale> <plate>_ch<channel>=<scale> Space separated Channels zero indexed <plate> is the reference plate <channel> after merging cycles <scale> factor by which channel in plate is divided",
-          "format": "file-path",
-          "mimetype": "text/plain"
-        },
-        "rn_scale_slope": {
-          "type": "string",
-          "description": "Path to scaling_<slope/bias>.txt with one line formatted: <plate>_ch<channel>=<slope/bias> <plate>_ch<channel>=<slope/bias> <plate>_ch<channel>=<slope/bias> Sets shape of sigmoid curve used to weigh scaling factors differently in intensity ranges. Background pixels remain unscaled, smooth transition scales foreground pixels. Pipeline supports only pre-calculated slope and bias, cannot auto-estimate. Must supply both slope and bias if used. If null, scaling_factors applied uniformly. Works with --rn_manualscale and --rn_autoscale.",
-          "format": "file-path",
-          "mimetype": "text/plain"
-        },
-        "rn_scale_bias": {
-          "type": "string",
-          "description": "See rn_scale_slope (must supply with rn_scale_slope if supplied)",
-          "format": "file-path",
-          "mimetype": "text/plain"
-        },
-        "rn_autoscale": {
-          "type": "boolean",
-          "description": "Automatically determine scaling factors based on all images in manifest (excluding blacklist) Overrides rn_manualscale Runs after dc_clip_max applied Waits till deconvolution queue empty No feature extraction jobs submitted until autoscale completes Interacts with rn_controllist so dynamic range is optimal after plate offset factors. If rn_controllist is provided, rn_autoscale is on by default."
-        },
-        "rn_autoscale_q1": {
-          "type": "string",
-          "default": "q99.9999",
-          "description": "Controls value to scale to within an image (quantiles of pixels). Valid options: 'q0', 'q0.1', 'q1', 'q5', 'q25', 'q50', 'q75', 'q90', 'q99', 'q99.9', 'q99.99', 'q99.999', 'q99.9999', 'q99.99999', 'q100', 'mean' Not all options practically sensible, recommend not below q99."
-        },
-        "rn_autoscale_q2": {
-          "type": "integer",
-          "default": 95,
-          "description": "Controls which quantile is taken across all images for chosen q1 Valid options: 0 - 1"
-        },
-        "rn_dummy_mode": {
-          "type": "boolean",
-          "description": "Generate plate offsets in dummy mode (returns all 1\u2019s for equal scaling, just for testing)",
-          "hidden": true
-        },
-        "rn_threshold": {
-          "type": "boolean",
-          "description": "When calculating plate offsets, threshold channel images prior to calculating mean object intensities. Background regions ignored. Otsu threshold on whole image used."
-        },
         "rn_make_cellcrops": {
           "type": "boolean",
           "default": true,
@@ -402,6 +361,56 @@
         }
       }
     },
+    "scaling": {
+      "title": "Scaling",
+      "type": "object",
+      "description": "",
+      "default": "",
+      "properties": {
+        "rn_manualscale": {
+          "type": "string",
+          "description": "Path to scaling_factors.txt with line formatted: <plate>_ch<channel>=<scale> <plate>_ch<channel>=<scale> <plate>_ch<channel>=<scale> Space separated Channels zero indexed <plate> is the reference plate <channel> after merging cycles <scale> factor by which channel in plate is divided",
+          "format": "file-path",
+          "mimetype": "text/plain"
+        },
+        "rn_scale_slope": {
+          "type": "string",
+          "description": "Path to scaling_<slope/bias>.txt with one line formatted: <plate>_ch<channel>=<slope/bias> <plate>_ch<channel>=<slope/bias> <plate>_ch<channel>=<slope/bias> Sets shape of sigmoid curve used to weigh scaling factors differently in intensity ranges. Background pixels remain unscaled, smooth transition scales foreground pixels. Pipeline supports only pre-calculated slope and bias, cannot auto-estimate. Must supply both slope and bias if used. If null, scaling_factors applied uniformly. Works with --rn_manualscale and --rn_autoscale.",
+          "format": "file-path",
+          "mimetype": "text/plain"
+        },
+        "rn_scale_bias": {
+          "type": "string",
+          "description": "See rn_scale_slope (must supply with rn_scale_slope if supplied)",
+          "format": "file-path",
+          "mimetype": "text/plain"
+        },
+        "rn_autoscale": {
+          "type": "boolean",
+          "description": "Automatically determine scaling factors based on all images in manifest (excluding blacklist) Overrides rn_manualscale Runs after dc_clip_max applied Waits till deconvolution queue empty No feature extraction jobs submitted until autoscale completes Interacts with rn_controllist so dynamic range is optimal after plate offset factors. If rn_controllist is provided, rn_autoscale is on by default."
+        },
+        "rn_autoscale_q1": {
+          "type": "string",
+          "default": "q99.9999",
+          "description": "Controls value to scale to within an image (quantiles of pixels). Valid options: 'q0', 'q0.1', 'q1', 'q5', 'q25', 'q50', 'q75', 'q90', 'q99', 'q99.9', 'q99.99', 'q99.999', 'q99.9999', 'q99.99999', 'q100', 'mean' Not all options practically sensible, recommend not below q99."
+        },
+        "rn_autoscale_q2": {
+          "type": "integer",
+          "default": 95,
+          "description": "Controls which quantile is taken across all images for chosen q1 Valid options: 0 - 1"
+        },
+        "rn_dummy_mode": {
+          "type": "boolean",
+          "description": "Generate plate offsets in dummy mode (returns all 1\u2019s for equal scaling, just for testing)",
+          "hidden": true
+        },
+        "rn_threshold": {
+          "type": "boolean",
+          "description": "When calculating plate offsets, threshold channel images prior to calculating mean object intensities. Background regions ignored. Otsu threshold on whole image used.",
+          "hidden": true
+        }
+      }
+    },
     "cellprofiler": {
       "title": "Cellprofiler",
       "type": "object",
@@ -531,6 +540,9 @@
     },
     {
       "$ref": "#/$defs/segmentation"
+    },
+    {
+      "$ref": "#/$defs/scaling"
     },
     {
       "$ref": "#/$defs/cellprofiler"
