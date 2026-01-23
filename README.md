@@ -1,7 +1,7 @@
 # Tglow: Nextflow pipeline for analyzing HCI data
 
 This repo contains the nextflow pipeline and binaries and scripts to run a tglow-pipeline instance for the analysis of high content imaging data.
-A detailed walkthrough of the steps, installation and configuration is given on the [wiki](https://github.com/TrynkaLab/tglow-pipeline/wiki) and a full list of options can be found in [docs/parameters.md](docs/parameters.md) and a guided tutorial with example data can be found here [TBD]().
+A detailed walkthrough of the steps, installation and configuration is given on the [wiki](https://github.com/TrynkaLab/tglow-pipeline/wiki) and a full list of options can be found in [docs/parameters.md](docs/parameters.md). A guided tutorial with example data is available: https://github.com/TrynkaLab/tglow-pipeline/wiki/7-Guided-example
 
 There are three components to the overall workflow
 1. [tglow-pipeline](https://github.com/TrynkaLab/tglow-pipeline) - Nextflow files and Python scripts for running pipeline processes
@@ -10,7 +10,7 @@ There are three components to the overall workflow
 
 
 # Installation & dependencies
-See [here](https://github.com/TrynkaLab/tglow-pipeline/wiki/1_installation) for full install instructions of all pipeline components.
+See [here](https://github.com/TrynkaLab/tglow-pipeline/wiki/1-Installation) for full install instructions of all pipeline components.
 
 # Pipeline overview
 
@@ -32,7 +32,7 @@ Both stages are implemented as Nextflow workflows and can be run independently u
 ## 1) stage
 Purpose: Stage Revity/PerkinElmer (currently Phenix or Operetta) acquisitions into a reproducible plate/row/col/field.ome.tiff structure and capture metadata (channel names, pixel sizes, channel order, original index files).
 
-> If you don't have a Phenix or Operetta export, you can skip this step, but will need to organize the images using your own script. See more details here: [manual staging - tbd]()
+-> If you don't have a Phenix or Operetta export, you can skip this step, but will need to organize the images using your own script. See more details here: https://github.com/TrynkaLab/tglow-pipeline/wiki/3-Staging-data
 
 Input:
 - PerkinElmer index.xml / index.idx.xml and raw instrument files (or manually organized raw files).
@@ -132,7 +132,7 @@ run </path/to/main.nf> \
 ```
 
 # Getting help
-We will put known issues [here - TBD](), or in the issue tracker. If you find an issue please raise it on the git or contact us directly.
+Known issues and notes: https://github.com/TrynkaLab/tglow-pipeline/wiki/Kown-issues. If you find an issue please raise it on the git or contact us directly.
 
 # Authors:
 - Olivier Bakker
