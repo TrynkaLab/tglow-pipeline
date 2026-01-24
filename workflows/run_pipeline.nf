@@ -350,9 +350,9 @@ workflow run_pipeline {
         
         // Construct the pipeline channel
         if (params.rn_max_project | params.rn_hybrid) {
-           cpr_pipeline = Channel.fromPath(params.cpr_pipeline_2d)
+           cpr_pipeline = Channel.fromPath(params.cpr_pipeline_2d).first()
         } else {
-           cpr_pipeline = Channel.fromPath(params.cpr_pipeline_3d)
+           cpr_pipeline = Channel.fromPath(params.cpr_pipeline_3d).first()
         }      
         
         // Run cellprofiler        
