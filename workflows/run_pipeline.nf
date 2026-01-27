@@ -49,6 +49,11 @@ workflow run_pipeline {
         if (params.rn_make_cellcrops && !params.rn_cache_images) {
             error("rn_cache_images must be true when rn_make_cellcrops is true")
         }
+        
+        // Check cellpose is run
+        if ((!params.cp_run && params.rn_cache_images) || (!params.cp_run && params.cpr_run)) {
+            error("rn_cache_images & cpr_run can only be true when cp_run is also true")
+        }
 
         //------------------------------------------------------------
         // Run setup
@@ -244,30 +249,33 @@ workflow run_pipeline {
         //--------------------------------------------------------------------
         // Add the cell and nucleus masks for each well
         // key, Well, ManifestRecord, cell masks, nucl masks,
-        finalize_in = cellpose.out
-            .map(row -> tuple(row[0].key, row[0], row[1], row[2], row[3]))
-            .combine(image_input, by:0)
-        
-        //--------------------------------------------------------------------
-        // Add registration
-        if (registration_out != null) {
-            // re-key output
-            // key, merge plates, path
-            registration_out = registration_out.map{row -> tuple(row[0].key, row[1].qry_plates, row[2])} 
-            finalize_in = finalize_in.join(registration_out, by: 0)                
-        } else {
-            finalize_in = cellpose_out.map{row -> tuple(
-                row[0].key, // key,
-                row[0], // Well
-                row[1], // ManifestRecord
-                row[2], // cell masks,
-                row[3], // nucl masks,
-                null, // decon plates TODO: figure out what this does, it doesn't seem to be used in finalize or cellprofiler
-                null, // merge plates
-                file('NO_REGISTRATION')   // registration path
-            )}
+        if (params.cp_run) {
+            finalize_in = cellpose.out
+                .map(row -> tuple(row[0].key, row[0], row[1], row[2], row[3]))
+                .combine(image_input, by:0)
+                
+            //--------------------------------------------------------------------
+            // Add registration
+            if (registration_out != null) {
+                // re-key output
+                // key, merge plates, path
+                registration_out = registration_out.map{row -> tuple(row[0].key, row[1].qry_plates, row[2])} 
+                finalize_in = finalize_in.join(registration_out, by: 0)                
+            } else {
+                finalize_in = cellpose_out.map{row -> tuple(
+                    row[0].key, // key,
+                    row[0], // Well
+                    row[1], // ManifestRecord
+                    row[2], // cell masks,
+                    row[3], // nucl masks,
+                    null, // decon plates TODO: figure out what this does, it doesn't seem to be used in finalize or cellprofiler
+                    null, // merge plates
+                    file('NO_REGISTRATION')   // registration path
+                )}
+            }
         }
         
+
         //--------------------------------------------------------------------
         // Cache the final images for feature extraction
         if (params.rn_cache_images) {
@@ -347,28 +355,28 @@ workflow run_pipeline {
         //------------------------------------------------------------
         //                       Cellprofiler
         //------------------------------------------------------------
-        
-        // Construct the pipeline channel
-        if (params.rn_max_project | params.rn_hybrid) {
-           cpr_pipeline = Channel.fromPath(params.cpr_pipeline_2d).first()
-        } else {
-           cpr_pipeline = Channel.fromPath(params.cpr_pipeline_3d).first()
-        }      
-        
-        // Run cellprofiler        
-        if (params.cpr_run && params.rn_cache_images) {
-            // Run cellprofiler on cached images
-            cellprofiler_out = cellprofiler(finalize_out.processed_output, cpr_pipeline)
-        } else if (params.cpr_run) {
-            // This does not cache images
-            cellprofiler_out = finalize_and_cellprofiler(finalize_in,
-                                                        image_dir_file,
-                                                        flatfield_out,
-                                                        scaling_file,
-                                                        slope_file, 
-                                                        bias_file,
-                                                        cpr_pipeline)
-        } 
-        
+        if (params.cpr_run) {
+            // Construct the pipeline channel
+            if (params.rn_max_project | params.rn_hybrid) {
+                cpr_pipeline = Channel.fromPath(params.cpr_pipeline_2d).first()
+            } else {
+                cpr_pipeline = Channel.fromPath(params.cpr_pipeline_3d).first()
+            }      
+            
+            // Run cellprofiler        
+            if (params.cpr_run && params.rn_cache_images) {
+                // Run cellprofiler on cached images
+                cellprofiler_out = cellprofiler(finalize_out.processed_output, cpr_pipeline)
+            } else if (params.cpr_run) {
+                // This does not cache images
+                cellprofiler_out = finalize_and_cellprofiler(finalize_in,
+                                                            image_dir_file,
+                                                            flatfield_out,
+                                                            scaling_file,
+                                                            slope_file, 
+                                                            bias_file,
+                                                            cpr_pipeline)
+            } 
+        }
          
 }
