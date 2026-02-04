@@ -184,7 +184,7 @@ workflow run_pipeline {
         if (params.cp_run) {
             cellpose_out = cellpose(cellpose_in)
         } else {
-            cellpose_out = Channel.empty()
+            cellpose_out = Channel.value(file('NO_MASKS'))
         }
         
         //------------------------------------------------------------
@@ -262,16 +262,16 @@ workflow run_pipeline {
                 registration_out = registration_out.map{row -> tuple(row[0].key, row[1].qry_plates, row[2])} 
                 finalize_in = finalize_in.join(registration_out, by: 0)                
             } else {
-                finalize_in = cellpose_out.map{row -> tuple(
-                    row[0].key, // key,
-                    row[0], // Well
-                    row[1], // ManifestRecord
-                    row[2], // cell masks,
-                    row[3], // nucl masks,
+                finalize_in = finalize_in.map{row -> tuple(
+                    row[0], // key,
+                    row[1], // Well
+                    row[2], // ManifestRecord
+                    row[3], // cell masks,
+                    row[4], // nucl masks,
                     null, // decon plates TODO: figure out what this does, it doesn't seem to be used in finalize or cellprofiler
                     null, // merge plates
                     file('NO_REGISTRATION')   // registration path
-                )}
+                )}                
             }
         }
         

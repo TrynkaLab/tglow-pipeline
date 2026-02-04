@@ -114,7 +114,7 @@ workflow flatfield_estimation {
             .map({ files, string -> tuple(files, string) })
             
         } else {
-            flatfield_out_final = Channel.empty()
+            flatfield_out_final = Channel.value( tuple( [file('NO_FLATFIELD')], "NO_FLATFIELD" ) )
             //flatfield_out_string = Channel.value(false)
         }
         
