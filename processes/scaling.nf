@@ -134,7 +134,7 @@ process calculate_plate_offsets {
             cmd += " --registration_dir ./registration"
         }
                 
-        if (basicpy_string) {
+        if (basicpy_string && basicpy_string != "NO_FLATFIELD") {
             cmd += " --flatfields $basicpy_string"
         }
         
