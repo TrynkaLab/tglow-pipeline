@@ -3,10 +3,74 @@
 # one level up
 
 set -e
+ 
+#-----------------------------------------------------------------------
+# Function defintiions
+
+# Creates a string <date>_<hourminute>
+timestamp_folder_name() {
+  date '+%Y%m%d_%H%M'
+}
+
+# Checks if a path is writable
+check_writable_path() {
+    local path="$1"
+    # Check if path exists
+    if [ -e "$path" ]; then
+        # Path exists, check if writable
+        if [ -w "$path" ]; then
+            return 0
+        else
+            echo "❌ Error: Path '$path' exists but is not writable"
+            return 1
+        fi
+    else
+        # Path doesn't exist, check if parent directory is writable
+        local parent_dir=$(dirname "$path")
+        if [ -w "$parent_dir" ]; then
+            return 0
+        else
+            echo "❌ Error: Cannot create directory at '$path'. Parent directory not writable"
+            return 1
+        fi
+    fi
+}
+
+# Print usage
+usage() {
+    echo -e "Usage: $0 <stage|run_pipeline> [-c <file.nf>] [-p <profile>] [-l] -- [nextflow pipeline args]"
+    echo -e "<stage|run_pipeline>\t\tThe workflow to run"
+    echo -e "-c\t\t\t\t<path/to/config.nf> Nextflow config file for the run"
+    echo -e "-p\t\t\t\t<profile> Nextflow profile for the run [local|lsf|lsf_ignore_errors]"
+    echo -e "-l\t\t\t\tRun nextflow locally instead of submitting to oversubscribed"
+    echo -e "-w\t\t\t\tSet the nextflow work directory (default: ../workdir)"
+    echo -e "-q\t\t\t\tSet the queue for the nextflow job (default: oversubscribed)"
+    echo -e "-t\t\t\t\tSet the time limit for the nextflow job (hours) (default: 120)"
+    echo -e "-g\t\t\t\tSet the LSF group for the nextflow job (default: teamtrynka)"
+    echo -e "-- The rest is passed to nextlfow and overrides -c"
+    echo -e ""
+    echo -e ""
+    echo -e "Examples:"
+    echo -e "tglow-pipeline enrich -c conf.nf -l"
+    echo -e "tglow-pipeline enrich -c conf.nf -- --rn_manifest rn_manifest.tsv --rn_wells A1,B2,C3"
+    exit 1
+}
 
 #-----------------------------------------------------------------------
 #                 Update these for your installation
 #-----------------------------------------------------------------------
+# Set defaults
+SUBMIT=1
+WORKDIR="../workdir"
+
+# These control the parameters for the Nextflow job 
+QUEUE="oversubscribed"
+RUNTIME_LIMIT="120"
+GROUP="teamtrynka"
+PROFILE="lsf"
+
+prefix="$(timestamp_folder_name)"
+mkdir -p logs/${prefix}
 
 # Source your nextflow installation here
 module load HGI/common/nextflow/25.04.6
@@ -32,31 +96,6 @@ export NXF_SINGULARITY_CACHEDIR=/lustre/scratch125/humgen/teams_v2/trynka/resour
  
 # Path to nextflow file, MUST BE ABSOLUTE
 NF_FILE=/software/teamtrynka/installs/tglow-pipeline/dev/beta/main.nf
- 
- 
-#-----------------------------------------------------------------
-timestamp_folder_name() {
-  date '+%Y%m%d_%H%M'
-}
-
-prefix="$(timestamp_folder_name)"
-mkdir -p logs/${prefix}
-#-----------------------------------------------------------------
-# Print usage
-usage() {
-    echo -e "Usage: $0 <stage|run_pipeline> [-c <file.nf>] [-p <profile>] [-l] -- [nextflow pipeline args]"
-    echo -e "<stage|run_pipeline>\t\tThe workflow to run"
-    echo -e "-c\t\t\t\t<path/to/config.nf> Nextflow config file for the run"
-    echo -e "-p\t\t\t\t<profile> Nextflow profile for the run [local|lsf|lsf_ignore_errors]"
-    echo -e "-l\t\t\t\tRun nextflow locally instead of submitting to oversubscribed"
-    echo -e "-- The rest is passed to nextlfow and overrides -c"
-    echo -e ""
-    echo -e ""
-    echo -e "Examples:"
-    echo -e "tglow-pipeline enrich -c conf.nf -l"
-    echo -e "tglow-pipeline enrich -c conf.nf -- --rn_manifest rn_manifest.tsv --rn_wells A1,B2,C3"
-    exit 1
-}
 
 #-----------------------------------------------------------------
 if [ -z "$1" ]; then
@@ -76,11 +115,7 @@ fi
 # Remove first argument so we can parse the rest
 shift
 
-# Defaults
-SUBMIT=1
-PROFILE="lsf"
-
-while getopts ":c:p:hl" opt; do
+while getopts ":c:p:hlw:q:t:g:" opt; do
     case $opt in
         c)
             CONFIG_FILE="$OPTARG"
@@ -90,6 +125,18 @@ while getopts ":c:p:hl" opt; do
             ;;
         l)
             SUBMIT=0
+            ;;
+        w)
+            WORKDIR="$OPTARG"
+            ;;
+        q)
+            QUEUE="$OPTARG"
+            ;;
+        t)
+            RUNTIME_LIMIT="$OPTARG"
+            ;;
+        g)
+            GROUP="$OPTARG"
             ;;
         h)
             usage
@@ -122,18 +169,32 @@ if [[ ! "$CONFIG_FILE" =~ \.config$ ]]; then
 fi
 
 # Check the profiles
-ALLOWED=("local" "lsf" "lsf_ignore_errors")
+#ALLOWED=("local" "lsf" "lsf_ignore_errors")
 
-if [[ ! " ${ALLOWED[*]} " =~ " ${PROFILE} " ]]; then
-    echo "❌ ERROR: Invalid profile '$PROFILE'"
-    echo "Allowed commands are: ${ALLOWED[*]}"
+#if [[ ! " ${ALLOWED[*]} " =~ " ${PROFILE} " ]]; then
+#    echo "❌ ERROR: Invalid profile '$PROFILE'"
+#   echo "Allowed commands are: ${ALLOWED[*]}"
+#    exit 1
+#fi
+
+# Check if workdir is writable
+if ! check_writable_path "$WORKDIR"; then
     exit 1
+fi
+
+# Just to make sure it gets logged correctly
+if [ $SUBMIT -eq 0 ]; then
+    QUEUE="Running locally"
+    RUNTIME_LIMIT="NA"
 fi
 
 echo "⬆️  Workflow: $WORKFLOW"
 echo "📄 Config file: $CONFIG_FILE"
-echo "🎨 Profile: $PROFILE"
 echo "📒 Logs: logs/${prefix}"
+echo "📂 Workdir: $WORKDIR"
+echo "🔄 Queue: $QUEUE"
+echo "⏱️  Runtime limit: $RUNTIME_LIMIT hours"
+echo "👨‍👨‍👧‍👧 Group: $GROUP"
 echo "🟠 Arguments: $@"
 
 # Build the nextflow command, in this case, parameters are specified through the config
@@ -141,7 +202,7 @@ CMD="nextflow \
 -log logs/${prefix}/${WORKFLOW}.nextflow.log \
 run ${NF_FILE} \
 -profile ${PROFILE} \
--w ../workdir \
+-w ${WORKDIR} \
 -resume \
 -entry ${WORKFLOW} \
 -with-report logs/${prefix}/${WORKFLOW}.nextflow.html \
@@ -167,14 +228,12 @@ else
     #-----------------------------------------------------------------------
     # This submits the nextflow runner to the cluster, in this case LSF, but update
     # this for your cluster configuration
-    #    -q oversubscribed \
-    #-W 120:00 \
     CMD="bsub -n 1 \
-    -G teamtrynka \
-    -M 8000 \
-    -q oversubscribed \
-    -W 120:00 \
-    -R 'span[hosts=1] select[mem>8000] rusage[mem=8000]' \
+    -G ${GROUP} \
+    -M 14000 \
+    -q ${QUEUE} \
+    -W ${RUNTIME_LIMIT}:00 \
+    -R 'span[hosts=1] select[mem>14000] rusage[mem=14000]' \
     -o logs/${prefix}/${WORKFLOW}-%J.out \
     -e logs/${prefix}/${WORKFLOW}-%J.err \
     $CMD"

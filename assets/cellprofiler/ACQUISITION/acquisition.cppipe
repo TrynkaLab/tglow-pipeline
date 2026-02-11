@@ -1,0 +1,293 @@
+CellProfiler Pipeline: http://www.cellprofiler.org
+Version:5
+DateRevision:426
+GitHash:
+ModuleCount:17
+HasImagePlaneDetails:False
+
+Images:[module_num:1|svn_version:'Unknown'|variable_revision_number:2|show_window:False|notes:['To begin creating your project, use the Images module to compile a list of files and/or folders that you want to analyze. You can also specify a set of rules to include only the desired files in your selected folders.']|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    :
+    Filter images?:Custom
+    Select the rule criteria:and (extension does istif) (directory doesnot containregexp "[\\\\/]\\.")
+
+Metadata:[module_num:2|svn_version:'Unknown'|variable_revision_number:6|show_window:False|notes:['The Metadata module optionally allows you to extract information describing your images (i.e, metadata) which will be stored along with your measurements. This information can be contained in the file name and/or location, or in an external file.', '', '^(?P<Plate>.*)_(?P<Well>[A-P][0-9]{2})_s(?P<Site>[0-9])_w(?P<ChannelNumber>[0-9])']|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Extract metadata?:Yes
+    Metadata data type:Text
+    Metadata types:{}
+    Extraction method count:2
+    Metadata extraction method:Extract from file/folder names
+    Metadata source:File name
+    Regular expression to extract from file name:^(?P<field>\d+)_(?P<mask_type>.*_mask)_d\d+_ch\d+_cp_masks.tif
+    Regular expression to extract from folder name:(?P<Date>[0-9]{4}_[0-9]{2}_[0-9]{2})$
+    Extract metadata from:All images
+    Select the filtering criteria:and (file does contain "")
+    Metadata file location:Elsewhere...|
+    Match file and image metadata:[]
+    Use case insensitive matching?:No
+    Metadata file name:None
+    Does cached metadata exist?:No
+    Metadata extraction method:Extract from file/folder names
+    Metadata source:File name
+    Regular expression to extract from file name:^(?P<field>\d+)_(?P<plate>.*)_(?P<well>\w\d\d)_ch(?P<channel>\d+)
+    Regular expression to extract from folder name:(?P<Date>[0-9]{4}_[0-9]{2}_[0-9]{2})$
+    Extract metadata from:Images matching a rule
+    Select the filtering criteria:and (file doesnot contain "mask")
+    Metadata file location:Elsewhere...|
+    Match file and image metadata:[]
+    Use case insensitive matching?:No
+    Metadata file name:None
+    Does cached metadata exist?:No
+
+NamesAndTypes:[module_num:3|svn_version:'Unknown'|variable_revision_number:8|show_window:False|notes:['The NamesAndTypes module allows you to assign a meaningful name to each image by which other modules will refer to it.']|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Assign a name to:Images matching rules
+    Select the image type:Grayscale image
+    Name to assign these images:DNA
+    Match metadata:[{'cell_img': 'field', 'nucl_img': 'field', 'ch0': 'field', 'ch1': 'field', 'ch2': 'field', 'ch3': 'field', 'ch4': 'field'}]
+    Image set matching method:Metadata
+    Set intensity range from:Image metadata
+    Assignments count:7
+    Single images count:0
+    Maximum intensity:255.0
+    Process as 3D?:No
+    Relative pixel spacing in X:1.0
+    Relative pixel spacing in Y:1.0
+    Relative pixel spacing in Z:8
+    Select the rule criteria:and (metadata does channel "0")
+    Name to assign these images:ch0
+    Name to assign these objects:Cell
+    Select the image type:Grayscale image
+    Set intensity range from:Image metadata
+    Maximum intensity:255.0
+    Select the rule criteria:and (metadata does channel "1")
+    Name to assign these images:ch1
+    Name to assign these objects:Nucleus
+    Select the image type:Grayscale image
+    Set intensity range from:Image metadata
+    Maximum intensity:255.0
+    Select the rule criteria:and (metadata does channel "2")
+    Name to assign these images:ch2
+    Name to assign these objects:Cytoplasm
+    Select the image type:Grayscale image
+    Set intensity range from:Image metadata
+    Maximum intensity:255.0
+    Select the rule criteria:and (metadata does channel "3")
+    Name to assign these images:ch3
+    Name to assign these objects:Speckle
+    Select the image type:Grayscale image
+    Set intensity range from:Image metadata
+    Maximum intensity:255.0
+    Select the rule criteria:and (metadata does channel "4")
+    Name to assign these images:ch4
+    Name to assign these objects:Object1
+    Select the image type:Grayscale image
+    Set intensity range from:Image metadata
+    Maximum intensity:255.0
+    Select the rule criteria:and (metadata does mask_type "nucl_mask")
+    Name to assign these images:nucl_img
+    Name to assign these objects:Object5
+    Select the image type:Grayscale image
+    Set intensity range from:Image metadata
+    Maximum intensity:255.0
+    Select the rule criteria:and (metadata does mask_type "cell_mask")
+    Name to assign these images:cell_img
+    Name to assign these objects:Object6
+    Select the image type:Grayscale image
+    Set intensity range from:Image metadata
+    Maximum intensity:255.0
+
+Groups:[module_num:4|svn_version:'Unknown'|variable_revision_number:2|show_window:False|notes:['The Groups module optionally allows you to split your list of images into image subsets (groups) which will be processed independently of each other. Examples of groupings include screening batches, microtiter plates, time-lapse movies, etc.']|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Do you want to group your images?:No
+    grouping metadata count:1
+    Metadata category:None
+
+ConvertImageToObjects:[module_num:5|svn_version:'Unknown'|variable_revision_number:1|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Select the input image:cell_img
+    Name the output object:cell_raw
+    Convert to boolean image:No
+    Preserve original labels:Yes
+    Background label:0
+    Connectivity:0
+
+ConvertImageToObjects:[module_num:6|svn_version:'Unknown'|variable_revision_number:1|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Select the input image:nucl_img
+    Name the output object:nucl_raw_unmerged
+    Convert to boolean image:No
+    Preserve original labels:Yes
+    Background label:0
+    Connectivity:0
+
+Threshold:[module_num:7|svn_version:'Unknown'|variable_revision_number:12|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Select the input image:cell_img
+    Name the output image:cell_img_binary
+    Threshold strategy:Global
+    Thresholding method:Manual
+    Threshold smoothing scale:0.0
+    Threshold correction factor:1.0
+    Lower and upper bounds on threshold:0.0,1.0
+    Manual threshold:0.00001525903
+    Select the measurement to threshold with:None
+    Two-class or three-class thresholding?:Two classes
+    Log transform before thresholding?:No
+    Assign pixels in the middle intensity class to the foreground or the background?:Foreground
+    Size of adaptive window:50
+    Lower outlier fraction:0.05
+    Upper outlier fraction:0.05
+    Averaging method:Mean
+    Variance method:Standard deviation
+    # of deviations:2.0
+    Thresholding method:Minimum Cross-Entropy
+
+ImageMath:[module_num:8|svn_version:'Unknown'|variable_revision_number:5|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Operation:Invert
+    Raise the power of the result by:1.0
+    Multiply the result by:1.0
+    Add to result:0.0
+    Set values less than 0 equal to 0?:Yes
+    Set values greater than 1 equal to 1?:Yes
+    Replace invalid values with 0?:Yes
+    Ignore the image masks?:No
+    Name the output image:background_binary
+    Image or measurement?:Image
+    Select the first image:cell_img_binary
+    Multiply the first image by:1.0
+    Measurement:
+    Image or measurement?:Image
+    Select the second image:None
+    Multiply the second image by:1.0
+    Measurement:
+
+FlagImage:[module_num:9|svn_version:'Unknown'|variable_revision_number:5|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Hidden:1
+    Hidden:1
+    Name the flag's category:Metadata
+    Name the flag:no_cells
+    How should measurements be linked?:Flag if any fail
+    Skip image set if flagged?:Yes
+    Flag is based on:Whole-image measurement
+    Select the object to be used for flagging:None
+    Which measurement?:Count_cell_raw
+    Flag images based on low values?:Yes
+    Minimum value:5
+    Flag images based on high values?:No
+    Maximum value:1.0
+    Rules file location:Elsewhere...|
+    Rules file name:rules.txt
+    Class number:
+    Allow fuzzy feature matching?:No
+    Ignore flag skips on last cycle?:No
+
+RelateObjects:[module_num:10|svn_version:'Unknown'|variable_revision_number:5|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Parent objects:cell_raw
+    Child objects:nucl_raw_unmerged
+    Calculate child-parent distances?:None
+    Calculate per-parent means for all child measurements?:No
+    Calculate distances to other parents?:No
+    Do you want to save the children with parents as a new object set?:No
+    Name the output object:RelateObjects
+    Parent name:None
+
+SplitOrMergeObjects:[module_num:11|svn_version:'Unknown'|variable_revision_number:6|show_window:False|notes:['Merge nuclei with the same parent']|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Select the input objects:nucl_raw_unmerged
+    Name the new objects:nucl
+    Operation:Merge
+    Maximum distance within which to merge objects:0
+    Merge using a grayscale image?:No
+    Select the grayscale image to guide merging:None
+    Minimum intensity fraction:0.9
+    Method to find object intensity:Closest point
+    Merging method:Per-parent
+    Select the parent object:cell_raw
+    Output object type:Disconnected
+
+ExpandOrShrinkObjects:[module_num:12|svn_version:'Unknown'|variable_revision_number:2|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Select the input objects:cell_raw
+    Name the output objects:cell_shrunk
+    Select the operation:Shrink objects by a specified number of pixels
+    Number of pixels by which to expand or shrink:5
+    Fill holes in objects so that all objects shrink to a single point?:No
+    Expand or shrink measurement:None
+
+FilterObjects:[module_num:13|svn_version:'Unknown'|variable_revision_number:10|show_window:False|notes:['Exclude nuclei 5% arround the image borders']|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Select the objects to filter:cell_raw
+    Name the output objects:cell
+    Select the filtering mode:Measurements
+    Select the filtering method:Limits
+    Select the objects that contain the filtered objects:None
+    Select the location of the rules or classifier file:Elsewhere...|
+    Rules or classifier file name:rules.txt
+    Class number:1
+    Measurement count:2
+    Additional object count:0
+    Assign overlapping child to:Both parents
+    Keep removed objects as a separate set?:No
+    Name the objects removed by the filter:RemovedObjects
+    Select the measurement to filter by:Location_Center_X
+    Filter using a minimum measurement value?:Yes
+    Minimum value:108
+    Filter using a maximum measurement value?:Yes
+    Maximum value:2052
+    Select the measurement to filter by:Location_Center_Y
+    Filter using a minimum measurement value?:Yes
+    Minimum value:108
+    Filter using a maximum measurement value?:Yes
+    Maximum value:2052
+    Allow fuzzy feature matching?:No
+
+RelateObjects:[module_num:14|svn_version:'Unknown'|variable_revision_number:5|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Parent objects:cell
+    Child objects:nucl
+    Calculate child-parent distances?:None
+    Calculate per-parent means for all child measurements?:No
+    Calculate distances to other parents?:No
+    Do you want to save the children with parents as a new object set?:No
+    Name the output object:RelateObjects
+    Parent name:None
+
+MeasureObjectSizeShape:[module_num:15|svn_version:'Unknown'|variable_revision_number:3|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Select object sets to measure:cell, nucl
+    Calculate the Zernike features?:Yes
+    Calculate the advanced features?:Yes
+
+MeasureObjectIntensity:[module_num:16|svn_version:'Unknown'|variable_revision_number:4|show_window:False|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Select images to measure:ch0, ch1, ch2, ch3, ch4
+    Select objects to measure:cell, nucl
+
+ExportToSpreadsheet:[module_num:17|svn_version:'Unknown'|variable_revision_number:13|show_window:True|notes:[]|batch_state:array([], dtype=uint8)|enabled:True|wants_pause:False]
+    Select the column delimiter:Tab
+    Add image metadata columns to your object data file?:No
+    Add image file and folder names to your object data file?:No
+    Select the measurements to export:Yes
+    Calculate the per-image mean values for object measurements?:No
+    Calculate the per-image median values for object measurements?:No
+    Calculate the per-image standard deviation values for object measurements?:No
+    Output file location:Default Output Folder|Desktop
+    Create a GenePattern GCT file?:No
+    Select source of sample row name:Metadata
+    Select the image to use as the identifier:None
+    Select the metadata to use as the identifier:None
+    Export all measurement types?:No
+    Press button to select measurements:Image|ModuleError_10RelateObjects,Image|ModuleError_11SplitOrMergeObjects,Image|ModuleError_14RelateObjects,Image|ModuleError_05ConvertImageToObjects,Image|ModuleError_02Metadata,Image|ModuleError_16MeasureObjectIntensity,Image|ModuleError_13FilterObjects,Image|ModuleError_09FlagImage,Image|ModuleError_06ConvertImageToObjects,Image|ModuleError_15MeasureObjectSizeShape,Image|ModuleError_03NamesAndTypes,Image|ModuleError_04Groups,Image|ModuleError_12ExpandOrShrinkObjects,Image|ModuleError_01Images,Image|ModuleError_08ImageMath,Image|ModuleError_07Threshold,Image|Metadata_Frame,Image|Metadata_well,Image|Metadata_plate,Image|Metadata_channel,Image|Metadata_mask_type,Image|Metadata_no_cells,Image|Metadata_FileLocation,Image|Metadata_Series,Image|Metadata_field,Image|FileName_ch4,Image|FileName_ch3,Image|FileName_ch0,Image|FileName_ch2,Image|FileName_nucl_img,Image|FileName_cell_img,Image|FileName_ch1,Image|ExecutionTime_09FlagImage,Image|ExecutionTime_03NamesAndTypes,Image|ExecutionTime_12ExpandOrShrinkObjects,Image|ExecutionTime_04Groups,Image|ExecutionTime_14RelateObjects,Image|ExecutionTime_13FilterObjects,Image|ExecutionTime_06ConvertImageToObjects,Image|ExecutionTime_07Threshold,Image|ExecutionTime_08ImageMath,Image|ExecutionTime_01Images,Image|ExecutionTime_02Metadata,Image|ExecutionTime_15MeasureObjectSizeShape,Image|ExecutionTime_16MeasureObjectIntensity,Image|ExecutionTime_11SplitOrMergeObjects,Image|ExecutionTime_10RelateObjects,Image|ExecutionTime_05ConvertImageToObjects,Image|Height_cell_img,Image|Height_ch3,Image|Height_ch0,Image|Height_ch1,Image|Height_ch4,Image|Height_ch2,Image|Height_nucl_img,Image|Width_ch0,Image|Width_ch4,Image|Width_nucl_img,Image|Width_ch1,Image|Width_ch3,Image|Width_ch2,Image|Width_cell_img,Image|Threshold_OrigThreshold_cell_img_binary,Image|Threshold_SumOfEntropies_cell_img_binary,Image|Threshold_WeightedVariance_cell_img_binary,Image|Threshold_FinalThreshold_cell_img_binary,Image|MD5Digest_cell_img,Image|MD5Digest_ch4,Image|MD5Digest_nucl_img,Image|MD5Digest_ch2,Image|MD5Digest_ch3,Image|MD5Digest_ch1,Image|MD5Digest_ch0,Image|Frame_ch3,Image|Frame_nucl_img,Image|Frame_ch4,Image|Frame_ch2,Image|Frame_ch0,Image|Frame_ch1,Image|Frame_cell_img,Image|Series_ch1,Image|Series_ch0,Image|Series_ch2,Image|Series_nucl_img,Image|Series_cell_img,Image|Series_ch3,Image|Series_ch4,Image|Scaling_ch3,Image|Scaling_cell_img,Image|Scaling_nucl_img,Image|Scaling_ch4,Image|Scaling_ch1,Image|Scaling_ch2,Image|Scaling_ch0,Image|Count_cell,Image|Count_cell_shrunk,Image|Count_cell_raw,Image|Count_nucl,Image|Count_nucl_raw_unmerged,Image|PathName_nucl_img,Image|PathName_cell_img,Image|URL_cell_img,Image|URL_ch3,Image|URL_ch2,Image|URL_ch4,Image|URL_ch0,Image|URL_ch1,Image|URL_nucl_img,Image|Group_Index,Image|Group_Length,Image|Group_Number,Experiment|Run_Timestamp,Experiment|CellProfiler_Version,Experiment|Pipeline_Pipeline,Experiment|Modification_Timestamp,nucl|AreaShape_CentralMoment_2_2,nucl|AreaShape_CentralMoment_2_0,nucl|AreaShape_CentralMoment_2_3,nucl|AreaShape_CentralMoment_2_1,nucl|AreaShape_CentralMoment_1_2,nucl|AreaShape_CentralMoment_1_3,nucl|AreaShape_CentralMoment_1_0,nucl|AreaShape_CentralMoment_1_1,nucl|AreaShape_CentralMoment_0_0,nucl|AreaShape_CentralMoment_0_3,nucl|AreaShape_CentralMoment_0_2,nucl|AreaShape_CentralMoment_0_1,nucl|AreaShape_NormalizedMoment_3_1,nucl|AreaShape_NormalizedMoment_3_3,nucl|AreaShape_NormalizedMoment_3_0,nucl|AreaShape_NormalizedMoment_3_2,nucl|AreaShape_NormalizedMoment_0_1,nucl|AreaShape_NormalizedMoment_0_3,nucl|AreaShape_NormalizedMoment_0_2,nucl|AreaShape_NormalizedMoment_0_0,nucl|AreaShape_NormalizedMoment_1_2,nucl|AreaShape_NormalizedMoment_1_0,nucl|AreaShape_NormalizedMoment_1_3,nucl|AreaShape_NormalizedMoment_1_1,nucl|AreaShape_NormalizedMoment_2_1,nucl|AreaShape_NormalizedMoment_2_2,nucl|AreaShape_NormalizedMoment_2_0,nucl|AreaShape_NormalizedMoment_2_3,nucl|AreaShape_Extent,nucl|AreaShape_EulerNumber,nucl|AreaShape_SpatialMoment_0_1,nucl|AreaShape_SpatialMoment_0_2,nucl|AreaShape_SpatialMoment_0_3,nucl|AreaShape_SpatialMoment_0_0,nucl|AreaShape_SpatialMoment_2_0,nucl|AreaShape_SpatialMoment_2_3,nucl|AreaShape_SpatialMoment_2_2,nucl|AreaShape_SpatialMoment_2_1,nucl|AreaShape_SpatialMoment_1_1,nucl|AreaShape_SpatialMoment_1_2,nucl|AreaShape_SpatialMoment_1_0,nucl|AreaShape_SpatialMoment_1_3,nucl|AreaShape_Zernike_7_1,nucl|AreaShape_Zernike_7_7,nucl|AreaShape_Zernike_7_3,nucl|AreaShape_Zernike_7_5,nucl|AreaShape_Zernike_9_9,nucl|AreaShape_Zernike_9_7,nucl|AreaShape_Zernike_9_1,nucl|AreaShape_Zernike_9_3,nucl|AreaShape_Zernike_9_5,nucl|AreaShape_Zernike_4_4,nucl|AreaShape_Zernike_4_0,nucl|AreaShape_Zernike_4_2,nucl|AreaShape_Zernike_3_3,nucl|AreaShape_Zernike_3_1,nucl|AreaShape_Zernike_8_8,nucl|AreaShape_Zernike_8_2,nucl|AreaShape_Zernike_8_0,nucl|AreaShape_Zernike_8_6,nucl|AreaShape_Zernike_8_4,nucl|AreaShape_Zernike_5_5,nucl|AreaShape_Zernike_5_1,nucl|AreaShape_Zernike_5_3,nucl|AreaShape_Zernike_6_2,nucl|AreaShape_Zernike_6_4,nucl|AreaShape_Zernike_6_6,nucl|AreaShape_Zernike_6_0,nucl|AreaShape_Zernike_1_1,nucl|AreaShape_Zernike_2_2,nucl|AreaShape_Zernike_2_0,nucl|AreaShape_Zernike_0_0,nucl|AreaShape_MaxFeretDiameter,nucl|AreaShape_InertiaTensorEigenvalues_0,nucl|AreaShape_InertiaTensorEigenvalues_1,nucl|AreaShape_Compactness,nucl|AreaShape_Perimeter,nucl|AreaShape_MinorAxisLength,nucl|AreaShape_InertiaTensor_1_0,nucl|AreaShape_InertiaTensor_1_1,nucl|AreaShape_InertiaTensor_0_0,nucl|AreaShape_InertiaTensor_0_1,nucl|AreaShape_BoundingBoxMinimum_Y,nucl|AreaShape_BoundingBoxMinimum_X,nucl|AreaShape_HuMoment_0,nucl|AreaShape_HuMoment_2,nucl|AreaShape_HuMoment_3,nucl|AreaShape_HuMoment_1,nucl|AreaShape_HuMoment_6,nucl|AreaShape_HuMoment_4,nucl|AreaShape_HuMoment_5,nucl|AreaShape_ConvexArea,nucl|AreaShape_Solidity,nucl|AreaShape_BoundingBoxMaximum_Y,nucl|AreaShape_BoundingBoxMaximum_X,nucl|AreaShape_Area,nucl|AreaShape_MaximumRadius,nucl|AreaShape_MinFeretDiameter,nucl|AreaShape_EquivalentDiameter,nucl|AreaShape_MedianRadius,nucl|AreaShape_BoundingBoxArea,nucl|AreaShape_Center_X,nucl|AreaShape_Center_Y,nucl|AreaShape_MeanRadius,nucl|AreaShape_FormFactor,nucl|AreaShape_MajorAxisLength,nucl|AreaShape_Orientation,nucl|AreaShape_Eccentricity,nucl|Location_Center_X,nucl|Location_Center_Y,nucl|Number_Object_Number,nucl|Parent_nucl_raw_unmerged,nucl|Parent_cell,cell|Location_Center_Y,cell|Location_Center_X,cell|Location_Center_Z,cell|AreaShape_FormFactor,cell|AreaShape_HuMoment_5,cell|AreaShape_HuMoment_0,cell|AreaShape_HuMoment_2,cell|AreaShape_HuMoment_4,cell|AreaShape_HuMoment_3,cell|AreaShape_HuMoment_1,cell|AreaShape_HuMoment_6,cell|AreaShape_Zernike_7_5,cell|AreaShape_Zernike_7_7,cell|AreaShape_Zernike_7_3,cell|AreaShape_Zernike_7_1,cell|AreaShape_Zernike_5_3,cell|AreaShape_Zernike_5_1,cell|AreaShape_Zernike_5_5,cell|AreaShape_Zernike_6_2,cell|AreaShape_Zernike_6_0,cell|AreaShape_Zernike_6_6,cell|AreaShape_Zernike_6_4,cell|AreaShape_Zernike_8_2,cell|AreaShape_Zernike_8_0,cell|AreaShape_Zernike_8_6,cell|AreaShape_Zernike_8_8,cell|AreaShape_Zernike_8_4,cell|AreaShape_Zernike_2_0,cell|AreaShape_Zernike_2_2,cell|AreaShape_Zernike_1_1,cell|AreaShape_Zernike_4_2,cell|AreaShape_Zernike_4_4,cell|AreaShape_Zernike_4_0,cell|AreaShape_Zernike_9_9,cell|AreaShape_Zernike_9_3,cell|AreaShape_Zernike_9_1,cell|AreaShape_Zernike_9_7,cell|AreaShape_Zernike_9_5,cell|AreaShape_Zernike_0_0,cell|AreaShape_Zernike_3_1,cell|AreaShape_Zernike_3_3,cell|AreaShape_NormalizedMoment_3_0,cell|AreaShape_NormalizedMoment_3_3,cell|AreaShape_NormalizedMoment_3_2,cell|AreaShape_NormalizedMoment_3_1,cell|AreaShape_NormalizedMoment_1_2,cell|AreaShape_NormalizedMoment_1_1,cell|AreaShape_NormalizedMoment_1_3,cell|AreaShape_NormalizedMoment_1_0,cell|AreaShape_NormalizedMoment_0_0,cell|AreaShape_NormalizedMoment_0_2,cell|AreaShape_NormalizedMoment_0_1,cell|AreaShape_NormalizedMoment_0_3,cell|AreaShape_NormalizedMoment_2_1,cell|AreaShape_NormalizedMoment_2_3,cell|AreaShape_NormalizedMoment_2_2,cell|AreaShape_NormalizedMoment_2_0,cell|AreaShape_InertiaTensor_0_0,cell|AreaShape_InertiaTensor_0_1,cell|AreaShape_InertiaTensor_1_0,cell|AreaShape_InertiaTensor_1_1,cell|AreaShape_Area,cell|AreaShape_SpatialMoment_1_1,cell|AreaShape_SpatialMoment_1_2,cell|AreaShape_SpatialMoment_1_3,cell|AreaShape_SpatialMoment_1_0,cell|AreaShape_SpatialMoment_2_0,cell|AreaShape_SpatialMoment_2_3,cell|AreaShape_SpatialMoment_2_2,cell|AreaShape_SpatialMoment_2_1,cell|AreaShape_SpatialMoment_0_0,cell|AreaShape_SpatialMoment_0_3,cell|AreaShape_SpatialMoment_0_1,cell|AreaShape_SpatialMoment_0_2,cell|AreaShape_MinFeretDiameter,cell|AreaShape_CentralMoment_2_2,cell|AreaShape_CentralMoment_2_1,cell|AreaShape_CentralMoment_2_3,cell|AreaShape_CentralMoment_2_0,cell|AreaShape_CentralMoment_0_2,cell|AreaShape_CentralMoment_0_0,cell|AreaShape_CentralMoment_0_1,cell|AreaShape_CentralMoment_0_3,cell|AreaShape_CentralMoment_1_2,cell|AreaShape_CentralMoment_1_1,cell|AreaShape_CentralMoment_1_3,cell|AreaShape_CentralMoment_1_0,cell|AreaShape_EquivalentDiameter,cell|AreaShape_InertiaTensorEigenvalues_1,cell|AreaShape_InertiaTensorEigenvalues_0,cell|AreaShape_Solidity,cell|AreaShape_Compactness,cell|AreaShape_BoundingBoxMinimum_Y,cell|AreaShape_BoundingBoxMinimum_X,cell|AreaShape_Orientation,cell|AreaShape_Center_Y,cell|AreaShape_Center_X,cell|AreaShape_MeanRadius,cell|AreaShape_EulerNumber,cell|AreaShape_BoundingBoxMaximum_Y,cell|AreaShape_BoundingBoxMaximum_X,cell|AreaShape_MaxFeretDiameter,cell|AreaShape_Perimeter,cell|AreaShape_MinorAxisLength,cell|AreaShape_Eccentricity,cell|AreaShape_BoundingBoxArea,cell|AreaShape_MaximumRadius,cell|AreaShape_Extent,cell|AreaShape_MedianRadius,cell|AreaShape_MajorAxisLength,cell|AreaShape_ConvexArea,cell|Intensity_MADIntensity_ch2,cell|Intensity_MADIntensity_ch1,cell|Intensity_MADIntensity_ch0,cell|Intensity_MADIntensity_ch3,cell|Intensity_MADIntensity_ch4,cell|Intensity_IntegratedIntensity_ch1,cell|Intensity_IntegratedIntensity_ch3,cell|Intensity_IntegratedIntensity_ch4,cell|Intensity_IntegratedIntensity_ch0,cell|Intensity_IntegratedIntensity_ch2,cell|Intensity_MeanIntensity_ch0,cell|Intensity_MeanIntensity_ch4,cell|Intensity_MeanIntensity_ch1,cell|Intensity_MeanIntensity_ch2,cell|Intensity_MeanIntensity_ch3,cell|Intensity_LowerQuartileIntensity_ch0,cell|Intensity_LowerQuartileIntensity_ch3,cell|Intensity_LowerQuartileIntensity_ch4,cell|Intensity_LowerQuartileIntensity_ch1,cell|Intensity_LowerQuartileIntensity_ch2,cell|Intensity_MaxIntensityEdge_ch4,cell|Intensity_MaxIntensityEdge_ch2,cell|Intensity_MaxIntensityEdge_ch1,cell|Intensity_MaxIntensityEdge_ch3,cell|Intensity_MaxIntensityEdge_ch0,cell|Intensity_MassDisplacement_ch4,cell|Intensity_MassDisplacement_ch1,cell|Intensity_MassDisplacement_ch2,cell|Intensity_MassDisplacement_ch0,cell|Intensity_MassDisplacement_ch3,cell|Intensity_MaxIntensity_ch1,cell|Intensity_MaxIntensity_ch4,cell|Intensity_MaxIntensity_ch2,cell|Intensity_MaxIntensity_ch3,cell|Intensity_MaxIntensity_ch0,cell|Intensity_UpperQuartileIntensity_ch0,cell|Intensity_UpperQuartileIntensity_ch1,cell|Intensity_UpperQuartileIntensity_ch3,cell|Intensity_UpperQuartileIntensity_ch2,cell|Intensity_UpperQuartileIntensity_ch4,cell|Intensity_IntegratedIntensityEdge_ch1,cell|Intensity_IntegratedIntensityEdge_ch3,cell|Intensity_IntegratedIntensityEdge_ch0,cell|Intensity_IntegratedIntensityEdge_ch4,cell|Intensity_IntegratedIntensityEdge_ch2,cell|Intensity_StdIntensityEdge_ch0,cell|Intensity_StdIntensityEdge_ch3,cell|Intensity_StdIntensityEdge_ch2,cell|Intensity_StdIntensityEdge_ch4,cell|Intensity_StdIntensityEdge_ch1,cell|Intensity_MinIntensity_ch4,cell|Intensity_MinIntensity_ch2,cell|Intensity_MinIntensity_ch0,cell|Intensity_MinIntensity_ch3,cell|Intensity_MinIntensity_ch1,cell|Intensity_StdIntensity_ch2,cell|Intensity_StdIntensity_ch1,cell|Intensity_StdIntensity_ch4,cell|Intensity_StdIntensity_ch0,cell|Intensity_StdIntensity_ch3,cell|Intensity_MedianIntensity_ch4,cell|Intensity_MedianIntensity_ch2,cell|Intensity_MedianIntensity_ch0,cell|Intensity_MedianIntensity_ch3,cell|Intensity_MedianIntensity_ch1,cell|Intensity_MinIntensityEdge_ch4,cell|Intensity_MinIntensityEdge_ch1,cell|Intensity_MinIntensityEdge_ch0,cell|Intensity_MinIntensityEdge_ch2,cell|Intensity_MinIntensityEdge_ch3,cell|Intensity_MeanIntensityEdge_ch4,cell|Intensity_MeanIntensityEdge_ch0,cell|Intensity_MeanIntensityEdge_ch2,cell|Intensity_MeanIntensityEdge_ch3,cell|Intensity_MeanIntensityEdge_ch1,cell|Children_nucl_Count,cell|Number_Object_Number,cell|Parent_cell_raw
+    Representation of Nan/Inf:NaN
+    Add a prefix to file names?:Yes
+    Filename prefix:tglow_acq_
+    Overwrite existing files without warning?:No
+    Data to export:Image
+    Combine these object measurements with those of the previous object?:No
+    File name:\g<plate>_\g<well>_images.tsv
+    Use the object name for the file name?:Yes
+    Data to export:Experiment
+    Combine these object measurements with those of the previous object?:No
+    File name:\g<plate>_\g<well>_experiment.tsv
+    Use the object name for the file name?:Yes
+    Data to export:cell
+    Combine these object measurements with those of the previous object?:No
+    File name:\g<plate>_\g<well>_cells.tsv
+    Use the object name for the file name?:Yes
+    Data to export:nucl
+    Combine these object measurements with those of the previous object?:No
+    File name:DATA.csv
+    Use the object name for the file name?:Yes
+    Data to export:Object relationships
+    Combine these object measurements with those of the previous object?:No
+    File name:\g<plate>_\g<well>_objectRelationships.tsv
+    Use the object name for the file name?:Yes
