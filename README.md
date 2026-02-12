@@ -1,5 +1,7 @@
 # Tglow: Nextflow pipeline for analyzing HCI data
 
+> Check out our pre-print here: https://www.biorxiv.org/content/10.64898/2026.02.10.704860v1
+
 This repo contains the nextflow pipeline and binaries and scripts to run a tglow-pipeline instance for the analysis of high content imaging data.
 A detailed walkthrough of the steps, installation and configuration is given on the [wiki](https://github.com/TrynkaLab/tglow-pipeline/wiki) and a full list of options can be found in [docs/parameters.md](docs/parameters.md). A guided tutorial with example data is available [here](https://github.com/TrynkaLab/tglow-pipeline/wiki/7-Guided-example)
 
