@@ -53,7 +53,8 @@ process prepare_manifest {
         parse_xml.py \
         --input_file '$index_xml' \
         --output_path ./ \
-        --to_manifest
+        --to_manifest \
+        --update_name $plate
         
         cp '$index_xml' ./
         """
