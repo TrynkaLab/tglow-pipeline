@@ -13,10 +13,10 @@ logging.basicConfig(format='%(asctime)s %(message)s')
 log = logging.getLogger(__name__)
 log.setLevel(logging.DEBUG)
 
-def main(input_file, output_path, wells):
+def main(input_file, output_path, wells, new_name=None):
 
     log.info("Initializing reader")
-    pe_reader = tglow_io.PerkinElmerRawReader(input_file, os.path.dirname(input_file))
+    pe_reader = tglow_io.PerkinElmerRawReader(input_file, os.path.dirname(input_file), new_name=new_name)
     pe_reader.pe_index
 
     pe_well_index={}
@@ -92,11 +92,12 @@ if __name__ == '__main__':
     parser.add_argument('--input_file', type=str, required=False, help='Path to the PE Index file')
     parser.add_argument('--output_path', type=str, required=True, help='Path to the output directory where to copy the files and creaate the folder structure')
     parser.add_argument('-w', '--well', help='Well IDs to merge', default=None, nargs='+')
-    
+    parser.add_argument('--update_name', type=str, required=False, help='New name for the plate', default=None)
+
     try:
        args = parser.parse_args()
     except:
        parser.print_help()
        exit(1)
 
-    main(args.input_file, args.output_path, args.well)
+    main(args.input_file, args.output_path, args.well, args.update_name)
