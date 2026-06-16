@@ -22,7 +22,8 @@ process fetch_raw {
         convert_pe_raw.py \
         --input_file '$index_xml' \
         --output_path ./ \
-        --well $well
+        --well $well \
+        --update_name $plate
         
         md5sum $plate/$row/$col/*.ome.tiff > $plate/$row/$col/CHECKSUMS.txt
         """
@@ -53,7 +54,8 @@ process prepare_manifest {
         parse_xml.py \
         --input_file '$index_xml' \
         --output_path ./ \
-        --to_manifest
+        --to_manifest \
+        --update_name $plate
         
         cp '$index_xml' ./
         """

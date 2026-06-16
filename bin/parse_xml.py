@@ -33,7 +33,8 @@ if __name__ == '__main__':
     parser.add_argument('--input_file', type=str, required=False, help='Path to the PE Index file')
     parser.add_argument('--output_path', type=str, required=True, help='Path to the output directory where to storer the JSON file')
     parser.add_argument('--to_manifest', required=False, action='store_true', default=False, help='Store the output as a <well> <plate> <index> tsv file')
-    
+    parser.add_argument('--update_name', type=str, required=False, help='New name for the plate', default=None)
+
     # for debugging
    #args.input_file="/lustre/scratch125/humgen/projects/cell_activation_tc/projects/KITTY/pipeline/results/images/jm52_KITTY_20230929_4days/Index.xml"
     #args.output_path="/software/teamtrynka/installs/tglow-pipeline/bin/output/testing"
@@ -44,7 +45,7 @@ if __name__ == '__main__':
        parser.print_help()
        exit(1)
 
-    pe_data = PerkinElmerParser(args.input_file)
+    pe_data = PerkinElmerParser(args.input_file, args.update_name)
     
     if args.to_manifest:
         pe_data.write_manifest(args.output_path)
@@ -131,6 +132,7 @@ if __name__ == '__main__':
             per_field = per_image * len(planes) * len(channels)
             
             info_file.write(f"{'Plate name:':<35}{pe_data.plate['name']}\n")
+            info_file.write(f"{'Plate name original:':<35}{pe_data.plate['name_orig']}\n")
             info_file.write(f"{'Plate type:':<35}{pe_data.plate['type']}\n")
             info_file.write(f"{'Number of images:':<35}{len(datetimes)}\n")
             info_file.write(f"{'Number of wells:':<35}{len(pe_data.wells)}\n")
