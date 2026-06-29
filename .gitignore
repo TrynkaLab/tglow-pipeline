@@ -2,3 +2,6 @@
 **/.DS_Store
 beta_whishlist.txt
 build_schema.sh
+prompts.md
+code_review.md
+docs_review.md
