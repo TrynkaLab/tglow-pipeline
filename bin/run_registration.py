@@ -97,13 +97,6 @@ class Registration:
                 raise RuntimeError("Need to supply reference and query evaluation channels for registration evaluation")      
             
         # Check number of fields matches
-        self.fields = self.plate_reader.fields[self.ref_plate]
-        
-        for plate_merge in self.plates_merge:
-            
-            if len(self.plate_reader.fields[plate_merge]) != len(self.fields):
-                raise RuntimeError("Number of fields in merge plate must match number of fields in reference plate")     
-        
         self.offset_x = int(args.offset_x)
         self.offset_y = int(args.offset_y)
         

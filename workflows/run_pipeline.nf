@@ -165,7 +165,9 @@ workflow run_pipeline {
 
             // Run registration
             registration_out = register(registration_in)
-                          
+            
+            // TODO: allow segmentation on registration, not a high priority, could flip ref plate arround
+            
             // Filter cellpose channel to run reference plates only 
             // Channel of Well, ManifestRecord, path to images
             cellpose_in = cellpose_in.map(row -> tuple(row[0].plate, row))
