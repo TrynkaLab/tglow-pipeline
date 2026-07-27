@@ -329,7 +329,7 @@ class Registration:
     def printParams(self):
         
         log.info(f"Input plates:\t{str(self.ref_plate)}")
-        log.info(f"Input fields:\t{str(self.fields)}")
+        #log.info(f"Input fields:\t{str(self.fields)}")
         #log.info(f"Input planes:\t{str(self.planes)}")   
         #log.info(f"Input channel:\t{str(self.channels)}")     
         log.info(f"Input:\t\t{self.input}")
