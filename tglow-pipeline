@@ -95,7 +95,7 @@ export NXF_VER=25.04.6
 export NXF_SINGULARITY_CACHEDIR=/lustre/scratch125/humgen/teams_v2/trynka/resources/singularity_cache
  
 # Path to nextflow file, MUST BE ABSOLUTE
-NF_FILE=/software/teamtrynka/installs/tglow-pipeline/dev/beta/main.nf
+NF_FILE=/software/teamtrynka/installs/tglow-pipeline/dev/gamma/main.nf
 
 #-----------------------------------------------------------------
 if [ -z "$1" ]; then
