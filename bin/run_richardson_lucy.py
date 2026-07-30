@@ -62,7 +62,7 @@ class RunDecon:
             bl = None
         
         self.reader = AICSImageReader(self.input, plates_filter=args.plate, fields_filter=self.fields, blacklist=bl)
-        self.writer = AICSImageWriter(self.output)
+        self.writer = AICSImageWriter(self.output, skip_imagestats=True)
         
         if self.fields is None:
             self.fields = self.reader.fields[self.plate]
@@ -132,7 +132,7 @@ class RunDecon:
         for field in self.reader.fields[self.plate][str(row)][str(col)]:
             self.run_decon(field)
     
-        self.writer.write_image_stats( ImageQuery(self.plate, row, col, 1))
+        #self.writer.write_image_stats( ImageQuery(self.plate, row, col, 1))
 
     
     def run_decon(self, field):

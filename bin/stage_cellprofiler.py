@@ -73,7 +73,7 @@ class MergeAndAlign:
                                                scaling_bias=read_and_split_file(args.scaling_bias, "--scaling_bias"),
                                                scaling_slope=read_and_split_file(args.scaling_slope, "--scaling_slope"))
 
-        self.aics_writer = AICSImageWriter(self.output)
+        self.aics_writer = AICSImageWriter(self.output, skip_imagestats=True)
         self.output_format=args.output_format
 
     # Main loops
@@ -100,8 +100,8 @@ class MergeAndAlign:
                 elif self.output_format == "OME_TIFF":
                     self.write_ometiff(stack, iq)
             
-            if self.output_format == "OME_TIFF":
-                self.aics_writer.write_image_stats(ImageQuery(plate, row, col, 1))
+            #if self.output_format == "OME_TIFF":
+            #   self.aics_writer.write_image_stats(ImageQuery(plate, row, col, 1))
     
     def write_ometiff(self, stack, query):
         #img = self.provider.plate_reader.get_img(query)

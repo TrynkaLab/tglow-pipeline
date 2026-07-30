@@ -59,7 +59,7 @@ if __name__ == "__main__":
     #args.downsample_xy = 0
 
     reader = AICSImageReader(args.input, args.plates, fields_filter=args.fields, pattern=args.pattern)
-    writer = AICSImageWriter(args.output)
+    writer = AICSImageWriter(args.output, skip_imagestats=True)
 
     downsample_z = int(args.downsample_z)
     downsample_xy = int(args.downsample_xy)
@@ -130,7 +130,7 @@ if __name__ == "__main__":
                 writer.write_stack(img, iq, channel_names=meta.channel_names, physical_pixel_sizes=pps)
                # outdir = f"{args.output}/{plate}/{ImageQuery.ID_TO_ROW[str(row)]}/{col}"
                
-            writer.write_image_stats(ImageQuery(plate, row, col, 1))
+            #writer.write_image_stats(ImageQuery(plate, row, col, 1))
                 
                 #if not os.path.exists(outdir):
                 #    os.makedirs(outdir)

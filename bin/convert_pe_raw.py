@@ -60,7 +60,8 @@ def main(input_file, output_path, wells, new_name=None):
     # AICS writer
     writer = tglow_io.AICSImageWriter(output_path,
                                         channel_names=channel_names,
-                                        physical_pixel_sizes=physical_pixel_sizes)
+                                        physical_pixel_sizes=physical_pixel_sizes,
+                                        skip_imagestats=True)
                                             
     
     # Loop over the selected wells
@@ -85,7 +86,7 @@ def main(input_file, output_path, wells, new_name=None):
                 log.warning(f"Stack is None for {q.to_string()}. Skipping writing this stack. This usually happens if an export is incomplete.") 
                 
         # Write intensity statistics        
-        writer.write_image_stats( ImageQuery(pe_reader.pe_index.plate["name"], row, col, 1))
+        #writer.write_image_stats( ImageQuery(pe_reader.pe_index.plate["name"], row, col, 1))
         
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Copy raw tiles from Perkin Elmer export to /plate/row/col/field.ome.tiff where field.ome.tiff')
