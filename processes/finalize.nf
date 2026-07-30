@@ -122,7 +122,56 @@ process finalize {
         touch ${well.plate}_${well.well}_ch0.tiff
         cd ../../
         touch channel_indices.tsv
-        """ 
+        """
+}
+
+// Rescales already-finalized unscaled images (flatfield/registration/max-projection already
+// baked in). No raw/decon/multi-plane reads happen here, so this is cheap relative to `finalize`.
+process finalize_scaled {
+    label params.cpr_label
+
+    conda params.tg_conda_env
+    container params.tg_container
+
+    storeDir "$params.rn_publish_dir/processed_images"
+    scratch params.rn_scratch
+
+    input:
+        tuple val(well), path(images, stageAs: "input_images/*")
+        path scaling_file
+        path slope_file
+        path bias_file
+    output:
+        tuple val(well), path("scaled/${well.relpath}/*.ome.tiff"), emit: processed_output
+    script:
+        cmd =
+        """
+        # Workaround as we cannot use variables from the same tuple in stageAs
+        mkdir -p unscaled/${well.relpath}
+        ln -s \$(pwd)/input_images/* unscaled/${well.relpath}/
+
+        rescale_images.py \
+        --input ./unscaled \
+        --output ./scaled \
+        --plate ${well.plate} \
+        --well ${well.well} \
+        --scaling_factors $scaling_file \
+        """
+
+        if (slope_file.name != "NO_SLOPE") {
+            cmd += " --scaling_slope $slope_file"
+        }
+
+        if (bias_file.name != "NO_BIAS") {
+            cmd += " --scaling_bias $bias_file"
+        }
+
+        cmd
+    stub:
+        """
+        mkdir -p scaled/${well.relpath}
+        touch scaled/${well.relpath}/${well.plate}_${well.well}_ch0.ome.tiff
+        """
 }
 
 process cellcrops {

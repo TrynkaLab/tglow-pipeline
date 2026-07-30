@@ -5,3 +5,5 @@ build_schema.sh
 prompts.md
 code_review.md
 docs_review.md
+Claude.md
+scaling_workflow_plan.md

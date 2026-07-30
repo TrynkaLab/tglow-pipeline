@@ -12,12 +12,12 @@ import logging
 import cv2 as cv
 import copy
 import gc
+from types import SimpleNamespace
 from tqdm import tqdm
-from basicpy import BaSiC
 from matplotlib import pyplot as plt
 from scipy import ndimage as ndi
 from tglow.io.compound_image_provider import CompoundImageProvider
-from tglow.utils.tglow_utils import float_to_16bit_unint
+from tglow.utils.tglow_utils import float_to_16bit_unint, load_flatfield_profile, save_flatfield_profile
 from skimage.filters import threshold_otsu, gaussian, threshold_multiotsu, threshold_sauvola, rank
 from skimage.morphology import disk
 from skimage.transform import downscale_local_mean, resize, resize_local_mean
@@ -184,7 +184,13 @@ class FlatFieldTrainer():
         
             
     def train_basicpy(self):
-        
+
+        # Only mode that needs to actually fit a model, so keep basicpy an optional dependency
+        try:
+            from basicpy import BaSiC
+        except ImportError as e:
+            raise RuntimeError("--mode BASICPY requires the 'basicpy' package. Install it with: pip install basicpy") from e
+
         # Read random images possibly as compound
         training_imgs = self.provider.fetch_training_images()
         
@@ -543,7 +549,7 @@ class FlatFieldTrainer():
     def test(self, input):
         
         log.info("Loading previous flatfield")
-        basic = BaSiC.load_model(input)
+        basic = load_flatfield_profile(input)
         
         if self.nimg_validate > 0:
             log.info("Running validation on new imageset")
@@ -737,21 +743,17 @@ class FlatFieldTrainer():
     def create_output(self, flatfield, merged):
         
         log.info(f"Flatfiled min: {np.min(flatfield)} max: {np.max(flatfield)} median: {np.median(flatfield)}")
-        
-        # Hack, but save the results as a basicpy object to keep it compatible with the pipeline
-        basic = BaSiC()
-        basic.flatfield = flatfield
-        basic.darkfield = np.zeros_like(flatfield)
-        
+
+        darkfield = np.zeros_like(flatfield)
+
         if merged is None:
-            basic.baseline = 1
+            baseline = 1
         else:
-            basic.baseline = np.mean(merged, axis=(1,2))
-            
-        if not os.path.exists(self.out):
-            os.makedirs(self.out)
-    
-        basic.save_model(self.out, overwrite=True)
+            baseline = np.mean(merged, axis=(1,2))
+
+        # Save in the same on-disk format basicpy uses, to keep it compatible with the pipeline
+        save_flatfield_profile(self.out, flatfield, darkfield, baseline=baseline, overwrite=True)
+        basic = SimpleNamespace(flatfield=flatfield, darkfield=darkfield, baseline=baseline)
         plot_basic_results(basic, self.out + "/flat_and_darkfield.png")
 
         log.info("Output saved")
@@ -772,8 +774,7 @@ class FlatFieldTrainer():
         plot_max = 5
         
         # Apply correction
-        merged_corrected = basic.transform(merged)
-        #merged_corrected = self.apply_transform(basic, merged)
+        merged_corrected = self.apply_transform(basic, merged)
 
         # Convert data back to original 16bit uint
         merged_corrected = float_to_16bit_unint(merged_corrected)
