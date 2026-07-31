@@ -1,522 +1,403 @@
-#!/usr/bin/env python 
+#!/usr/bin/env python
+
+"""Calculate per-plate/per-channel scaling factors and sigmoid soft-threshold
+parameters from cell- and image-level feature h5ads.
+
+Python translation of scaling_script.r. See scaling_script.md for the input
+format this expects (h5ads instead of a tglow object, channel map and control
+list as input files instead of being baked into the tglow object).
+"""
+
+import argparse
+import logging
 
 import numpy as np
-import time
-import logging
-import argparse
 import pandas as pd
-import glob
-import os
-from tglow.io.tglow_io import BlacklistReader
+import anndata as ad
 
-# Logging
+from tglow.io.image_query import ImageQuery
+from tglow.utils.tglow_utils import sigmoid_params
+
 logging.basicConfig(format='%(asctime)s %(message)s')
 log = logging.getLogger(__name__)
 log.setLevel(logging.DEBUG)
 
-import numpy as np
-import matplotlib.pyplot as plt
-from scipy.stats import gaussian_kde
+REQUIRED_CHANNEL_MAP_COLS = [
+    "channel",
+    "name",
+    "rep_features_dynamic",
+    "rep_features_offset",
+    "rep_features_scale_lower",
+    "rep_features_scale_upper",
+    "control_population",
+]
 
-def plot_grouped_density(df, group_col, value_col, filename, vline=None):
+# Optional channel_map columns; missing entirely or blank per-row both default to False.
+TRUE_VALUES = {"true", "t", "1", "yes", "y"}
+
+
+def _to_bool(val):
+    """Best-effort coercion of a channel_map cell to bool, defaulting missing/NaN to False."""
+    if pd.isna(val):
+        return False
+    if isinstance(val, (bool, np.bool_)):
+        return bool(val)
+    if isinstance(val, (int, float, np.integer, np.floating)):
+        return bool(val)
+    return str(val).strip().lower() in TRUE_VALUES
+
+
+def load_channel_map(path):
+    """Load the channel map TSV and drop any ref_plate/plate columns.
+
+    The channel map describes one reference plate/cycle's channel layout
+    (effectively channel_indices.tsv), extended with the rep_features_*/
+    control_population columns. It gets broadcast onto every real plate found
+    in the data by build_scaling_index, so any ref_plate/plate columns it
+    carries in from channel_indices.tsv are dropped here (R:
+    channel.map.orig[,-c(1,2)]).
+
+    Three optional per-channel boolean columns are also recognized (missing
+    entirely, or blank per row, both default to False):
+    - skip_scaling: force scale_factor=1 for this channel regardless of what
+      rep_features_dynamic/rep_features_offset would otherwise compute.
+    - skip_sigmoid: always use the "no soft-threshold" sigmoid fallback for
+      this channel, regardless of whether rep_features_scale_lower/upper are
+      set (e.g. brightfield, where dynamic-range scaling is still measured
+      but a sigmoid threshold isn't meaningful).
+    - skip_plate_offsets: ignore the control-derived plate_offset for this
+      channel (forced to 1 for every plate) -- the channel is still scaled to
+      its measured dynamic range, just without cross-plate relative
+      adjustment. plate_feature_mean/plate_ncells are still computed/reported.
     """
-    Plots density (KDE) curves for each group in a DataFrame using matplotlib.
+    channel_map = pd.read_csv(path, sep="\t")
 
-    Parameters:
-        df (pd.DataFrame): The input DataFrame.
-        group_col (str): The column name to group by.
-        value_col (str): The column name to plot the density of.
+    missing = [c for c in REQUIRED_CHANNEL_MAP_COLS if c not in channel_map.columns]
+    if missing:
+        raise ValueError(f"channel_map is missing required columns: {missing}")
+
+    channel_map = channel_map.drop(columns=["ref_plate", "plate"], errors="ignore")
+    return channel_map
+
+
+def get_feature_series(adata, feature):
+    """Extract a single feature column from adata.X as a dense 1D array."""
+    idx = adata.var_names.get_loc(feature)
+    col = adata.X[:, idx]
+
+    if hasattr(col, "toarray"):
+        col = col.toarray()
+
+    return np.asarray(col).ravel()
+
+
+def build_well_column(obs, row_col, col_col):
+    """Build 'A01'-style well ids from row/col columns, matching ImageQuery.get_well_id()."""
+    row_letter = obs[row_col].astype(int).astype(str).map(ImageQuery.ID_TO_ROW)
+    col_str = obs[col_col].astype(int).astype(str).str.zfill(2)
+    return row_letter + col_str
+
+
+def build_scaling_index(channel_map, plates):
+    """Cross join channel_map x plates, indexed by '<plate>-<channel>'."""
+    scaling_index = pd.concat(
+        [channel_map.assign(ref_plate=plate) for plate in plates],
+        ignore_index=True,
+    )
+    scaling_index.index = scaling_index["ref_plate"].astype(str) + "-" + scaling_index["channel"].astype(str)
+    return scaling_index
+
+
+def compute_dynamic_range(scaling_index, channel_map, cell_adata, plate_col, q2):
+    """Per channel: total and per-plate quantile(q2) of the dynamic-range feature (R lines 147-168)."""
+    plates_series = cell_adata.obs[plate_col].astype(str)
+
+    for _, ch_row in channel_map.iterrows():
+        channel = ch_row["channel"]
+        feature = ch_row["rep_features_dynamic"]
+        mask = scaling_index["channel"] == channel
+
+        if pd.isna(feature):
+            scaling_index.loc[mask, "max_scale_total"] = 1.0
+            scaling_index.loc[mask, "max_scale_plate"] = 1.0
+            continue
+
+        values = get_feature_series(cell_adata, feature)
+        df = pd.DataFrame({"plate": plates_series.values, feature: values})
+
+        scaling_index.loc[mask, "max_scale_total"] = df[feature].quantile(q2)
+
+        per_plate_q = df.groupby("plate")[feature].quantile(q2)
+        for plate in scaling_index.loc[mask, "ref_plate"].unique():
+            if plate in per_plate_q.index:
+                key = f"{plate}-{channel}"
+                scaling_index.loc[key, "max_scale_plate"] = per_plate_q[plate]
+
+    return scaling_index
+
+
+def load_controls(path):
+    """Load the <plate> <well> <control_type> controls TSV."""
+    controls = pd.read_csv(path, sep="\t", dtype={"plate": str, "well": str})
+    required = ["plate", "well", "control_type"]
+    missing = [c for c in required if c not in controls.columns]
+    if missing:
+        raise ValueError(f"controls file is missing required columns: {missing}")
+    return controls
+
+
+def _merge_controls(obs, controls, plate_col, row_col, col_col):
+    """Inner-merge controls onto obs via plate+well, returning only matching (control) rows.
+
+    Preserves obs's original row index (merge() would otherwise reset it),
+    since callers use this index to select back into the source AnnData's
+    feature arrays.
+
+    control_population matching against control_type is intentionally not
+    implemented yet (see scaling_script.md) -- every row present in the
+    controls file counts as a control, regardless of its control_type value.
     """
-    groups = df[group_col].unique()
-    plt.figure(figsize=(10, 6))
+    df = obs.copy()
+    df["plate"] = df[plate_col].astype(str)
+    df["well"] = build_well_column(df, row_col, col_col)
+    df["_obs_index"] = df.index
 
-    for group in groups:
-        data = df[df[group_col] == group][value_col].dropna()
-        if len(data) < 2:
-            continue  # KDE needs at least 2 data points
-        kde = gaussian_kde(data)
-        x_min, x_max = data.min(), data.max()
-        x_vals = np.linspace(x_min, x_max, 200)
-        plt.plot(x_vals, kde(x_vals), label=str(group))
-
-    if vline is not None:
-        plt.axvline(x=vline, color='black', linestyle='--', linewidth=2)
-
-    plt.xlabel(value_col)
-    plt.ylabel('Density')
-    plt.title(f'Density Plot of {value_col} Grouped by {group_col}')
-    plt.legend(title=group_col)
-    plt.tight_layout()
-    plt.savefig(filename)
+    merged = df.merge(controls, on=["plate", "well"], how="inner", suffixes=(None, "_control"))
+    merged = merged.set_index("_obs_index")
+    return merged
 
 
+def apply_skip_plate_offsets(scaling_index, channel_map):
+    """Force plate_offset=1 for channels flagged skip_plate_offsets=True.
 
-class ScalingCalculator():
-    
-    
-    def __init__(self, path, pattern, output, path_control=None, pattern_control=None, plate=None, blacklist=None, plate_groups=None, mask_channels=None):
-        
-        self.output=output
+    The channel still gets scaled to its dynamic range (rep_features_dynamic),
+    just without the cross-plate relative adjustment derived from control means.
+    """
+    if "skip_plate_offsets" not in channel_map.columns:
+        return scaling_index
 
-        if mask_channels is not None:
-            self.mask_channels = {}
-            
-            for val in mask_channels:
-                keypair = val.split("=")
-                log.info(f"Adding channel mask {keypair}")
-                if keypair[0] not in self.mask_channels:
-                    self.mask_channels[keypair[0]]=set()
-                self.mask_channels[keypair[0]].add(int(keypair[1]))    
-        else:
-            self.mask_channels = None    
+    for _, ch_row in channel_map.iterrows():
+        if _to_bool(ch_row.get("skip_plate_offsets")):
+            mask = scaling_index["channel"] == ch_row["channel"]
+            scaling_index.loc[mask, "plate_offset"] = 1.0
 
-        # Build list of files
-        files = glob.glob(f"{path}/**/{pattern}", recursive=True)
-        
-        plates = glob.glob(f"{path}/**", recursive=False)
-        plates = [os.path.basename(plate) for plate in plates if os.path.isdir(plate)]
-        log.info(f"Indexed {len(files)} files over {len(plates)} plates")
+    return scaling_index
 
-        # Read the blacklist
-        if blacklist is not None:
-            bl_reader = BlacklistReader(blacklist)
-            bl = bl_reader.read_blacklist_as_prc()
-            log.info(f"Read blacklist with {len(bl)} patterns")
-            log.info(f"Blacklist consists of patterns: {bl[:3] if len(bl)>=3 else bl}")
 
-            #files = [file for file in files if not reg]  
-            files = [file for file in files if not any(pattern in file for pattern in bl)]
-            log.info(f"Filtered using blacklist to {len(files)} files")
+def compute_plate_offsets(scaling_index, channel_map, cell_adata, controls_merged, plate_col):
+    """Per channel: plate offsets from control-cell means (R lines 173-224)."""
+    for _, ch_row in channel_map.iterrows():
+        channel = ch_row["channel"]
+        feature = ch_row["rep_features_offset"]
+        mask = scaling_index["channel"] == channel
 
-        if plate is not None:
-            log.info(f"Platelist consists of {len(plate)} patterns {plate[:3] if len(plate)>=3 else plate}")
-            files = [file for file in files if any(pattern in file for pattern in args.plate)]
-            plates = [plate for plate in plates if any(pattern in plate for pattern in args.plate)]
-            log.info(f"Filtered using platelist to {len(files)} files and {len(plates)} plates")
-        
-        # Set the final filelist
-        self.files = files
-        self.plates = plates
-        
-        if path_control is not None:
-            self.control_files = glob.glob(f"{path_control}/**/{pattern_control}", recursive=True)
-            log.info(f"Indexed {len(self.control_files)} control intensity files")
+        if pd.isna(feature):
+            scaling_index.loc[mask, "plate_feature_mean"] = np.nan
+            scaling_index.loc[mask, "plate_offset"] = 1.0
+            continue
 
-        # Define the plate groups (one cycle of imaging = a plate group)
-        # This ensures channels are scaled witin a cycle and not accross cycles.
-        self.plate_groups = []
-        if plate_groups is not None:
-            df = pd.read_csv(plate_groups, sep="\t")
-            
-            print(df.head())
-                    
-            # Extract the first column (ref plate)
-            self.plate_groups.append(df["reference_plate"].tolist())
+        values = get_feature_series(cell_adata, feature)
+        cur_df = pd.DataFrame({
+            "plate": cell_adata.obs[plate_col].astype(str).values,
+            feature: values,
+        }, index=cell_adata.obs.index).loc[controls_merged.index]
 
-            # Extract the third column (query plates)
-            qry_plates = df["query_plates"].tolist()
+        ncells = cur_df.dropna(subset=[feature]).groupby("plate").size()
+        plate_means = cur_df.groupby("plate")[feature].mean()
 
-            # Split the 3rd col on comma, and add each subsequent col
-            # as a plategroup
-            i = 0
-            for qry in qry_plates:
-                cur_qry = qry.split(",") 
-                
-                for j in range(0, len(cur_qry)):
-                    if i == 0:
-                        self.plate_groups.append([])
-                        
-                    self.plate_groups[j+1].append(cur_qry[j])
-            
-                i += 1
-        else:
-            self.plate_groups.append(plates)
-                
-        self.main_df=None
-        self.control_df=None
-        
-    def read_intensity_files(self):
-        log.info("Reading intensity files")
-        
-        # Read per well intensity CSV files
-        for file in self.files:
-            #log.debug(f"Reading: {file}")
-            cur_df = pd.read_csv(file, sep="\t")
-            
-            if self.main_df is not None:
-                self.main_df = pd.concat((self.main_df, cur_df))
-            else:
-                self.main_df = cur_df
-    
-    def read_control_intensities(self):
-        
-        if self.control_files is None:
-            raise ValueError("Must provide control_files to read control files")
-        
-        for file in self.control_files:
-            cur_df = pd.read_csv(file, sep="\t")
-            
-            if self.control_df is not None:
-                self.control_df = pd.concat((self.control_df, cur_df))
-            else:
-                self.control_df = cur_df
-        
-    def calculate_plate_offsets(self, q1, q2, use_col="mean_mean_object_intensity"):
-        
-        for channel in self.control_df['channel'].unique():
-            cur_df = self.control_df[self.control_df['channel'] == channel]
-            self.control_df.loc[self.control_df['channel'] == channel, 'plate_offset'] = cur_df[use_col] / cur_df[use_col].min()
-        
-        tmp = self.control_df[['plate', 'channel', 'plate_offset']]
-        
-        merged = pd.merge(self.channel_index, tmp, left_on=['ref_plate', 'channel'], right_on=['plate', 'channel'], validate="one_to_one", suffixes=[None, "_y"], how="outer")
-        
-        #merged['max_scale_total'] = merged['max_scale_total'].fillna(1)
-        
-        # Set the default to 1 (no scaling)
-        # This plate offset descibes how the intensity varies in the controls
-        merged['plate_offset'] = merged['plate_offset'].fillna(1)
-        
-        # Normalize the base plate scale. This descibes the saturation point in each plate after normalization
-        merged['max_scale_plate_norm'] =  merged['max_scale_plate'] / merged['plate_offset']
-        
-        # Derrive the base scale, the point where after equalling plates, the intensity is highest
-        # this forms the constant offset applied to all plates
-        for channel in merged['channel'].unique():
-            cur_df = merged[merged['channel'] == channel]
-            merged.loc[merged['channel'] == channel, 'base_scale'] = cur_df['max_scale_plate_norm'].max()
-        
-        # Set the final scale factor so that the plate with the lowest intensity signal is scaled the most upwards
-        # and the plates with the highest intensity as scaled the most downwards, while maintaining the intensity
-        # range most optimally based on the base_scale
-        merged['scale_factor'] = merged['base_scale'] * merged['plate_offset']
-        
-        # Set the default to 1 (no scaling)
-        merged['scale_factor'] = merged['scale_factor'].fillna(1)
-        
-        for plate in merged['plate'].unique():
-            cur_df = merged[merged['plate'] == plate].copy()
-            
-            for channel in cur_df['orig_channel'].unique():
-                cur_intensity = self.main_df[(self.main_df['channel'] == int(channel)) & (self.main_df['plate'] == plate)]
-                
-                merged.loc[(merged['plate'] == plate) & (merged['orig_channel'] == channel), 'observed_at_q'] = np.percentile(cur_intensity[q1], q2)
+        if plate_means.empty:
+            continue
 
-        merged['predicted_at_q_post_scale'] = merged['observed_at_q'] / merged['scale_factor']
-        
-        self.channel_index = merged
-        
-        #add to the channel_index
-            
-    # Build an index of what the new image channels will look like given these settings    
-    def build_channel_index(self):
-    
-        if self.main_df is None:
-            self.read_intensity_files()
-        # Peak at an image for channel dims and names
-        #img = self.plate_reader.get_img(self.plate_reader.images[self.plates[0]][0])      
-        
-        final_df=None
-        
-        plate_idx = 0
-        for plate in self.plate_groups[0]:
-            df = pd.DataFrame(columns=["ref_plate", "plate", "cycle", "channel", "name", "orig_channel", "orig_name"])
+        plate_offset = plate_means / plate_means.min()
 
-            cycle = 1
-            channel_id = 0
-            tmp_df = self.main_df[self.main_df['plate'].isin([plate])].copy()
-            if (len(tmp_df) == 0):
-                plate_idx += 1
+        for plate, mean_val in plate_means.items():
+            key = f"{plate}-{channel}"
+            scaling_index.loc[key, "plate_feature_mean"] = mean_val
+            scaling_index.loc[key, "plate_offset"] = plate_offset[plate]
+            scaling_index.loc[key, "plate_ncells"] = ncells.get(plate, 0)
+
+    # If plate_offset is NA (no control cells for that plate/channel), default to 1
+    scaling_index["plate_offset"] = scaling_index["plate_offset"].fillna(1.0)
+
+    # skip_plate_offsets: keep plate_feature_mean/plate_ncells (still measured/reported),
+    # but ignore the offset when deriving the scale factor below -- each plate's scale
+    # factor then reflects only its own dynamic range, with no cross-plate adjustment.
+    scaling_index = apply_skip_plate_offsets(scaling_index, channel_map)
+
+    # Normalize the base plate scale
+    scaling_index["max_scale_plate_norm"] = scaling_index["max_scale_plate"] / scaling_index["plate_offset"]
+
+    # Base scale: highest normalized saturation point per channel
+    for channel in scaling_index["channel"].unique():
+        mask = scaling_index["channel"] == channel
+        scaling_index.loc[mask, "base_scale"] = scaling_index.loc[mask, "max_scale_plate_norm"].max()
+
+    scaling_index["scale_factor"] = scaling_index["base_scale"] * scaling_index["plate_offset"]
+    scaling_index["scale_factor"] = scaling_index["scale_factor"].fillna(1.0)
+
+    return scaling_index
+
+
+def apply_skip_scaling(scaling_index, channel_map):
+    """Force scale_factor=1 (no scaling applied) for channels flagged skip_scaling=True.
+
+    Overrides whatever was computed from rep_features_dynamic/rep_features_offset,
+    for channels (e.g. brightfield) that get measured like any other channel but
+    should not have a scale factor applied.
+    """
+    if "skip_scaling" not in channel_map.columns:
+        return scaling_index
+
+    for _, ch_row in channel_map.iterrows():
+        if _to_bool(ch_row.get("skip_scaling")):
+            mask = scaling_index["channel"] == ch_row["channel"]
+            scaling_index.loc[mask, "scale_factor"] = 1.0
+
+    return scaling_index
+
+
+def compute_sigmoid_params(scaling_index, channel_map, image_adata, controls_merged, plate_col, sigmoid_tol, uint_max):
+    """Per channel: fit sigmoid bias/slope from control-image lower/upper quantiles (R lines 236-292)."""
+    for _, ch_row in channel_map.iterrows():
+        channel = ch_row["channel"]
+        lower_feature = ch_row["rep_features_scale_lower"]
+        upper_feature = ch_row["rep_features_scale_upper"]
+        mask = scaling_index["channel"] == channel
+
+        if pd.isna(lower_feature) or _to_bool(ch_row.get("skip_sigmoid")):
+            # No feature set, or sigmoid explicitly disabled (e.g. brightfield):
+            # fall back to a curve that always evaluates ~1
+            par = sigmoid_params(-99, 1, tol=1e-16)
+            scaling_index.loc[mask, "sigmoid_bias"] = par["bias"]
+            scaling_index.loc[mask, "sigmoid_slope"] = par["slope"]
+            scaling_index.loc[mask, "sigmoid_tol"] = par["tol"]
+            scaling_index.loc[mask, "sigmoid_x1"] = -99
+            scaling_index.loc[mask, "sigmoid_x2"] = 1
+            continue
+
+        lower_values = get_feature_series(image_adata, lower_feature)
+        upper_values = get_feature_series(image_adata, upper_feature)
+
+        cur_df = pd.DataFrame({
+            "plate": image_adata.obs[plate_col].astype(str).values,
+            "lower": lower_values,
+            "upper": upper_values,
+        }, index=image_adata.obs.index).loc[controls_merged.index]
+
+        lower_q = cur_df.groupby("plate")["lower"].quantile(0.95) * uint_max
+        upper_q = cur_df.groupby("plate")["upper"].median() * uint_max
+
+        for plate in lower_q.index:
+            x1 = lower_q[plate]
+            x2 = upper_q.get(plate, np.nan)
+            if pd.isna(x1) or pd.isna(x2):
                 continue
-            
-            # Loop over cycle one channels
-            for channel in sorted([int(x) for x in tmp_df['channel'].unique()]):
-                df.at[channel, "ref_plate"] = plate
-                df.at[channel, "plate"] = plate
-                df.at[channel, "channel"] = channel
-                df.at[channel, "name"] = ""
-                df.at[channel, "cycle"] = cycle
-                df.at[channel, "orig_channel"] = channel
-                df.at[channel, "orig_name"] = ""
 
-                channel_id += 1  
-                            
-            # Add the channel names and IDs in the merged plate
-            if len(self.plate_groups) != 1:
-                
-                for plate_group in self.plate_groups[1:]:
-                    
-                    cycle += 1
-                    cur_plate = plate_group[plate_idx]
-                    log.debug(cur_plate)
-                    tmp_df = self.main_df[self.main_df['plate'].isin([cur_plate])].copy()
+            par = sigmoid_params(x1, x2, tol=sigmoid_tol)
+            key = f"{plate}-{channel}"
+            scaling_index.loc[key, "sigmoid_bias"] = par["bias"]
+            scaling_index.loc[key, "sigmoid_slope"] = par["slope"]
+            scaling_index.loc[key, "sigmoid_tol"] = par["tol"]
+            scaling_index.loc[key, "sigmoid_x1"] = x1
+            scaling_index.loc[key, "sigmoid_x2"] = x2
 
-                    for channel in sorted([int(x) for x in tmp_df['channel'].unique()]):
-                        df.at[channel_id, "ref_plate"] = plate
-                        df.at[channel_id, "plate"] = cur_plate
-                        df.at[channel_id, "channel"] = channel_id
-                        df.at[channel_id, "name"] = ""
-                        df.at[channel_id, "cycle"] = cycle
-                        df.at[channel_id, "orig_channel"] = channel
-                        df.at[channel_id, "orig_name"] = ""
-                        channel_id += 1
-                        
-            # If there are channel to mask
-            if self.mask_channels is not None:
-                for mask_channel in self.mask_channels[plate]:
-                        mask_channel = int(mask_channel)
-                        df.at[channel_id, "ref_plate"] = df.iloc[mask_channel]["ref_plate"]
-                        df.at[channel_id, "plate"] = df.iloc[mask_channel]["plate"]
-                        df.at[channel_id, "channel"] = channel_id
-                        df.at[channel_id, "name"] = f"ch{channel_id} - {df.iloc[mask_channel]['name']} mask inclusive"
-                        df.at[channel_id, "cycle"] = df.iloc[mask_channel]["cycle"]
-                        df.at[channel_id, "orig_channel"] = df.iloc[mask_channel]["channel"]
-                        df.at[channel_id, "orig_name"] = df.iloc[mask_channel]["name"]
-                        channel_id += 1
-                    
-                        df.at[channel_id, "ref_plate"] = df.iloc[mask_channel]["ref_plate"]
-                        df.at[channel_id, "plate"] = df.iloc[mask_channel]["plate"]
-                        df.at[channel_id, "channel"] = channel_id
-                        df.at[channel_id, "name"] = f"ch{channel_id} - {df.iloc[mask_channel]['name']} mask exclusive"
-                        df.at[channel_id, "cycle"] = df.iloc[mask_channel]["cycle"]
-                        df.at[channel_id, "orig_channel"] = df.iloc[mask_channel]["channel"]
-                        df.at[channel_id, "orig_name"] = df.iloc[mask_channel]["name"]
-                        channel_id += 1
+    return scaling_index
 
-            plate_idx += 1
 
-            if final_df is None:
-                final_df=df
-            else:
-                final_df=pd.concat([final_df, df], axis=0)
-        
-        
-        #df.final_df = final_df["plate"] + "_ch" + str(final_df["orig_channel"])
-        self.channel_index=final_df
-        
-    def save_channel_index(self):
-        self.channel_index.to_csv(f"{self.output}/channel_index_with_scaling.tsv", sep='\t', index=False)
-              
-    def save_scaling_factors(self, scale):
-        scaling_factors = [x for x in self.channel_index["ref_plate"] + "_ch" +  self.channel_index["channel"].astype(str) + "=" + self.channel_index[scale].astype(str)]
-        # Write scaling factors
-        info_file=open(f"{self.output}/scaling_factors.txt", 'w')
-        info_file.write(" ".join(scaling_factors))
-        info_file.flush()
-        info_file.close()
-    
-    def apply_scaling_factor(self, plot_col, scale):
-        
-        lookup = {}
-        for index, row in self.channel_index.iterrows():
-            lookup[f"{row['plate']}_ch{row['orig_channel']}"] = row[scale]
-            
-        self.main_df['lookup_key'] = self.main_df['plate'].astype(str) + "_ch" + self.main_df['channel'].astype(str)
-        self.main_df['scale_value'] = self.main_df['lookup_key'].map(lookup)
-        self.main_df[plot_col + "_scaled"] = self.main_df[plot_col] / self.main_df['scale_value']
-    
-    def save_density_plots(self, plot_col, vline=None):
-        
-        if not os.path.exists(f"{self.output}/histograms/{plot_col}"):
-            os.makedirs(f"{self.output}/histograms/{plot_col}")
-            log.info(f"Folder created: {self.output}/histograms/{plot_col}")
-                
-        for cycle in self.channel_index['cycle'].unique():
-            plates = self.channel_index[self.channel_index['cycle'] == cycle]['plate'].unique()
-        
-            df = self.main_df[self.main_df['plate'].isin(plates)]
-            
-            for channel in df['channel'].unique():                
-                cur_df = df[df['channel'] == channel]
-                plot_grouped_density(cur_df, "plate", plot_col, f"{self.output}/histograms/{plot_col}/cycle{cycle}_ch{channel}_{plot_col}_intensity_histograms.png", vline=vline)
-            
-    def calculate_quantile_scaling_factors(self, q1, q2, scale_max):
+def fill_missing_sigmoid(scaling_index):
+    """Hotfix: fill missing sigmoid slope/bias with the channel's mean (R lines 294-307)."""
+    missing_mask = scaling_index["sigmoid_slope"].isna()
 
-        log.info("Considering plate groups:")
-        log.info(self.plate_groups)
-        
-        indices = []
-        stats_max=[]
-        stats_mean=[]
-        stats_median=[]
-        scale_factors = {}
-        scale_factors_plate = {}
+    if missing_mask.any():
+        log.warning(
+            "Not all plates have a scaling index, this can happen if plates miss control "
+            "samples. As a hack, setting to the mean of the plates"
+        )
+        for channel in scaling_index.loc[missing_mask, "channel"].unique():
+            channel_mask = scaling_index["channel"] == channel
+            selector = channel_mask & scaling_index["sigmoid_slope"].isna()
 
-        # Quantiles to report on
-        quantiles = [0, 0.01, 0.1, 25, 50, 75, 95, 99, 99.9, 99.99, 99.999, 99.9999, 100]
-        
-        i = 0
-        for plate_group in self.plate_groups:
-            
-            log.debug(f"current plategroup: {plate_group}")
-            
-            # Subset to the plates in the group to normalize
-            plate_df = self.main_df[self.main_df["plate"].isin(plate_group)].copy()
-            log.debug(f"plate_df {plate_df.head}")
+            scaling_index.loc[selector, "sigmoid_slope"] = scaling_index.loc[channel_mask, "sigmoid_slope"].mean()
+            scaling_index.loc[selector, "sigmoid_bias"] = scaling_index.loc[channel_mask, "sigmoid_bias"].mean()
 
-            # Find available channels
-            for channel in  plate_df["channel"].unique(): 
-                
-                indices.append(f"group{i}_ch{channel}")
-            
-                # Subset to the current channel
-                cur_df = plate_df[plate_df["channel"] == channel].copy()
-            
-                # Calculate the scale factor
-                scale_factor = np.percentile(cur_df[q1], q2) / scale_max
-                
-                # Max
-                cur_stats = np.percentile(cur_df["q100"], quantiles).tolist()
-                cur_stats.append(np.mean(cur_df["q100"]))
-                stats_max.append(cur_stats)
-                
-                # Mean
-                cur_stats = np.percentile(cur_df["mean"], quantiles).tolist()
-                cur_stats.append(np.mean(cur_df["mean"]))
-                stats_mean.append(cur_stats)
-                
-                # Median
-                cur_stats = np.percentile(cur_df["q50"], quantiles).tolist()
-                cur_stats.append(np.mean(cur_df["q50"]))
-                stats_median.append(cur_stats)
-                
-                # Scale factors
-                for plate in plate_df["plate"].unique():
-                    scale_factors[f"{plate}_ch{channel}"]=scale_factor
-                    
-                    cur_plate_df = plate_df[plate_df['plate'] == plate].copy()
-                    cur_plate_df = cur_plate_df[cur_plate_df["channel"] == channel]
-                    plate_scale_factor=np.percentile(cur_plate_df[q1], q2) / scale_max
-                    scale_factors_plate[f"{plate}_ch{channel}"] = plate_scale_factor 
-                    
-            i += 1
-        
-        orig_ch_index=[x for x in self.channel_index["plate"] + "_ch" + self.channel_index["orig_channel"].astype(str)]
-        self.channel_index["max_scale_total"] = [scale_factors[key] for key in orig_ch_index]
-        self.channel_index["max_scale_plate"] = [scale_factors_plate[key] for key in orig_ch_index]
+    return scaling_index
 
-        raw_scale_factors = [x for x in self.channel_index["ref_plate"] + "_ch" +  self.channel_index["channel"].astype(str) + "=" + self.channel_index["max_scale_total"].astype(str)]
-        
-        # Write scaling factors
-        info_file=open(f"{self.output}/raw_scaling_factors.txt", 'w')
-        info_file.write(" ".join(raw_scale_factors))
-        info_file.flush()
-        info_file.close()
 
-        # Write the summary file        
-        header = ['type', 'channel'] + [f"q{str(x)}" for x in quantiles] + ["mean"]
-        
-        mean_file=open(f"{self.output}/intensity_summary.tsv", 'w')
-        mean_file.write("\t".join(header))
-        mean_file.write("\n")
-        
-        for ch in range(len(indices)):
-            mean_file.write(f"mean_intensity\t{indices[ch]}\t")
-            mean_file.write("\t".join([str(num) for num in stats_mean[ch]]))
-            mean_file.write("\n")
-            
-            mean_file.write(f"median_intensity\t{indices[ch]}\t")
-            mean_file.write("\t".join([str(num) for num in stats_median[ch]]))
-            mean_file.write("\n")
-        
-            mean_file.write(f"max_intensity\t{indices[ch]}\t")
-            mean_file.write("\t".join([str(num) for num in stats_max[ch]]))
-            mean_file.write("\n")
-        
-        mean_file.flush()
-        mean_file.close()
-        
-        log.info("Done")
+def compute_channel_medians(scaling_index):
+    """Per-channel median sigmoid slope/bias, broadcast to all plates of that channel (R lines 309-318)."""
+    for channel in scaling_index["channel"].unique():
+        mask = scaling_index["channel"] == channel
+        scaling_index.loc[mask, "sigmoid_slope_mean"] = scaling_index.loc[mask, "sigmoid_slope"].median()
+        scaling_index.loc[mask, "sigmoid_bias_mean"] = scaling_index.loc[mask, "sigmoid_bias"].median()
+
+    return scaling_index
+
+
+def _write_channel_value_file(scaling_index, column, path):
+    """Write '<plate>_ch<channel>=<value>' tokens, space separated on one line (R lines 322-334)."""
+    tokens = (
+        scaling_index["ref_plate"].astype(str)
+        + "_ch"
+        + scaling_index["channel"].astype(str)
+        + "="
+        + scaling_index[column].astype(str)
+    )
+    with open(path, "w") as fh:
+        fh.write(" ".join(tokens))
+
+
+def write_outputs(scaling_index, output_dir):
+    scaling_index.to_csv(f"{output_dir}/scaling_index.tsv", sep="\t", index=True, index_label="scaling_key")
+    _write_channel_value_file(scaling_index, "scale_factor", f"{output_dir}/scaling_factors.txt")
+    _write_channel_value_file(scaling_index, "sigmoid_bias", f"{output_dir}/sigmoid_bias.txt")
+    _write_channel_value_file(scaling_index, "sigmoid_slope", f"{output_dir}/sigmoid_slope.txt")
+
+
+def main():
+    parser = argparse.ArgumentParser(
+        description="Calculate per-plate/per-channel scaling factors and sigmoid parameters "
+                    "from cell- and image-level feature h5ads."
+    )
+    parser.add_argument("--cell_h5ad", required=True, help="Path to cell-level features h5ad")
+    parser.add_argument("--image_h5ad", required=True, help="Path to image-level features h5ad")
+    parser.add_argument("--channel_map", required=True, help="TSV describing the channel layout, extended with rep_features_*/control_population columns")
+    parser.add_argument("--controls", required=True, help="TSV with <plate> <well> <control_type> columns")
+    parser.add_argument("--output", required=True, help="Output directory")
+    parser.add_argument("--q2", type=float, default=0.99, help="Quantile (0-1) used for dynamic range")
+    parser.add_argument("--sigmoid_tol", type=float, default=1e-3, help="Sigmoid tolerance for scale_lower/upper fit")
+    parser.add_argument("--uint_max", type=int, default=65535, help="Max value of the raw intensity range")
+    parser.add_argument("--plate_col", default="plate")
+    parser.add_argument("--row_col", default="row")
+    parser.add_argument("--col_col", default="col")
+    parser.add_argument("--field_col", default="field")
+    parser.add_argument("--cell_col", default="cell_number")
+    args = parser.parse_args()
+
+    channel_map = load_channel_map(args.channel_map)
+    controls = load_controls(args.controls)
+
+    cell_adata = ad.read_h5ad(args.cell_h5ad)
+    image_adata = ad.read_h5ad(args.image_h5ad)
+
+    plates = sorted(set(cell_adata.obs[args.plate_col].astype(str)) | set(image_adata.obs[args.plate_col].astype(str)))
+    log.info(f"Found {len(plates)} plates: {plates}")
+
+    scaling_index = build_scaling_index(channel_map, plates)
+
+    scaling_index = compute_dynamic_range(scaling_index, channel_map, cell_adata, args.plate_col, args.q2)
+
+    cell_controls = _merge_controls(cell_adata.obs, controls, args.plate_col, args.row_col, args.col_col)
+    scaling_index = compute_plate_offsets(scaling_index, channel_map, cell_adata, cell_controls, args.plate_col)
+    scaling_index = apply_skip_scaling(scaling_index, channel_map)
+
+    image_controls = _merge_controls(image_adata.obs, controls, args.plate_col, args.row_col, args.col_col)
+    scaling_index = compute_sigmoid_params(scaling_index, channel_map, image_adata, image_controls, args.plate_col, args.sigmoid_tol, args.uint_max)
+    scaling_index = fill_missing_sigmoid(scaling_index)
+    scaling_index = compute_channel_medians(scaling_index)
+
+    write_outputs(scaling_index, args.output)
+    log.info("Done")
 
 
 if __name__ == "__main__":
-    
-    parser = argparse.ArgumentParser(description="Calculate per channel scaling factors based on previously calculated intensity_stats.tsv")
-    parser.add_argument('-i','--input', help='Base dir to raw input', required=True)
-    parser.add_argument('-o','--output', help='Output prefix', required=True)
-    parser.add_argument('-p','--plate', help='Subfolder in raw dir to process', nargs='+', required=True)
-    parser.add_argument('--registration_dir', help="Path to registration root storing <plate>/<row>/<col>/<field>.pickle", default=None)
-    parser.add_argument('--mask_channels', help='Channels to mask, output will get 2 extra channels per mask_channel, in the order provided. This is applied after registering and flatfield correction, so use the final channel ids', nargs='+', default=None)
-    parser.add_argument('--blacklist', help='TSV file with "<plate>  <well>" on each row descrbing what to ignore', default=None)
-    
-    # Specific arguments
-    parser.add_argument('--control_dir', help='Output dir from masked_control_intensity_calculator.py used for plate+channel specific offsets to scale factor organized in <control_dir>/<plate>/<pattern_control>', default=None)
-    parser.add_argument('--plate_groups', help='File describing how plates are grouped, used for multicycle runs to ensure scaling is done per cycles. Use registration_manifest.tsv from tglow pipeline', default=None)
-    parser.add_argument('--q1', help='Quantile 1, the quantile in an image', default="q99.9999")
-    parser.add_argument('--q2', help='Quantile 2, the quantile over all images in input 0-100', default="99")
-    parser.add_argument('--pattern', help='File pattern of sumstats tsv', default="intensity_stats.tsv")
-    parser.add_argument('--pattern_control', help='File pattern of the control intensties', default="plate_level_control_intensity_summary.tsv")
-    parser.add_argument('--scale_max', help='The max possible value of the input images, this will be the max value of the output', default=65535)
-    args = parser.parse_args()
-    
-    args.q2 = float(args.q2)
-    args.scale_max = int(args.scale_max)
-        
-    calculator = ScalingCalculator(path=args.input,
-                                    path_control=args.control_dir,
-                                    pattern=args.pattern,
-                                    pattern_control=args.pattern_control,
-                                    output=args.output,
-                                    plate=args.plate,
-                                    mask_channels=args.mask_channels,
-                                    blacklist=args.blacklist,
-                                    plate_groups=args.plate_groups)
-    
-    
-    # parser = argparse.ArgumentParser(description="Calculate per channel scaling factors based on previously calculated intensity_stats.tsv")
-    # args = parser.parse_args()
-    # args.q1="q99.9999"
-    # args.q2=99
-    # args.scale_max=65535
-
-    # calculator = ScalingCalculator(path="/lustre/scratch125/humgen/projects/cell_activation_tc/projects/DRUG_PERTURB/pipeline/results/decon",
-    #                                pattern="intensity_stats.tsv",
-    #                                output="/lustre/scratch125/humgen/projects/cell_activation_tc/projects/DRUG_PERTURB/pipeline/testing",
-    #                                plate=None,
-    #                                mask_channels=[0],
-    #                                path_control="/lustre/scratch125/humgen/projects/cell_activation_tc/projects/DRUG_PERTURB/pipeline/results/scaling/offsets",
-    #                                pattern_control="plate_level_control_intensity_summary.tsv",
-    #                                blacklist="/lustre/scratch125/humgen/projects/cell_activation_tc/projects/DRUG_PERTURB/pipeline/scripts/blacklist.tsv",
-    #                                plate_groups="/lustre/scratch125/humgen/projects/cell_activation_tc/projects/DRUG_PERTURB/pipeline/scripts/manifest_registration.tsv")
-        
-    
-    calculator.read_intensity_files()
-    calculator.build_channel_index()
-    
-    if args.control_dir is not None:
-        calculator.read_control_intensities()
-        
-    calculator.calculate_quantile_scaling_factors(args.q1, args.q2, args.scale_max)
-
-    if args.control_dir is not None:
-        calculator.calculate_plate_offsets(args.q1, args.q2)
-    
-    calculator.save_channel_index()
-    calculator.save_density_plots(args.q1)
-    
-    if args.control_dir is not None:
-        if calculator.channel_index['plate'].isnull().values.any():
-            msg = "NA's found in scaling factors, this should not happen if control intensties are matched, check all arguments are specififed the same between control intensities and this"
-            log.error(msg)
-            raise RuntimeError(msg)
-    
-        calculator.save_scaling_factors("scale_factor")
-        calculator.apply_scaling_factor(args.q1, "scale_factor")
-        
-    else:
-        if calculator.channel_index['plate'].isnull().values.any():
-            msg = "NA's found in scaling factors, usually due to misspecification of arguments, check 'channel_index_with_scaling.tsv' for issues."
-            log.error(msg)
-            raise RuntimeError(msg)     
-        calculator.save_scaling_factors("max_scale_total")
-    
-        calculator.apply_scaling_factor(args.q1, "max_scale_total")
-    
-    calculator.save_density_plots(args.q1+"_scaled", vline=np.iinfo(np.uint16).max)
-
-    #calculator.apply_scaling_factor("q99", "scale_factor")
-    #calculator.save_density_plots("q99_scaled", vline=np.iinfo(np.uint16).max)
-
-
-
-    #calculator.channel_index[["cycle","channel","max_scale_total","plate_offset", "scale_factor"]]
+    main()
