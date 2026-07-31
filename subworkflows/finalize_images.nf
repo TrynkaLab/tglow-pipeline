@@ -1,56 +1,75 @@
 #!/usr/bin/env nextflow
 
 include { finalize; rescale; index_cellcrops; cellcrops } from '../processes/finalize.nf'
+include { measure_intensity } from '../processes/scaling.nf'
 include { index_images as index_unscaled; index_images as index_scaled } from '../processes/staging.nf'
+include { estimate_scaling_factors } from './scaling_factors.nf'
 
 import RegistrationRecord
 
-// Finalizes and caches images for feature extraction (rn_cache_images), applying scaling
-// either directly in `finalize` or via a separate `rescale` pass, and optionally builds
-// cellcrops.
+// Finalizes and caches images for feature extraction (rn_cache_images).
+//
+// Normal flow (rn_scale_in_finalize=false): finalize writes unscaled images to
+// processed_images/unscaled, intensities are always measured on those (even if no scaling is
+// requested, to support a future QC step), then - if scaling is requested - factors are
+// estimated from those same unscaled images and a separate rescale pass produces
+// processed_images/scaled.
+//
+// Fast path (rn_scale_in_finalize=true, requires rn_manualscale - enforced in checks.nf):
+// scaling factors are already known upfront, so finalize applies them directly and writes
+// straight to processed_images/scaled, skipping the unscaled artifact, measurement, and the
+// separate rescale pass entirely.
 workflow finalize_images {
 
     take:
         finalize_in
         image_dir_file
         flatfield_out
-        scaling_file
-        slope_file
-        bias_file
         manifest_registration
         rn_scale_in_finalize
         rn_autoscale
         rn_manualscale
+        rn_scale_slope
+        rn_scale_bias
         rn_make_cellcrops
         rn_manifest_registration
         rn_publish_dir
+        // Ingredients for estimating scaling factors from the unscaled finalized images
+        // (only used when rn_scale_in_finalize is false)
+        manifest
+        blacklist_file
+        control_file
+        plates
+        manifest_registration_file
+        cellpose_out
+        rn_control_list
 
     main:
-    
-        // Whether finalize actually ends up writing to processed_images/scaled directly,
-        // uniform for the whole run - see subworkflows/finalize.nf for how this is used.
-        finalize_writes_scaled = rn_scale_in_finalize && (rn_autoscale || rn_manualscale != null)
 
-        // finalize_writes_scaled mirrors the img_subdir logic inside `finalize` itself -
-        // which folder it actually wrote to for this run (passed in by the caller since it's
-        // uniform across all wells, only depending on run-level config, not per-well data).
-        finalize_subdir = finalize_writes_scaled ? "scaled" : "unscaled"
+        // Determine if scaling needs to be run at all
+        run_scaling = rn_manualscale != null || rn_autoscale
 
-        // rn_scale_in_finalize: apply scaling directly in finalize (writes straight to
-        // processed_images/scaled, skips the separate rescale pass) - trades away the
-        // unscaled artifact and finalize/scaling-factor parallelism for less IO on very
-        // IO-heavy runs. Default is off: finalize writes to processed_images/unscaled and
-        // rescale (if scaling is enabled) produces processed_images/scaled from that.
-        finalize_scaling_in = rn_scale_in_finalize ? scaling_file : Channel.value(file("NO_SCALE"))
-        finalize_slope_in   = rn_scale_in_finalize ? slope_file   : Channel.value(file("NO_SLOPE"))
-        finalize_bias_in    = rn_scale_in_finalize ? bias_file    : Channel.value(file("NO_BIAS"))
+        //------------------------------------------------------------------------
+        // Block 1: finalize unscaled OR direct manual scaled images wihtout caching them in between
+        //------------------------------------------------------------------------
+        if (rn_scale_in_finalize && run_scaling) {
+            finalize_scaling_in = Channel.value(file(rn_manualscale))
+            finalize_slope_in   = (rn_scale_slope != null) ? Channel.value(file(rn_scale_slope)) : Channel.value(file("NO_SLOPE"))
+            finalize_bias_in    = (rn_scale_bias != null)  ? Channel.value(file(rn_scale_bias))  : Channel.value(file("NO_BIAS"))
+        } else {
+            finalize_scaling_in = Channel.value(file("NO_SCALE"))
+            finalize_slope_in   = Channel.value(file("NO_SLOPE"))
+            finalize_bias_in    = Channel.value(file("NO_BIAS"))
+        }
 
         finalize_out = finalize(finalize_in,
-                                image_dir_file,
-                                flatfield_out,
-                                finalize_scaling_in,
-                                finalize_slope_in,
-                                finalize_bias_in)
+                    image_dir_file,
+                    flatfield_out,
+                    finalize_scaling_in,
+                    finalize_slope_in,
+                    finalize_bias_in)
+
+        finalize_subdir = rn_scale_in_finalize ? "scaled" : "unscaled"
 
         // Index whatever finalize actually produced (index_unscaled despite the name -
         // when rn_scale_in_finalize writes directly to `scaled`, this call indexes that
@@ -61,11 +80,46 @@ workflow finalize_images {
                         file(rn_publish_dir + "/processed_images/${finalize_subdir}"),
                         finalize_out.processed_output.map{row -> row[0].plate}.unique())
 
-        // Scaling is enabled (scaling_file is real, not the NO_SCALE placeholder) but finalize
-        // didn't apply it directly - defer to a separate rescale pass
-        if (!rn_scale_in_finalize && scaling_file.name != "NO_SCALE") {
+        // Always measure these images, even when no scaling is requested, to
+        // support a future QC step
+        measure_intensity(finalize_out.processed_output, finalize_subdir)
+
+        //------------------------------------------------------------------------
+        // Block 2: default path, use cached images to determine scaling factors
+        //------------------------------------------------------------------------
+        if (!rn_scale_in_finalize && run_scaling) {
+            if (rn_autoscale) {
+                // Auto scaling
+                estimate_scaling_factors(
+                    manifest,
+                    manifest_registration,
+                    blacklist_file,
+                    control_file,
+                    plates,
+                    manifest_registration_file,
+                    cellpose_out,
+                    finalize_out.processed_output.last(),
+                    flatfield_out,
+                    rn_autoscale,
+                    rn_manualscale,
+                    rn_manifest_registration,
+                    rn_scale_slope,
+                    rn_scale_bias,
+                    rn_control_list,
+                    rn_publish_dir
+                )
+                scaling_file = estimate_scaling_factors.out.scaling_file
+                slope_file = estimate_scaling_factors.out.slope_file
+                bias_file = estimate_scaling_factors.out.bias_file
+            else if (rn_manualscale != null){
+                // Manual scaling
+                scaling_file = file(rn_manualscale)
+                slope_file = (rn_scale_slope != null) ? file(rn_scale_slope) : file("NO_SLOPE")
+                bias_file = (rn_scale_bias != null)  ? file(rn_scale_bias)  : file("NO_BIAS")
+            } 
+            
+            // Rescale the existing cached processed images
             rescale_out = rescale(finalize_out.processed_output, scaling_file, slope_file, bias_file)
-            images_out = rescale_out.processed_output
 
             // rescale always writes to processed_images/scaled - index it separately
             // from the unscaled output indexed above
@@ -73,10 +127,18 @@ workflow finalize_images {
                             "processed_images/scaled",
                             file(rn_publish_dir + "/processed_images/scaled"),
                             rescale_out.processed_output.map{row -> row[0].plate}.unique())
+                            
+            images_out = rescale_out.processed_output
         } else {
+            // Already wrote the final scaled images directly above - no unscaled artifact
+            // exists to measure or estimate factors from, and no rescale is needed
             images_out = finalize_out.processed_output
-        }
-
+        } 
+        
+        //------------------------------------------------------------------------
+        // Block 3: paths converge again, and the output is used to make cellcrops
+        //------------------------------------------------------------------------
+        
         // Combined channel of well, images, masks - used by downstream steps that need both
         finalize_images_and_masks = images_out.join(finalize_out.mask_output, by: 0)
 

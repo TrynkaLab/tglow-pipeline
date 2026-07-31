@@ -19,6 +19,8 @@ process calculate_scaling_factors {
         val mask_channels
     output:
         path "scaling_factors.txt", emit: scaling_factors
+        path "sigmoid_bias.txt", emit: scaling_bias
+        path "sigmoid_slope.txt", emit: scaling_slope
         path "raw_scaling_factors.txt"
         path "intensity_summary.tsv"
         path "channel_index_with_scaling.tsv"
@@ -33,15 +35,12 @@ process calculate_scaling_factors {
         --q2 $params.rn_autoscale_q2\
         """
         
-        if (params.dc_run) {
-            // Not sure why I thought the scale_max was needed. The intensity files match the 16 bit already, so this
-            // is not needed.
-            //cmd += " --input $params.rn_decon_dir --scale_max $params.dc_clip_max"
-            cmd += " --input $params.rn_decon_dir --scale_max 65535"
-        } else {
-            cmd += " --input $params.rn_image_dir --scale_max 65535"
-        }
-        
+        // Reads the unscaled finalized images (flatfield/registration/max-projection already
+        // baked in) rather than raw/decon input - cheaper to read, and lets scaling factors
+        // reflect the same geometry cellprofiler/cellcrops will consume. Only reachable when
+        // rn_cache_images=true (enforced in checks.nf), since that's what produces this dir.
+        cmd += " --input $params.rn_publish_dir/processed_images/unscaled --scale_max 65535"
+
         // Add optional blacklist
         if (params.rn_blacklist) {
             cmd += " --blacklist $blacklist"
@@ -73,85 +72,3 @@ process calculate_scaling_factors {
         """
 }
 
-// Determine offsets for scaling factors based on controls
-process calculate_plate_offsets {
-    label 'normal_plus'
-    
-    conda params.tg_conda_env
-    container params.tg_container
-    
-    storeDir "$params.rn_publish_dir/scaling/offsets/"
-    stageInMode 'symlink'
-   // publishDir "$params.rn_publish_dir/", mode: 'copy'
-   
-    input:
-        val x
-        tuple val(plate), val(mask_channels), val(merge_plates)
-        path registration, stageAs:"registration"
-        path masks, stageAs: 'masks'
-        tuple path(bp_files) val(basicpy_string)
-        path blacklist
-        path control_list
-    output:
-        path "$plate", emit: plate_offset
-    script:
-        cmd = 
-        """
-        masked_control_intensity_calculator.py \
-        --output ./ \
-        --plate $plate \
-        --obj_mask_dir ./masks \
-        --obj_mask_pattern *_cell_mask_*_cp_masks.tiff\
-        """
-        
-        if (params.rn_dummy_mode) {
-            cmd += " --dummy_mode"
-        }
-        
-        if (params.rn_threshold) {
-            cmd += " --threshold"
-        }
-        
-        if (params.rn_control_list) {
-            cmd += " --controls $control_list"
-        }
-        
-        if (params.rn_blacklist) {
-            cmd += " --blacklist $blacklist"
-        }
-        
-        if (params.dc_run) {
-            cmd += " --input $params.rn_decon_dir"
-        } else {
-            cmd += " --input $params.rn_image_dir"
-        }
-        
-        if (merge_plates) {
-            cmd += " --plate_merge " + merge_plates
-        }
-        
-        if (registration.fileName.name != "NO_REGISTRATION") {
-            cmd += " --registration_dir ./registration"
-        }
-                
-        if (basicpy_string && basicpy_string != "NO_FLATFIELD") {
-            cmd += " --flatfields $basicpy_string"
-        }
-        
-        if (params.rn_max_project | params.rn_hybrid) {
-            cmd += " --max_project"
-        }
-        
-        if (params.rn_hybrid & mask_channels != "none") {
-            cmd += " --mask_dir ./masks"
-            cmd += " --mask_pattern *_nucl_mask_*_cp_masks.tiff"
-            cmd += " --mask_channels $mask_channels"
-        }
-    stub:
-        """
-        mkdir $plate
-        cd $plate
-        touch plate_offset.txt
-        """
-
-}

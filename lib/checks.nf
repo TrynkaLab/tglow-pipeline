@@ -126,9 +126,22 @@ def checkParamsScaling(params) {
         }
     }
 
-    // rn_scale_in_finalize only matters when scaling is actually enabled
-    if (params.rn_scale_in_finalize && !params.rn_autoscale && params.rn_manualscale == null) {
-        log.warn "rn_scale_in_finalize is true but neither rn_autoscale nor rn_manualscale is set - scaling is disabled, so rn_scale_in_finalize has no effect"
+    // rn_scale_in_finalize applies scaling directly in finalize, before any unscaled images
+    // exist to measure/estimate factors from - so it can only work with pre-supplied manual
+    // factors, never with autoscale (which needs those unscaled images first).
+    if (params.rn_scale_in_finalize) {
+        if (params.rn_manualscale == null) {
+            error("rn_scale_in_finalize requires rn_manualscale to be set - autoscale factors cannot be estimated without first producing unscaled finalized images, which rn_scale_in_finalize skips")
+        }
+        if (params.rn_autoscale) {
+            error("rn_scale_in_finalize cannot be combined with rn_autoscale - autoscale factors require measuring the unscaled finalized images first, which rn_scale_in_finalize skips producing")
+        }
+    }
+
+    // Autoscale factors are estimated from the unscaled finalized images, which only exist
+    // when images are cached
+    if (params.rn_autoscale && !params.rn_cache_images) {
+        error("rn_autoscale requires rn_cache_images to be true - autoscale factors are estimated from the cached, finalized unscaled images")
     }
 
 }

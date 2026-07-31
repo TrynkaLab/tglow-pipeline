@@ -2,29 +2,42 @@
 
 
 
+// Measure per-object and per-image intensity features on the unscaled finalized images.
+// Runs regardless of whether scaling is enabled - feeds calculate_scaling_factors when
+// rn_autoscale is set, and is kept around either way to support a future QC step.
 process measure_intensity {
-
-    label params.cp_label
-
+    label 'normal'
 
     conda params.tg_conda_env
     container params.tg_container
 
-    storeDir "${params.rn_publish_dir}/features/unscaled_intensity"
+    storeDir "$params.rn_publish_dir/scaling/measurements/$outdir"
     scratch params.rn_scratch
 
     input:
-        tuple val(key), val(well),  path(cell_masks, stageAs: "cell_masks/*"), path(nucl_masks, stageAs: "nucl_masks/*"), val(decon_plates), val(merge_plates), path(registration, stageAs:"registration_tmp/*")
-
+        tuple val(well), path(images, stageAs: "input_images/*")
+        val outdir
     output:
-        path val(key), val(well), "features/${well.relpath}/*"
+        tuple val(well), path("${well.relpath}/*.parquet"), emit: measurements
     script:
-    cmd = 
-    """
-    
-    """
-    cmd
+        """
+        mkdir -p input/${well.relpath}
+        ln -s \$(pwd)/input_images/* input/${well.relpath}/
+
+        measure_intensity_features.py \
+        --input input \
+        --plate ${well.plate} \
+        --well ${well.well} \
+        --output ./
+        """
+    stub:
+        """
+        mkdir -p ${well.relpath}
+        touch ${well.relpath}/object_features.parquet
+        touch ${well.relpath}/image_features.parquet
+        """
 }
+
 
 
 // Process takes output of measure_intensity and stages it as a plate-level directory 

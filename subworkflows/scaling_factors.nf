@@ -13,12 +13,15 @@ workflow estimate_scaling_factors {
         plates
         manifest_registration_file
         cellpose_out
+        images_ready
         flatfield_out
         rn_autoscale
         rn_manualscale
         rn_manifest_registration
         rn_scale_slope
         rn_scale_bias
+        rn_control_list
+        rn_publish_dir
     main:
     
         // Get scaling string
@@ -77,8 +80,9 @@ workflow estimate_scaling_factors {
             // Final scaling
             demultiplex_channelstring = scaling_in.map{row -> row[1]}.collect().map({it.unique().join(" ")})
 
-            // Start running only if all the plate offsets have been calculated
-            scaling_channel = calculate_scaling_factors(cellpose_in.last(),
+            // Start running only once images_ready resolves (the caller passes a gate that only
+            // emits once the images calculate_scaling_factors reads from are fully written)
+            scaling_channel = calculate_scaling_factors(images_ready,
                 blacklist_file,
                 plates,
                 manifest_registration_file,

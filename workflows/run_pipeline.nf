@@ -127,29 +127,6 @@ workflow run_pipeline {
         }
         
         //------------------------------------------------------------
-        // Estimate scaling factors
-        //------------------------------------------------------------
-        estimate_scaling_factors(
-            manifest,
-            manifest_registration,
-            blacklist_file,
-            control_file,
-            plates,
-            manifest_registration_file,
-            cellpose_out,
-            flatfield_out,
-            params.rn_autoscale,
-            params.rn_manualscale,
-            params.rn_manifest_registration,
-            params.rn_scale_slope,
-            params.rn_scale_bias
-        )
-        
-        scaling_file = estimate_scaling_factors.out.scaling_file
-        slope_file = estimate_scaling_factors.out.slope_file
-        bias_file = estimate_scaling_factors.out.bias_file
-
-        //------------------------------------------------------------
         // Finalize
         //------------------------------------------------------------
 
@@ -219,22 +196,58 @@ workflow run_pipeline {
         // Cache the final images for feature extraction
         if (params.rn_cache_images) {
 
+            // Scaling factors are estimated from finalize's own unscaled output (or, for
+            // rn_scale_in_finalize, resolved directly from rn_manualscale) - handled
+            // internally by finalize_images, since it now depends on finalize's own output.
             finalize_images(finalize_in,
                         image_dir_file,
                         flatfield_out,
-                        scaling_file,
-                        slope_file,
-                        bias_file,
                         manifest_registration,
                         params.rn_scale_in_finalize,
-                        finalize_writes_scaled,
+                        params.rn_autoscale,
+                        params.rn_manualscale,
+                        params.rn_scale_slope,
+                        params.rn_scale_bias,
                         params.rn_make_cellcrops,
                         params.rn_manifest_registration,
-                        params.rn_publish_dir)
+                        params.rn_publish_dir,
+                        manifest,
+                        blacklist_file,
+                        control_file,
+                        plates,
+                        manifest_registration_file,
+                        cellpose_out,
+                        params.rn_control_list)
 
             finalize_images_and_masks = finalize_images.out.finalize_images_and_masks
+        } else if (params.cpr_run) {
+            // finalize_and_cellprofiler never persists a reusable unscaled image, so there's
+            // nothing to measure/estimate autoscale factors from here (enforced in
+            // checks.nf: rn_autoscale requires rn_cache_images) - only rn_manualscale works.
+            estimate_scaling_factors(
+                manifest,
+                manifest_registration,
+                blacklist_file,
+                control_file,
+                plates,
+                manifest_registration_file,
+                cellpose_out,
+                cellpose_out.last(), // images_ready - unused, rn_autoscale is always false here
+                flatfield_out,
+                params.rn_autoscale,
+                params.rn_manualscale,
+                params.rn_manifest_registration,
+                params.rn_scale_slope,
+                params.rn_scale_bias,
+                params.rn_control_list,
+                params.rn_publish_dir
+            )
+
+            scaling_file = estimate_scaling_factors.out.scaling_file
+            slope_file = estimate_scaling_factors.out.slope_file
+            bias_file = estimate_scaling_factors.out.bias_file
         }
-        
+
         //------------------------------------------------------------
         //                       Cellprofiler
         //------------------------------------------------------------
