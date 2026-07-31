@@ -4,10 +4,6 @@ include { index_imagedir } from '../processes/staging.nf'
 include { readBlacklist } from '../lib/utils.nf'
 include { checkParamsBase } from '../lib/checks.nf'
 
-import ManifestRecord
-import RegistrationRecord
-import Well
-
 workflow setup {
     
     take:
@@ -95,18 +91,18 @@ workflow setup {
         // Construct the channel on the well level
         // This was needed without the indexing step file(manifest_path)
         well_channel = manifests_in.flatMap{ manifest_path -> manifest_path.splitCsv(header:["well", "row", "col", "plate"], sep:"\t")}
-            .map( row -> new Well(well: row.well, row: row.row, col: row.col, plate: row.plate) )
+            .map{ row -> new Well(well: row.well, row: row.row, col: row.col, plate: row.plate) }
 
         // Filter blacklist. Blacklist read into arrat of <plate>:<well>
         if (params.rn_blacklist != null) {
             blacklist = readBlacklist(params.rn_blacklist)
-            well_channel = well_channel.filter(row -> {row.key !in blacklist})
+            well_channel = well_channel.filter{ row -> row.key !in blacklist }
         }
 
         // Filter to specific wells, usefull for testing
         if (params.rn_wells != null) {
             wells = params.rn_wells.split(",")
-            well_channel = well_channel.filter(row -> {row.well in wells})
+            well_channel = well_channel.filter{ row -> row.well in wells }
         }
 
         // Add the plate for easier combining later

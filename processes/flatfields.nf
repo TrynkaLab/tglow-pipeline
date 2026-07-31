@@ -7,7 +7,7 @@ process estimate_flatfield {
     conda params.tg_conda_env
     container params.tg_container
 
-    storeDir "${params.rn_publish_dir}/flatfields/${plate}" //, mode: 'copy'
+    storeDir { "${params.rn_publish_dir}/flatfields/${plate}" } //, mode: 'copy'
 
     input:
         tuple val(key), val(cycle), val(plate), val(plates), val(img_channel), val(pe_index)
@@ -102,7 +102,7 @@ process stage_global_flatfield {
     conda params.tg_conda_env
     container params.tg_container
     
-    storeDir "${params.rn_publish_dir}/flatfields/${plate}/" //, mode: 'copy'
+    storeDir { "${params.rn_publish_dir}/flatfields/${plate}/" } //, mode: 'copy'
     //publishDir "${params.rn_publish_dir}/flatfields/${plate}", mode: 'copy'
     
     input:

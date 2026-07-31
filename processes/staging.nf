@@ -41,7 +41,7 @@ process fetch_raw {
 process prepare_manifest {
     label 'tiny_img'
     conda params.tg_conda_env
-    storeDir "${params.rn_image_dir}/${plate}"
+    storeDir { "${params.rn_image_dir}/${plate}" }
     
     input:
         tuple val(plate), val(index_xml)
@@ -79,7 +79,7 @@ process index_images {
     
     //storeDir "${params.rn_publish_dir}/$input_dir/", saveAs: { filename -> filename.split('/')[-1] }
     //storeDir "${params.rn_publish_dir}/$input_dir"
-    publishDir "${params.rn_publish_dir}/$input_dir", mode: "copy"
+    publishDir { "${params.rn_publish_dir}/$input_dir" }, mode: "copy"
     input:
         val previous_completed
         val input_dir
@@ -109,7 +109,7 @@ process index_imagedir {
     conda params.tg_conda_env
     container params.tg_container
     
-    storeDir "${input_dir}"
+    storeDir { "${input_dir}" }
     
     input:
         val input_dir

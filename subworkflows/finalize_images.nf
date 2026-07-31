@@ -5,8 +5,6 @@ include { measure_intensity; stage_as_plate } from '../processes/intensity.nf'
 include { index_images as index_unscaled; index_images as index_scaled } from '../processes/staging.nf'
 include { estimate_scaling_factors } from './scaling_factors.nf'
 
-import RegistrationRecord
-
 // Finalizes and caches images for feature extraction (rn_cache_images).
 //
 // Normal flow (rn_scale_in_finalize=false): finalize writes unscaled images to
@@ -157,7 +155,7 @@ workflow finalize_images {
                 .flatMap{ manifest_path -> file(manifest_path)
                 .splitCsv(header:["ref_plate", "plate", "cycle", "channel", "name", "orig_channel", "orig_name"], sep:"\t")
                 }
-                .map(row -> tuple(row.plate + ":" + row.orig_channel, row.channel))
+                .map{ row -> tuple(row.plate + ":" + row.orig_channel, row.channel) }
 
                 // Create a new registration channel where the channel has been updated to the post-registration channel index
                 manifest_registration_updated = manifest_registration
@@ -175,18 +173,18 @@ workflow finalize_images {
                     return result
                 }
                 .combine(channel_map, by: 0)
-                .map(row -> tuple(row[1], row[2], row[3], row[5]))
+                .map{ row -> tuple(row[1], row[2], row[3], row[5]) }
                 .groupTuple(by: 0)
-                .map(row -> new RegistrationRecord(row[0].getGroupTarget(), row[1][0], row[2].findAll(), row[3].findAll{ idx -> row[2][row[3].indexOf(idx)] != null})) // findall removes the null (refplates) so they are not treated as qry
+                .map{ row -> new RegistrationRecord(row[0].getGroupTarget(), row[1][0], row[2].findAll(), row[3].findAll{ idx -> row[2][row[3].indexOf(idx)] != null}) } // findall removes the null (refplates) so they are not treated as qry
 
                 // Create the cellcrop input channel with the updated registration record that has the registered channel indices to correlate
                 cellcrop_in = finalize_images_and_masks
-                .map(row -> tuple(row[0].plate, row[0], row[1], row[2]))
-                .combine(manifest_registration_updated.map(row -> tuple(row.ref_plate, row)), by: 0)
-                .map(row -> tuple(row[1], row[4], row[2], row[3]))
+                .map{ row -> tuple(row[0].plate, row[0], row[1], row[2]) }
+                .combine(manifest_registration_updated.map{ row -> tuple(row.ref_plate, row) }, by: 0)
+                .map{ row -> tuple(row[1], row[4], row[2], row[3]) }
             } else {
                 // No registration, just pass through, setting registration to null
-                cellcrop_in = finalize_images_and_masks.map(row -> tuple(row[0], null, row[1], row[2]))
+                cellcrop_in = finalize_images_and_masks.map{ row -> tuple(row[0], null, row[1], row[2]) }
             }
 
             // Create cellcrops

@@ -3,9 +3,6 @@
 include { parseManifestFlatfields } from '../lib/utils.nf'
 include { estimate_flatfield; stage_global_flatfield } from '../processes/flatfields.nf'
 
-import ManifestRecord
-import RegistrationRecord
-
 workflow flatfield_estimation {
     
     take:
@@ -38,7 +35,7 @@ workflow flatfield_estimation {
             if (rn_manifest_registration) {                
                 // Create a flat [<plate> <cycle>] channel
                 plate_cycle = manifest_registration
-                .map{row -> [row.ref_plate, *row.qry_plates]}
+                .map{row -> [row.ref_plate] + row.qry_plates}
                 .flatMap { row -> row.withIndex().collect { item, index ->[item, index] }}
                 
 
@@ -51,7 +48,7 @@ workflow flatfield_estimation {
                 // key, cycle, plate, plate(s), channel, index xml
                 flatfield_in_global = per_cycle
                 .combine(manifest.map{row -> tuple(row.plate, row)}, by:0)
-                .flatMap(row -> row[3].bp_channels.collect{channel -> tuple(row[1] + ":" + channel.toString(), row[1], row[2][0], row[2], channel, row[3].index_xml)}) 
+                .flatMap{ row -> row[3].bp_channels.collect{channel -> tuple(row[1] + ":" + channel.toString(), row[1], row[2][0], row[2], channel, row[3].index_xml)} }
                                 
                 // These have already been converted to zero indexed
                 flatfield_in = flatfield_in

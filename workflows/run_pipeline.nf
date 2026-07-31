@@ -1,4 +1,5 @@
 #!/usr/bin/env nextflow
+include { validateParameters } from 'plugin/nf-schema'
 
 // Processes
 include { convertChannelType } from '../lib/utils.nf'
@@ -18,7 +19,10 @@ include { finalize_images } from "../subworkflows/finalize_images.nf"
 workflow run_pipeline {
 
     main:
-    
+
+        // Validate parameters plugin
+        validateParameters()
+
         // ------------------------------------------------------------
         // Check parameters
         checkParamsMain(params)
@@ -65,19 +69,19 @@ workflow run_pipeline {
             
             decon_in = well_channel
             .combine(manifest.map{row -> tuple(row.plate, row)}, by: 0)
-            .filter(row -> {row[2].dc_channels != "none"})
+            .filter{ row -> row[2].dc_channels != "none" }
             .map{ row -> tuple(
                 row[1], // Well
                 row[2], // Manifest
-                row[2].dc_channels.collect(it -> {it.toString() + "=" + new File(row[2].dc_psfs[it]).getName()}).sort().join(" "), // String for channel file pairs
-                row[2].dc_psfs.collect(it -> file(it)), // The psf files
+                row[2].dc_channels.collect{ it -> it.toString() + "=" + new File(row[2].dc_psfs[it]).getName() }.sort().join(" "), // String for channel file pairs
+                row[2].dc_psfs.collect{ it -> file(it) }, // The psf files
                 file(params.rn_image_dir + "/" + row[1].relpath) // The image files
             )}
-            
+
             // A channel of Well, ManifestRecord, path to images
             decon_out = deconvolute(decon_in)
 
-            cellpose_in = decon_out.filter(row -> {row[1].cp_cell_channel != "none"})
+            cellpose_in = decon_out.filter{ row -> row[1].cp_cell_channel != "none" }
 
             // The image dir is now the decon output
             image_dir_file = file(params.rn_decon_dir)
@@ -85,7 +89,7 @@ workflow run_pipeline {
             // Channel of Well, ManifestRecord, path to images
             cellpose_in = well_channel
             .combine(manifest.map{row -> tuple(row.plate, row)}, by: 0)
-            .filter(row -> {row[2].cp_cell_channel != "none"})
+            .filter{ row -> row[2].cp_cell_channel != "none" }
             .map{row -> tuple(row[1], row[2], file(params.rn_image_dir + "/" + row[1].relpath))} 
         }
         
@@ -105,7 +109,7 @@ workflow run_pipeline {
             
             // Filter cellpose channel to run reference plates only 
             // Channel of Well, ManifestRecord, path to images
-            cellpose_in = cellpose_in.map(row -> tuple(row[0].plate, row))
+            cellpose_in = cellpose_in.map{ row -> tuple(row[0].plate, row) }
             .combine(manifest_registration.map{row -> tuple(row.ref_plate, row)}, by: 0)
             .map{ row -> tuple(row[1])}
              
@@ -152,12 +156,12 @@ workflow run_pipeline {
             image_input = decon_out
                 .map{row -> tuple(row[0].plate, row[0], row[1], row[2])}
                 .combine(qry_ref, by: 0)
-                .map(row -> tuple(groupKey(row[4] + ":" + row[1].well, row[4].getGroupSize()), row[0], row[1], row[2], row[3])) // ref plate, plate, well, manifest, path
+                .map{ row -> tuple(groupKey(row[4] + ":" + row[1].well, row[4].getGroupSize()), row[0], row[1], row[2], row[3]) } // ref plate, plate, well, manifest, path
                 .groupTuple(by: 0)
-                .map(row -> tuple(row[0].getGroupTarget(), row[1]))
+                .map{ row -> tuple(row[0].getGroupTarget(), row[1]) }
         } else {
             // Generates a channel, ref_plate:well, [plates]
-            image_input = cellpose_in.map(row -> tuple(row[0].key, row[1].plate)) // key, cycle plates
+            image_input = cellpose_in.map{ row -> tuple(row[0].key, row[1].plate) } // key, cycle plates
         }
         
         //--------------------------------------------------------------------
@@ -165,7 +169,7 @@ workflow run_pipeline {
         // key, Well, ManifestRecord, cell masks, nucl masks,
         if (params.cp_run) {
             finalize_in = cellpose.out
-                .map(row -> tuple(row[0].key, row[0], row[1], row[2], row[3]))
+                .map{ row -> tuple(row[0].key, row[0], row[1], row[2], row[3]) }
                 .combine(image_input, by:0)
                 
             //--------------------------------------------------------------------

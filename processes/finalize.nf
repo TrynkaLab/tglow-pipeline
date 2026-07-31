@@ -19,7 +19,7 @@ process finalize {
     output:
         tuple val(well), path("{scaled,unscaled}/${well.relpath}/*.tiff"), emit: processed_output
         tuple val(well), path("masks/${well.relpath}/*.tiff"), emit: mask_output
-        path "${well.plate}/channel_indices.tsv", emit: channel_indices
+        path "{scaled,unscaled}/${well.plate}/channel_indices.tsv", emit: channel_indices
     script:
         // Whether scaling is actually being applied in this task determines which
         // output subdir the images land in - lets callers get direct-to-scaled output
@@ -127,13 +127,15 @@ process finalize {
         
         cmd
     stub:
-        img_subdir = (scaling_file.name != "NO_SCALE") ? "scaled" : "unscaled"
+        apply_scaling = (params.rn_manualscale != null | params.rn_autoscale) & scaling_file.name != "NO_SCALE"
+        img_subdir = apply_scaling ? "scaled" : "unscaled"
         """
         mkdir -p ${img_subdir}/${well.relpath}
         touch ${img_subdir}/${well.relpath}/${well.plate}_${well.well}_ch0.tiff
         mkdir -p masks/${well.relpath}
         touch masks/${well.relpath}/${well.plate}_${well.well}_cell_mask_d00_ch0_cp_masks.tiff
-        touch channel_indices.tsv
+        mkdir -p ${img_subdir}/${well.plate}
+        touch ${img_subdir}/${well.plate}/channel_indices.tsv
         """
 }
 
@@ -221,8 +223,14 @@ process cellcrops {
     if (registration != null) {
         cmd += "--ref_channel ${registration.ref_channel} --qry_channels ${registration.qry_channels.join(" ")}"
     }
-    
+
     cmd
+    stub:
+        """
+        mkdir -p ${well.relpath}
+        touch ${well.relpath}/1.h5
+        touch ${well.relpath}/1.csv
+        """
 }
 
 process index_cellcrops {
@@ -246,6 +254,10 @@ process index_cellcrops {
     # Append all CSV files without their headers
     find input_cellcrops/ -name "*.csv" -type f -print0 | xargs -0 tail -q -n+2 >> cellcrop_index.csv
     
-    gzip -f cellcrop_index.csv    
+    gzip -f cellcrop_index.csv
     """
+    stub:
+        """
+        touch cellcrop_index.csv.gz
+        """
 }

@@ -1,10 +1,14 @@
 #!/usr/bin/env nextflow
+include { validateParameters } from 'plugin/nf-schema'
 include { prepare_manifest; fetch_raw } from '../processes/staging.nf'
 
 
 // Workflow to stage the data from NFS to lustre
 workflow stage {
     main:
+        // Validate parameters plugin
+        validateParameters()
+
         //------------------------------------------------------------
         if (params.rn_publish_dir == null) {
             error "rn_publish_dir file parameter is required: --rn_publish_dir"
@@ -33,14 +37,14 @@ workflow stage {
         well_channel = manifests_in.flatMap{ manifest_path -> file(manifest_path).splitCsv(header:["well", "row", "col", "plate", "index_xml"], sep:"\t") }
 
         // tuple val(key), val(plate), val(well), val(row), val(col), val(index_xml)
-        well_channel = well_channel.map(row -> {tuple(
+        well_channel = well_channel.map{ row -> tuple(
             row.plate + ":" + row.well,
             row.plate,
             row.well,
             row.row,
             row.col,
             row.index_xml
-        )})
+        ) }
         
 
         // Filter blacklist
@@ -55,9 +59,7 @@ workflow stage {
             
             log.info("Blacklist consists of items: " + blacklist)
             
-            well_channel=well_channel.filter(row -> {
-                row[0] !in blacklist       
-            })
+            well_channel=well_channel.filter{ row -> row[0] !in blacklist }
             
         }
                 

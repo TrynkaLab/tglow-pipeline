@@ -1,8 +1,5 @@
 #!/usr/bin/env nextflow
 
-import Well
-import ManifestRecord
-
 // Deconvolute
 process deconvolute {
     //label 'gpu_midmem'

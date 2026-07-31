@@ -20,7 +20,7 @@ The following readme gives a high level overview, for more detailed guide please
 - stage: prepare and standardize raw images into a well/field-organized OME-TIFF layout with metadata.
 - run_pipeline: perform image processing and feature extraction on the staged images.
 
-Both stages are implemented as Nextflow workflows and can be run independently using `-entry stage|run_pipeline`. 
+Both stages are implemented as Nextflow workflows and can be run independently using `--workflow stage|run_pipeline`. 
 
 <img src="docs/workflow.png" style="width:50%; height:auto;">
 
@@ -113,7 +113,7 @@ run </path/to/main.nf> \
 -profile <your profile> \
 -w ../workdir \
 -resume \
--entry stage \
+--workflow stage \
 -with-report logs/stage.nextflow.html \
 -with-trace logs/stage.nextflow.trace \
 -c my_config.config"
@@ -127,7 +127,7 @@ run </path/to/main.nf> \
 -profile <your profile> \
 -w ../workdir \
 -resume \
--entry run_pipeline \
+--workflow run_pipeline \
 -with-report logs/run_pipeline.nextflow.html \
 -with-trace logs/run_pipeline.nextflow.trace \
 -c my_config.config"

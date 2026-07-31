@@ -11,7 +11,7 @@ process measure_intensity {
     conda params.tg_conda_env
     container params.tg_container
 
-    storeDir "$params.rn_publish_dir/scaling/measurements/$outdir"
+    storeDir { "$params.rn_publish_dir/scaling/measurements/$outdir" }
     scratch params.rn_scratch
 
     input:
@@ -48,7 +48,7 @@ process stage_as_plate {
     label "tiny"
 
     input:
-        tuple val(plate), path(features, stageAs: "${plate}/*")
+        tuple val(plate), path(features, stageAs: { "$plate/*" })
     output:
         tuple val(plate), path("${plate}/")
     script:

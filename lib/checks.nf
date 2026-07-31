@@ -25,6 +25,7 @@ def checkParamsMain(params) {
     if (params.rn_make_cellcrops && !params.rn_cache_images) {
         error("rn_cache_images must be true when rn_make_cellcrops is true")
     }
+    
 
     // Check cellpose is run
     if ((!params.cp_run && params.rn_cache_images) || (!params.cp_run && params.cpr_run)) {
@@ -99,6 +100,8 @@ def checkParamsScaling(params) {
             error("Specified control list file does not exist or is not readable")
         }
     }
+    
+    
 
     // calculate_scaling_factors always merges against controls for both plate-offset and
     // sigmoid fitting, so rn_autoscale now requires rn_control_list (and a channel_map)
@@ -111,6 +114,10 @@ def checkParamsScaling(params) {
         }
         if (!file(params.rn_channel_map).exists()) {
             error("Specified channel map file does not exist or is not readable")
+        }
+        
+        if (!params.rn_cache_images) {
+            error("Autoscaling is set to true, but image caching is disabled. Please set params.rn_cache_images=true")
         }
     }
 
@@ -169,7 +176,7 @@ def checkParamsCpr(params) {
                 error("Running in hybrid or 2d mode with cpr_run=true, but cpr_pipeline_2d is not set")
             }
             if (!file(params.cpr_pipeline_2d).exists()) {
-                error("Specified cellprofiler pipeline is not accessible")
+                error("Specified 2d cellprofiler pipeline is not accessible")
             }
             if (params.cpr_pipeline_3d != null) {
                 log.warn "cpr_pipeline_3d is set but running in hybrid/2d mode - cpr_pipeline_3d will be ignored"
@@ -179,7 +186,7 @@ def checkParamsCpr(params) {
                 error("Running in 3d mode with cpr_run=true, but cpr_pipeline_3d is not set")
             }
             if (!file(params.cpr_pipeline_3d).exists()) {
-                error("Specified cellprofiler pipeline is not accessible")
+                error("Specified 3d cellprofiler pipeline is not accessible")
             }
             if (params.cpr_pipeline_2d != null) {
                 log.warn "cpr_pipeline_2d is set but running in 3d mode - cpr_pipeline_2d will be ignored"
