@@ -1,21 +1,22 @@
 #!/usr/bin/env python
 
 """Calculate per-plate/per-channel scaling factors and sigmoid soft-threshold
-parameters from cell- and image-level feature h5ads.
+parameters from cell- and image-level intensity feature parquet files.
 
 Python translation of scaling_script.r. See scaling_script.md for the input
-format this expects (h5ads instead of a tglow object, channel map and control
-list as input files instead of being baked into the tglow object).
+format this expects (per-plate parquet directories - produced by measure_intensity
++ stage_as_plate - instead of a tglow object, channel map and control list as
+input files instead of being baked into the tglow object).
 """
 
 import argparse
+import glob
 import logging
+import os
 
 import numpy as np
 import pandas as pd
-import anndata as ad
 
-from tglow.io.image_query import ImageQuery
 from tglow.utils.tglow_utils import sigmoid_params
 
 logging.basicConfig(format='%(asctime)s %(message)s')
@@ -80,22 +81,25 @@ def load_channel_map(path):
     return channel_map
 
 
-def get_feature_series(adata, feature):
-    """Extract a single feature column from adata.X as a dense 1D array."""
-    idx = adata.var_names.get_loc(feature)
-    col = adata.X[:, idx]
-
-    if hasattr(col, "toarray"):
-        col = col.toarray()
-
-    return np.asarray(col).ravel()
+def get_feature_series(df, feature):
+    """Extract a single feature column as a dense 1D array."""
+    return df[feature].to_numpy()
 
 
-def build_well_column(obs, row_col, col_col):
-    """Build 'A01'-style well ids from row/col columns, matching ImageQuery.get_well_id()."""
-    row_letter = obs[row_col].astype(int).astype(str).map(ImageQuery.ID_TO_ROW)
-    col_str = obs[col_col].astype(int).astype(str).str.zfill(2)
-    return row_letter + col_str
+def load_measurements(input_dir, name_fragment):
+    """Concatenate <input_dir>/<plate>/*<name_fragment>*.parquet across every plate.
+
+    input_dir is the directory of per-plate subdirectories produced by stage_as_plate,
+    each containing that plate's wells' object_features.parquet/image_features.parquet
+    (auto-disambiguated by Nextflow's staging, but that doesn't matter here - every
+    parquet file already carries its own plate/row/col/field/well columns).
+    """
+    paths = sorted(glob.glob(os.path.join(input_dir, "*", f"*{name_fragment}*.parquet")))
+
+    if not paths:
+        raise RuntimeError(f"No {name_fragment} parquet files found under {input_dir}")
+
+    return pd.concat([pd.read_parquet(p) for p in paths], ignore_index=True)
 
 
 def build_scaling_index(channel_map, plates):
@@ -108,9 +112,9 @@ def build_scaling_index(channel_map, plates):
     return scaling_index
 
 
-def compute_dynamic_range(scaling_index, channel_map, cell_adata, plate_col, q2):
+def compute_dynamic_range(scaling_index, channel_map, cell_df, plate_col, q2):
     """Per channel: total and per-plate quantile(q2) of the dynamic-range feature (R lines 147-168)."""
-    plates_series = cell_adata.obs[plate_col].astype(str)
+    plates_series = cell_df[plate_col].astype(str)
 
     for _, ch_row in channel_map.iterrows():
         channel = ch_row["channel"]
@@ -122,7 +126,7 @@ def compute_dynamic_range(scaling_index, channel_map, cell_adata, plate_col, q2)
             scaling_index.loc[mask, "max_scale_plate"] = 1.0
             continue
 
-        values = get_feature_series(cell_adata, feature)
+        values = get_feature_series(cell_df, feature)
         df = pd.DataFrame({"plate": plates_series.values, feature: values})
 
         scaling_index.loc[mask, "max_scale_total"] = df[feature].quantile(q2)
@@ -146,12 +150,14 @@ def load_controls(path):
     return controls
 
 
-def _merge_controls(obs, controls, plate_col, row_col, col_col):
+def _merge_controls(obs, controls, plate_col):
     """Inner-merge controls onto obs via plate+well, returning only matching (control) rows.
 
     Preserves obs's original row index (merge() would otherwise reset it),
-    since callers use this index to select back into the source AnnData's
-    feature arrays.
+    since callers use this index to select back into the source feature dataframe.
+
+    obs is expected to already carry a "well" column (e.g. "A01") - measure_intensity's
+    parquet output always includes one, so no row/col reconstruction is needed here.
 
     control_population matching against control_type is intentionally not
     implemented yet (see scaling_script.md) -- every row present in the
@@ -159,7 +165,6 @@ def _merge_controls(obs, controls, plate_col, row_col, col_col):
     """
     df = obs.copy()
     df["plate"] = df[plate_col].astype(str)
-    df["well"] = build_well_column(df, row_col, col_col)
     df["_obs_index"] = df.index
 
     merged = df.merge(controls, on=["plate", "well"], how="inner", suffixes=(None, "_control"))
@@ -184,7 +189,7 @@ def apply_skip_plate_offsets(scaling_index, channel_map):
     return scaling_index
 
 
-def compute_plate_offsets(scaling_index, channel_map, cell_adata, controls_merged, plate_col):
+def compute_plate_offsets(scaling_index, channel_map, cell_df, controls_merged, plate_col):
     """Per channel: plate offsets from control-cell means (R lines 173-224)."""
     for _, ch_row in channel_map.iterrows():
         channel = ch_row["channel"]
@@ -196,11 +201,11 @@ def compute_plate_offsets(scaling_index, channel_map, cell_adata, controls_merge
             scaling_index.loc[mask, "plate_offset"] = 1.0
             continue
 
-        values = get_feature_series(cell_adata, feature)
+        values = get_feature_series(cell_df, feature)
         cur_df = pd.DataFrame({
-            "plate": cell_adata.obs[plate_col].astype(str).values,
+            "plate": cell_df[plate_col].astype(str).values,
             feature: values,
-        }, index=cell_adata.obs.index).loc[controls_merged.index]
+        }, index=cell_df.index).loc[controls_merged.index]
 
         ncells = cur_df.dropna(subset=[feature]).groupby("plate").size()
         plate_means = cur_df.groupby("plate")[feature].mean()
@@ -256,7 +261,7 @@ def apply_skip_scaling(scaling_index, channel_map):
     return scaling_index
 
 
-def compute_sigmoid_params(scaling_index, channel_map, image_adata, controls_merged, plate_col, sigmoid_tol, uint_max):
+def compute_sigmoid_params(scaling_index, channel_map, image_df, controls_merged, plate_col, sigmoid_tol, uint_max):
     """Per channel: fit sigmoid bias/slope from control-image lower/upper quantiles (R lines 236-292)."""
     for _, ch_row in channel_map.iterrows():
         channel = ch_row["channel"]
@@ -275,14 +280,14 @@ def compute_sigmoid_params(scaling_index, channel_map, image_adata, controls_mer
             scaling_index.loc[mask, "sigmoid_x2"] = 1
             continue
 
-        lower_values = get_feature_series(image_adata, lower_feature)
-        upper_values = get_feature_series(image_adata, upper_feature)
+        lower_values = get_feature_series(image_df, lower_feature)
+        upper_values = get_feature_series(image_df, upper_feature)
 
         cur_df = pd.DataFrame({
-            "plate": image_adata.obs[plate_col].astype(str).values,
+            "plate": image_df[plate_col].astype(str).values,
             "lower": lower_values,
             "upper": upper_values,
-        }, index=image_adata.obs.index).loc[controls_merged.index]
+        }, index=image_df.index).loc[controls_merged.index]
 
         lower_q = cur_df.groupby("plate")["lower"].quantile(0.95) * uint_max
         upper_q = cur_df.groupby("plate")["upper"].median() * uint_max
@@ -356,10 +361,9 @@ def write_outputs(scaling_index, output_dir):
 def main():
     parser = argparse.ArgumentParser(
         description="Calculate per-plate/per-channel scaling factors and sigmoid parameters "
-                    "from cell- and image-level feature h5ads."
+                    "from cell- and image-level intensity feature parquet files."
     )
-    parser.add_argument("--cell_h5ad", required=True, help="Path to cell-level features h5ad")
-    parser.add_argument("--image_h5ad", required=True, help="Path to image-level features h5ad")
+    parser.add_argument("--input", required=True, help="Directory of per-plate subdirs, each holding that plate's object_features.parquet/image_features.parquet (as produced by measure_intensity + stage_as_plate)")
     parser.add_argument("--channel_map", required=True, help="TSV describing the channel layout, extended with rep_features_*/control_population columns")
     parser.add_argument("--controls", required=True, help="TSV with <plate> <well> <control_type> columns")
     parser.add_argument("--output", required=True, help="Output directory")
@@ -367,31 +371,27 @@ def main():
     parser.add_argument("--sigmoid_tol", type=float, default=1e-3, help="Sigmoid tolerance for scale_lower/upper fit")
     parser.add_argument("--uint_max", type=int, default=65535, help="Max value of the raw intensity range")
     parser.add_argument("--plate_col", default="plate")
-    parser.add_argument("--row_col", default="row")
-    parser.add_argument("--col_col", default="col")
-    parser.add_argument("--field_col", default="field")
-    parser.add_argument("--cell_col", default="cell_number")
     args = parser.parse_args()
 
     channel_map = load_channel_map(args.channel_map)
     controls = load_controls(args.controls)
 
-    cell_adata = ad.read_h5ad(args.cell_h5ad)
-    image_adata = ad.read_h5ad(args.image_h5ad)
+    cell_df = load_measurements(args.input, "object_features")
+    image_df = load_measurements(args.input, "image_features")
 
-    plates = sorted(set(cell_adata.obs[args.plate_col].astype(str)) | set(image_adata.obs[args.plate_col].astype(str)))
+    plates = sorted(set(cell_df[args.plate_col].astype(str)) | set(image_df[args.plate_col].astype(str)))
     log.info(f"Found {len(plates)} plates: {plates}")
 
     scaling_index = build_scaling_index(channel_map, plates)
 
-    scaling_index = compute_dynamic_range(scaling_index, channel_map, cell_adata, args.plate_col, args.q2)
+    scaling_index = compute_dynamic_range(scaling_index, channel_map, cell_df, args.plate_col, args.q2)
 
-    cell_controls = _merge_controls(cell_adata.obs, controls, args.plate_col, args.row_col, args.col_col)
-    scaling_index = compute_plate_offsets(scaling_index, channel_map, cell_adata, cell_controls, args.plate_col)
+    cell_controls = _merge_controls(cell_df, controls, args.plate_col)
+    scaling_index = compute_plate_offsets(scaling_index, channel_map, cell_df, cell_controls, args.plate_col)
     scaling_index = apply_skip_scaling(scaling_index, channel_map)
 
-    image_controls = _merge_controls(image_adata.obs, controls, args.plate_col, args.row_col, args.col_col)
-    scaling_index = compute_sigmoid_params(scaling_index, channel_map, image_adata, image_controls, args.plate_col, args.sigmoid_tol, args.uint_max)
+    image_controls = _merge_controls(image_df, controls, args.plate_col)
+    scaling_index = compute_sigmoid_params(scaling_index, channel_map, image_df, image_controls, args.plate_col, args.sigmoid_tol, args.uint_max)
     scaling_index = fill_missing_sigmoid(scaling_index)
     scaling_index = compute_channel_medians(scaling_index)
 

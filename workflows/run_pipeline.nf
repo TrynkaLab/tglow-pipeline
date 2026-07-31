@@ -211,13 +211,8 @@ workflow run_pipeline {
                         params.rn_make_cellcrops,
                         params.rn_manifest_registration,
                         params.rn_publish_dir,
-                        manifest,
-                        blacklist_file,
-                        control_file,
-                        plates,
-                        manifest_registration_file,
-                        cellpose_out,
-                        params.rn_control_list)
+                        params.rn_control_list,
+                        params.rn_channel_map)
 
             finalize_images_and_masks = finalize_images.out.finalize_images_and_masks
         } else if (params.cpr_run) {
@@ -225,22 +220,14 @@ workflow run_pipeline {
             // nothing to measure/estimate autoscale factors from here (enforced in
             // checks.nf: rn_autoscale requires rn_cache_images) - only rn_manualscale works.
             estimate_scaling_factors(
-                manifest,
-                manifest_registration,
-                blacklist_file,
-                control_file,
-                plates,
-                manifest_registration_file,
-                cellpose_out,
                 cellpose_out.last(), // images_ready - unused, rn_autoscale is always false here
-                flatfield_out,
+                Channel.value([]),   // plate_dirs - unused, rn_autoscale is always false here
                 params.rn_autoscale,
                 params.rn_manualscale,
-                params.rn_manifest_registration,
                 params.rn_scale_slope,
                 params.rn_scale_bias,
                 params.rn_control_list,
-                params.rn_publish_dir
+                params.rn_channel_map
             )
 
             scaling_file = estimate_scaling_factors.out.scaling_file

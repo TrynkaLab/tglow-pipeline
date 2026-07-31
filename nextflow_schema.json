@@ -25,9 +25,15 @@
         },
         "rn_control_list": {
           "type": "string",
-          "description": "Control file to use to calculate plate offsets based on control cells for each channel <plate> <well> <channels> <name> plate1 A10 1,2,3 controlA plate1 B10 1,2,3 controlA plate1 C10 1,2,3 controlA plate1 D11 5,6,7 controlB plate1 D12 5,6,7 controlB",
+          "description": "Controls file used by calculate_scaling_factors (rn_autoscale) to derive plate offsets and sigmoid bias/slope from control wells. <plate> <well> <control_type> plate1 A10 controlA plate1 B10 controlA plate1 D11 controlB. Required (along with rn_channel_map) when rn_autoscale is true.",
           "format": "file-path",
           "mimetype": "text/csv"
+        },
+        "rn_channel_map": {
+          "type": "string",
+          "description": "Channel map TSV for calculate_scaling_factors (rn_autoscale) - extends channel_indices.tsv with rep_features_dynamic/rep_features_offset/rep_features_scale_lower/rep_features_scale_upper/control_population columns (and optional skip_scaling/skip_sigmoid/skip_plate_offsets booleans) describing which measured intensity feature to use for each channel's dynamic range / plate offset / sigmoid fit. Required (along with rn_control_list) when rn_autoscale is true.",
+          "format": "file-path",
+          "mimetype": "text/tab-separated-values"
         },
         "rn_manifest_well": {
           "type": "string",

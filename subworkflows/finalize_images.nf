@@ -1,7 +1,7 @@
 #!/usr/bin/env nextflow
 
 include { finalize; rescale; index_cellcrops; cellcrops } from '../processes/finalize.nf'
-include { measure_intensity } from '../processes/scaling.nf'
+include { measure_intensity; stage_as_plate } from '../processes/intensity.nf'
 include { index_images as index_unscaled; index_images as index_scaled } from '../processes/staging.nf'
 include { estimate_scaling_factors } from './scaling_factors.nf'
 
@@ -34,15 +34,10 @@ workflow finalize_images {
         rn_make_cellcrops
         rn_manifest_registration
         rn_publish_dir
-        // Ingredients for estimating scaling factors from the unscaled finalized images
-        // (only used when rn_scale_in_finalize is false)
-        manifest
-        blacklist_file
-        control_file
-        plates
-        manifest_registration_file
-        cellpose_out
+        // Ingredients for estimating autoscale factors from the measured unscaled images
+        // (only used when rn_autoscale is true)
         rn_control_list
+        rn_channel_map
 
     main:
 
@@ -89,29 +84,30 @@ workflow finalize_images {
         //------------------------------------------------------------------------
         if (!rn_scale_in_finalize && run_scaling) {
             if (rn_autoscale) {
-                // Auto scaling
+                // Auto scaling: aggregate per-well parquet output into one directory per
+                // plate before handing off to calculate_scaling_factors, so Nextflow
+                // doesn't have to stage a well-level filelist that can run into the
+                // thousands of files for a large plate
+                plate_measurements = stage_as_plate(
+                    measure_intensity.out.measurements
+                        .map{row -> tuple(row[0].plate, row[1])}
+                        .groupTuple(by: 0)
+                )
+
                 estimate_scaling_factors(
-                    manifest,
-                    manifest_registration,
-                    blacklist_file,
-                    control_file,
-                    plates,
-                    manifest_registration_file,
-                    cellpose_out,
                     finalize_out.processed_output.last(),
-                    flatfield_out,
+                    plate_measurements.map{row -> row[1]}.collect(),
                     rn_autoscale,
                     rn_manualscale,
-                    rn_manifest_registration,
                     rn_scale_slope,
                     rn_scale_bias,
                     rn_control_list,
-                    rn_publish_dir
+                    rn_channel_map
                 )
                 scaling_file = estimate_scaling_factors.out.scaling_file
                 slope_file = estimate_scaling_factors.out.slope_file
                 bias_file = estimate_scaling_factors.out.bias_file
-            else if (rn_manualscale != null){
+            } else if (rn_manualscale != null){
                 // Manual scaling
                 scaling_file = file(rn_manualscale)
                 slope_file = (rn_scale_slope != null) ? file(rn_scale_slope) : file("NO_SLOPE")

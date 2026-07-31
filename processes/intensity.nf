@@ -44,12 +44,25 @@ process measure_intensity {
 // for downstream processing. 
 // This is to reduce the length of the filelist NF needs to stage at any given time
 process stage_as_plate {
-    
+
     label "tiny"
-    
+
     input:
         tuple val(plate), path(features, stageAs: "${plate}/*")
     output:
         tuple val(plate), path("${plate}/")
-    
+    script:
+        // features are already staged into ${plate}/ via the stageAs directive above
+        // (Nextflow auto-disambiguates the same-named object/image_features.parquet files
+        // coming from different wells) - this process just collapses the per-well parquet
+        // filelist into a single plate-level directory channel item.
+        """
+        echo "Staged \$(ls ${plate}/ | wc -l) files for plate ${plate}"
+        """
+    stub:
+        """
+        mkdir -p ${plate}
+        touch ${plate}/stub_object_features.parquet
+        touch ${plate}/stub_image_features.parquet
+        """
 }

@@ -99,7 +99,22 @@ def checkParamsScaling(params) {
             error("Specified control list file does not exist or is not readable")
         }
     }
-    
+
+    // calculate_scaling_factors always merges against controls for both plate-offset and
+    // sigmoid fitting, so rn_autoscale now requires rn_control_list (and a channel_map)
+    if (params.rn_autoscale) {
+        if (params.rn_control_list == null) {
+            error("rn_autoscale requires rn_control_list to be set - calculate_scaling_factors needs it to derive plate offsets and sigmoid bias/slope")
+        }
+        if (params.rn_channel_map == null) {
+            error("rn_autoscale requires rn_channel_map to be set - calculate_scaling_factors needs it to know which measured feature to use per channel")
+        }
+        if (!file(params.rn_channel_map).exists()) {
+            error("Specified channel map file does not exist or is not readable")
+        }
+    }
+
+
     // Check manual scale
     if (params.rn_manualscale != null) {
         if (!file(params.rn_manualscale).exists()) {
