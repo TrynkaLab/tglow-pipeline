@@ -14,8 +14,6 @@ include { flatfield_estimation } from "../subworkflows/flatfield_estimation.nf"
 include { estimate_scaling_factors } from "../subworkflows/scaling_factors.nf"
 include { finalize_images } from "../subworkflows/finalize_images.nf"
 
-import ManifestRecord
-
 // Main workflow
 workflow run_pipeline {
 

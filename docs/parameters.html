@@ -37,6 +37,14 @@
 <td></td>
 </tr>
 <tr>
+<td><code>rn_channel_map</code></td>
+<td>Channel map TSV for calculate_scaling_factors (rn_autoscale) - extends channel_indices.tsv with rep_features_dynamic/rep_features_offset/rep_features_scale_lower/rep_features_scale_upper/control_population columns (and optional skip_scaling/skip_sigmoid/skip_plate_offsets booleans) describing which measured intensity feature to use for each channel's dynamic range / plate offset / sigmoid fit. Required (along with rn_control_list) when rn_autoscale is true.</td>
+<td><code>string</code></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
 <td><code>rn_manifest_well</code></td>
 <td>Well level manifest (whitelist) This is a file with <well> <plate> <pe xml> structure indicating which wells on which plates to run Set to null if auto generated from perkinelmer XML If not null, supply a list /path/to/plate1_manifest.csv,/path/to/plate2_manifest.csv,...</td>
 <td><code>string</code></td>
@@ -667,6 +675,14 @@
 <td>Controls which quantile is taken across all images for chosen q1 Valid options: 0 - 1</td>
 <td><code>integer</code></td>
 <td>95</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td><code>rn_scale_in_finalize</code></td>
+<td>When scaling is enabled (rn_autoscale or rn_manualscale), controls whether finalize applies it directly (writing straight to processed_images/scaled) or defers to a separate rescale pass that reads processed_images/unscaled. false (default): finalize writes processed_images/unscaled and can run without waiting on scaling factors; rescale then produces processed_images/scaled from that. Keeps an unscaled artifact around and maximizes parallelism. true: finalize waits on scaling factors and writes processed_images/scaled directly, skipping the extra read/write pass; requires rn_manualscale and cannot be combined with rn_autoscale. No effect if scaling is disabled.</td>
+<td><code>boolean</code></td>
+<td>False</td>
 <td></td>
 <td></td>
 </tr>

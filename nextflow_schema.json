@@ -405,6 +405,11 @@
           "default": 95,
           "description": "Controls which quantile is taken across all images for chosen q1 Valid options: 0 - 1"
         },
+        "rn_scale_in_finalize": {
+          "type": "boolean",
+          "default": false,
+          "description": "When scaling is enabled (rn_autoscale or rn_manualscale), controls whether finalize applies it directly (writing straight to processed_images/scaled) or defers to a separate rescale pass that reads processed_images/unscaled. false (default): finalize writes processed_images/unscaled and can run without waiting on scaling factors; rescale then produces processed_images/scaled from that. Keeps an unscaled artifact around and maximizes parallelism. true: finalize waits on scaling factors and writes processed_images/scaled directly, skipping the extra read/write pass; requires rn_manualscale and cannot be combined with rn_autoscale. No effect if scaling is disabled."
+        },
         "rn_dummy_mode": {
           "type": "boolean",
           "description": "Generate plate offsets in dummy mode (returns all 1\u2019s for equal scaling, just for testing)",
