@@ -1,60 +1,30 @@
 #!/usr/bin/env nextflow
 
 // Processes
-include { convertChannelType; readBlacklist} from '../lib/utils.nf'
+include { convertChannelType } from '../lib/utils.nf'
+include  { checkParamsMain } from '../lib/checks.nf'
 include { deconvolute } from '../processes/decon.nf'
 include { register } from '../processes/registration.nf'
 include { cellpose } from '../processes/segmentation.nf'
 include { cellprofiler;  finalize_and_cellprofiler } from '../processes/cellprofiler.nf'
-include { finalize; index_cellcrops; cellcrops } from '../processes/finalize.nf'
-include { index_images; index_imagedir } from '../processes/staging.nf'
 
 // Subworkflows
 include { setup } from "../subworkflows/setup.nf"
 include { flatfield_estimation } from "../subworkflows/flatfield_estimation.nf"
 include { estimate_scaling_factors } from "../subworkflows/scaling_factors.nf"
+include { finalize_images } from "../subworkflows/finalize_images.nf"
 
-import Well
 import ManifestRecord
-import RegistrationRecord
 
 // Main workflow
 workflow run_pipeline {
 
     main:
     
-        //------------------------------------------------------------
-        // Check the input parameters
-        //------------------------------------------------------------
-        // Sanity check input
-        if (params.cpr_run) {
-            if (params.rn_max_project || params.rn_hybrid) {
-                if (params.cpr_pipeline_2d == null) {
-                    error("Running in hybrid or 2d mode with cpr_run=true, but cpr_pipeline_2d is not set")
-                }
-                if (!file(params.cpr_pipeline_2d).exists()) {
-                    error("Specified cellprofiler pipeline is not accessible")
-                }    
-            } else {
-                if (params.cpr_pipeline_3d == null) {
-                    error("Running in 3d mode with cpr_run=true, but cpr_pipeline_3d is not set")
-                }
-                if (!file(params.cpr_pipeline_3d).exists()) {
-                    error("Specified cellprofiler pipeline is not accessible")
-                }
-            }
-        }
-        
-        // Check cellcrops
-        if (params.rn_make_cellcrops && !params.rn_cache_images) {
-            error("rn_cache_images must be true when rn_make_cellcrops is true")
-        }
-        
-        // Check cellpose is run
-        if ((!params.cp_run && params.rn_cache_images) || (!params.cp_run && params.cpr_run)) {
-            error("rn_cache_images & cpr_run can only be true when cp_run is also true")
-        }
-
+        // ------------------------------------------------------------
+        // Check parameters
+        checkParamsMain(params)
+    
         //------------------------------------------------------------
         // Run setup
         //------------------------------------------------------------
@@ -65,46 +35,13 @@ workflow run_pipeline {
         manifest = setup.out.manifest
         plates = setup.out.plates
         manifest_registration = setup.out.manifest_registration
-                
+        well_channel = setup.out.well_channel
+
         // Channels with file objects
         manifest_registration_file = setup.out.manifest_registration_file
         blacklist_file = setup.out.blacklist_file
         control_file = setup.out.control_file
 
-        //------------------------------------------------------------
-        // Prepare per well input channels
-        //------------------------------------------------------------
-
-        
-        // Loop over previously generated manifests assuming stage has been run
-        if (params.rn_manifest_well == null) {            
-            //manifests_in = manifest.map{row -> "${params.rn_image_dir}/" + row.plate + "/manifest.tsv"}
-            manifests_in = index_imagedir(params.rn_image_dir, file(params.rn_image_dir), manifest.map{row -> row.plate}.unique())
-        } else {
-            manifests_in = Channel.from(params.rn_manifest_well.split(','))
-        }
-        
-        // Construct the channel on the well level
-        // This was needed without the indexing step file(manifest_path)
-        well_channel = manifests_in.flatMap{ manifest_path -> manifest_path.splitCsv(header:["well", "row", "col", "plate"], sep:"\t")}
-            .map( row -> new Well(well: row.well, row: row.row, col: row.col, plate: row.plate) )
-
-                
-        // Filter blacklist. Blacklist read into arrat of <plate>:<well>
-        if (params.rn_blacklist != null) {
-            blacklist = readBlacklist(params.rn_blacklist)
-            well_channel = well_channel.filter(row -> {row.key !in blacklist})
-        }
-            
-        // Filter to specific wells, usefull for testing
-        if (params.rn_wells != null) {
-            wells = params.rn_wells.split(",")
-            well_channel = well_channel.filter(row -> {row.well in wells})
-        }                  
-
-        // Add the plate for easier combining later
-        well_channel = well_channel.map{ row -> tuple(row.plate, row) }
-        
         //------------------------------------------------------------
         // Run flatfield estimation
         //------------------------------------------------------------
@@ -281,80 +218,21 @@ workflow run_pipeline {
         //--------------------------------------------------------------------
         // Cache the final images for feature extraction
         if (params.rn_cache_images) {
-                        
-            finalize_out = finalize(finalize_in,
-                                    image_dir_file,
-                                    flatfield_out,
-                                    scaling_file,
-                                    slope_file,
-                                    bias_file)
 
-            // Combined channel of well, images, masks - used by downstream steps that need both
-            finalize_images_and_masks = finalize_out.processed_output.join(finalize_out.mask_output, by: 0)
+            finalize_images(finalize_in,
+                        image_dir_file,
+                        flatfield_out,
+                        scaling_file,
+                        slope_file,
+                        bias_file,
+                        manifest_registration,
+                        params.rn_scale_in_finalize,
+                        finalize_writes_scaled,
+                        params.rn_make_cellcrops,
+                        params.rn_manifest_registration,
+                        params.rn_publish_dir)
 
-            // Create the plate manfiests once finalize is done
-            index_images(finalize_out.processed_output.last(),
-                            "processed_images",
-                            file(params.rn_publish_dir + "/processed_images"),
-                            finalize_out.processed_output.map{row -> row[0].plate}.unique())
-                        
-            if (params.rn_make_cellcrops) {
-                if (params.rn_manifest_registration != null) {
-                    // If we are registering cycles, we need to update the manifest to reflect the new channel indices
-                    // This is used to calculate the cycle correlations 
-                    // Construct the channel to update the indices of <plate>:<old_channel> <registered_channel>
-                    // Used .unique() before, but replaced with custom logic so it doesn't need to wait for the channel to complete
-                    def seen = []
-                    channel_map = finalize_out.channel_indices
-                    .map { item -> 
-                        if( !seen.contains(item) ) {
-                            seen << item
-                            return item
-                        }
-                        return null
-                    }
-                    .filter { it != null }
-                    .flatMap{ manifest_path -> file(manifest_path)
-                    .splitCsv(header:["ref_plate", "plate", "cycle", "channel", "name", "orig_channel", "orig_name"], sep:"\t")
-                    }
-                    .map(row -> tuple(row.plate + ":" + row.orig_channel, row.channel)) 
-                    
-                    // Create a new registration channel where the channel has been updated to the post-registration channel index      
-                    manifest_registration_updated = manifest_registration
-                    .flatMap {row ->
-                        def result = [] 
-                        
-                        // Add the ref plate
-                        result <<  tuple(row.ref_plate + ":" + row.ref_channel, groupKey(row.ref_plate, row.qry_channels.size()+1), row.ref_channel, null, null)
-                        
-                        // Add the query plates
-                        row.qry_plates.eachWithIndex{
-                            val, idx -> 
-                            result <<  tuple(val + ":" + row.qry_channels[idx], groupKey(row.ref_plate, row.qry_channels.size()+1), row.ref_channel, val, row.qry_channels[idx])    
-                        }
-                        return result
-                    }
-                    .combine(channel_map, by: 0)
-                    .map(row -> tuple(row[1], row[2], row[3], row[5]))
-                    .groupTuple(by: 0)
-                    .map(row -> new RegistrationRecord(row[0].getGroupTarget(), row[1][0], row[2].findAll(), row[3].findAll{ idx -> row[2][row[3].indexOf(idx)] != null})) // findall removes the null (refplates) so they are not treated as qry
-
-                    // Create the cellcrop input channel with the updated registration record that has the registered channel indices to correlate
-                    cellcrop_in = finalize_images_and_masks
-                    .map(row -> tuple(row[0].plate, row[0], row[1], row[2]))
-                    .combine(manifest_registration_updated.map(row -> tuple(row.ref_plate, row)), by: 0)
-                    .map(row -> tuple(row[1], row[4], row[2], row[3]))
-                } else {
-                    // No registration, just pass through, setting registration to null
-                    cellcrop_in = finalize_images_and_masks.map(row -> tuple(row[0], null, row[1], row[2]))
-                }
-                
-                // Create cellcrops
-                cellcrop_out = cellcrops(cellcrop_in)
-                
-                // Index cellcrops
-                index_cellcrops(cellcrop_out.h5.last(), file(params.rn_publish_dir + "/cellcrops"))
-            }            
+            finalize_images_and_masks = finalize_images.out.finalize_images_and_masks
         }
         
         //------------------------------------------------------------

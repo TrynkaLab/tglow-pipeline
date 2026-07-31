@@ -1,35 +1,19 @@
 #!/usr/bin/env nextflow
 
+include { index_imagedir } from '../processes/staging.nf'
+include { readBlacklist } from '../lib/utils.nf'
+include { checkParamsBase } from '../lib/checks.nf'
+
 import ManifestRecord
 import RegistrationRecord
+import Well
 
 workflow setup {
     
     take:
         params
     main:
-        //------------------------------------------------------------
-        // Defaults & sanity checks
-        //------------------------------------------------------------
-        if (params.rn_publish_dir == null) {
-            error "rn_publish_dir file parameter is required: --rn_publish_dir"
-        }
-        
-        if (params.rn_manifest == null) {
-            error "rn_manifest file parameter is required: --rn_manifest"
-        }
-        
-        if (params.rn_cache_images & !(params.rn_max_project | params.rn_hybrid)) {
-            log.warn "Caching images in 3d mode can take up a lot of space, are you sure this is what you want?"
-        }
-        
-        if (!params.rn_autoscale & params.rn_control_list != null) {
-            error "Provided --rn_control_list but --rn_autoscale false. Either drop --rn_control_list or set --rn_autoscale true"
-        }
-        
-        if ((params.rn_manualscale != null) & params.rn_autoscale) {
-            log.warn "Both rn_autoscale and rn_manualscale are provided, rn_manualscale will be overridden"
-        }
+        checkParamsBase(params)
 
         //------------------------------------------------------------
         // Read manifests & input files
@@ -96,15 +80,47 @@ workflow setup {
         } else {
             control_file = Channel.value(file(params.rn_control_list))
         }
-        
+
+        //------------------------------------------------------------
+        // Prepare per well input channels
+        //------------------------------------------------------------
+
+        // Loop over previously generated manifests assuming stage has been run
+        if (params.rn_manifest_well == null) {
+            manifests_in = index_imagedir(params.rn_image_dir, file(params.rn_image_dir), manifest.map{row -> row.plate}.unique())
+        } else {
+            manifests_in = Channel.from(params.rn_manifest_well.split(','))
+        }
+
+        // Construct the channel on the well level
+        // This was needed without the indexing step file(manifest_path)
+        well_channel = manifests_in.flatMap{ manifest_path -> manifest_path.splitCsv(header:["well", "row", "col", "plate"], sep:"\t")}
+            .map( row -> new Well(well: row.well, row: row.row, col: row.col, plate: row.plate) )
+
+        // Filter blacklist. Blacklist read into arrat of <plate>:<well>
+        if (params.rn_blacklist != null) {
+            blacklist = readBlacklist(params.rn_blacklist)
+            well_channel = well_channel.filter(row -> {row.key !in blacklist})
+        }
+
+        // Filter to specific wells, usefull for testing
+        if (params.rn_wells != null) {
+            wells = params.rn_wells.split(",")
+            well_channel = well_channel.filter(row -> {row.well in wells})
+        }
+
+        // Add the plate for easier combining later
+        well_channel = well_channel.map{ row -> tuple(row.plate, row) }
+
     emit:
         manifest=manifest
         plates=plates
         manifest_registration=manifest_registration
-        
+        well_channel=well_channel
+
         // File channels
         manifest_registration_file=manifest_registration_file
         blacklist_file=blacklist_file
         control_file=control_file
-    
+
 }

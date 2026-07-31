@@ -17,10 +17,16 @@ process finalize {
         path slope_file
         path bias_file
     output:
-        tuple val(well), path("${well.relpath}/*.tiff"), emit: processed_output
+        tuple val(well), path("{scaled,unscaled}/${well.relpath}/*.tiff"), emit: processed_output
         tuple val(well), path("masks/${well.relpath}/*.tiff"), emit: mask_output
         path "${well.plate}/channel_indices.tsv", emit: channel_indices
     script:
+        // Whether scaling is actually being applied in this task determines which
+        // output subdir the images land in - lets callers get direct-to-scaled output
+        // for IO-heavy runs (pass real scaling files) or defer to `rescale` later
+        // (pass NO_SCALE/NO_SLOPE/NO_BIAS placeholders).
+        apply_scaling = (params.rn_manualscale != null | params.rn_autoscale) & scaling_file.name != "NO_SCALE"
+        img_subdir = apply_scaling ? "scaled" : "unscaled"
 
         // Stage the masks so cellprofiler can access them
         cmd =
@@ -46,7 +52,7 @@ process finalize {
         # Stage files
         stage_cellprofiler.py \
         --input input_images \
-        --output ./ \
+        --output ./${img_subdir} \
         --output_format OME_TIFF \
         --well ${well.well} \
         --plate ${well.plate} \
@@ -64,7 +70,7 @@ process finalize {
             cmd += " --flatfields $basicpy_string"
         }
         
-        if ((params.rn_manualscale != null | params.rn_autoscale) & scaling_file.name != "NO_SCALE")  {
+        if (apply_scaling)  {
             cmd += " --scaling_factors $scaling_file"
         }
         
@@ -121,11 +127,10 @@ process finalize {
         
         cmd
     stub:
+        img_subdir = (scaling_file.name != "NO_SCALE") ? "scaled" : "unscaled"
         """
-        mkdir -p ${well.relpath}
-        cd ${well.relpath}
-        touch ${well.plate}_${well.well}_ch0.tiff
-        cd ../../
+        mkdir -p ${img_subdir}/${well.relpath}
+        touch ${img_subdir}/${well.relpath}/${well.plate}_${well.well}_ch0.tiff
         mkdir -p masks/${well.relpath}
         touch masks/${well.relpath}/${well.plate}_${well.well}_cell_mask_d00_ch0_cp_masks.tiff
         touch channel_indices.tsv
@@ -134,7 +139,7 @@ process finalize {
 
 // Rescales already-finalized unscaled images (flatfield/registration/max-projection already
 // baked in). No raw/decon/multi-plane reads happen here, so this is cheap relative to `finalize`.
-process finalize_scaled {
+process rescale {
     label params.cpr_label
 
     conda params.tg_conda_env
