@@ -164,18 +164,19 @@ process cellprofiler {
     scratch params.rn_scratch
 
     input:
-        tuple val(well), path(images, stageAs: "input_images/*")
+        tuple val(well), path(images, stageAs: "input_images/*"), path(masks, stageAs: "input_masks/*")
         path pipeline
     output:
         path "features/${well.relpath}/*"
     script:
-    
+
         // Outputs the cp files into ./images
-        cmd = 
+        cmd =
         """
         mkdir -p images/${well.relpath}
         ln -s \$(pwd)/input_images/* images/${well.relpath}/
-        
+        ln -s \$(pwd)/input_masks/* images/${well.relpath}/
+
         # Convert format from OME tiff to CP
         stage_cellprofiler.py \
         --input ./images \

@@ -18,18 +18,19 @@ process finalize {
         path bias_file
     output:
         tuple val(well), path("${well.relpath}/*.tiff"), emit: processed_output
+        tuple val(well), path("masks/${well.relpath}/*.tiff"), emit: mask_output
         path "${well.plate}/channel_indices.tsv", emit: channel_indices
     script:
-    
+
         // Stage the masks so cellprofiler can access them
         cmd =
         """
-        mkdir -p ./masks/${well.relpath}
-        ln -s \$(pwd)/cell_masks/*  ./masks/${well.relpath}/
+        mkdir -p ./masks_stage/${well.relpath}
+        ln -s \$(pwd)/cell_masks/*  ./masks_stage/${well.relpath}/
         """
-        
+
         if (!nucl_masks[0].name.startsWith("NO_NUCL_MASK")) {
-            cmd += "ln -s \$(pwd)/nucl_masks/* ./masks/${well.relpath}/"
+            cmd += "ln -s \$(pwd)/nucl_masks/* ./masks_stage/${well.relpath}/"
         }
         
         // Stage the registration 
@@ -80,29 +81,29 @@ process finalize {
         }
         
         if (params.rn_hybrid & manifest.mask_channels != "none") {
-            cmd += " --mask_dir ./masks"
+            cmd += " --mask_dir ./masks_stage"
             cmd += " --mask_pattern *_nucl_mask_*_cp_masks.tiff"
             cmd += " --mask_channels ${manifest.mask_channels.collect{ well.plate + "=" + it }.join(' ')}"
         }
-        
+
         if (params.rn_hybrid) {
-            cmd += 
+            cmd +=
             """
             max_project.py \
-            --input ./masks \
-            --output ./ \
+            --input ./masks_stage \
+            --output ./masks \
             --well ${well.well} \
             --plate ${well.plate} \
             --pattern *_cell_mask_*_cp_masks.tiff \
             --suffix _cell_mask_d00_ch0_cp_masks.tiff
             """
-            
+
             if (!nucl_masks[0].fileName.name.startsWith("NO_NUCL_MASK")) {
-                cmd += 
+                cmd +=
                 """
                 max_project.py \
-                --input ./masks \
-                --output ./ \
+                --input ./masks_stage \
+                --output ./masks \
                 --well ${well.well} \
                 --plate ${well.plate} \
                 --pattern *_nucl_mask_*_cp_masks.tiff \
@@ -111,7 +112,11 @@ process finalize {
             }
 
         } else {
-            cmd += "\nrsync --copy-links ./masks/${well.relpath}/* ./${well.relpath}/"
+            cmd +=
+            """
+            mkdir -p ./masks/${well.relpath}
+            rsync --copy-links ./masks_stage/${well.relpath}/* ./masks/${well.relpath}/
+            """
         }
         
         cmd
@@ -121,6 +126,8 @@ process finalize {
         cd ${well.relpath}
         touch ${well.plate}_${well.well}_ch0.tiff
         cd ../../
+        mkdir -p masks/${well.relpath}
+        touch masks/${well.relpath}/${well.plate}_${well.well}_cell_mask_d00_ch0_cp_masks.tiff
         touch channel_indices.tsv
         """
 }
@@ -184,7 +191,7 @@ process cellcrops {
     scratch params.rn_scratch
 
     input:
-        tuple val(well), val(registration),  path(images, stageAs: "input_images/")
+        tuple val(well), val(registration),  path(images, stageAs: "input_images/"), path(masks, stageAs: "input_masks/")
     output:
         tuple val(well), path("${well.relpath}/*.h5"), emit: h5
         tuple val(well), path("${well.relpath}/*.csv"), emit: index
@@ -193,16 +200,19 @@ process cellcrops {
     cmd = """
     mkdir -p input/${well.relpath}
     ln -s \$(pwd)/input_images/* input/${well.relpath}
-    
+
+    mkdir -p input_masks/${well.relpath}
+    ln -s \$(pwd)/input_masks/* input_masks/${well.relpath}
+
     run_cellsampling.py \
     --input input \
-    --cell_mask_dir input \
-    --nucl_mask_dir input \
+    --cell_mask_dir input_masks \
+    --nucl_mask_dir input_masks \
     --output ./ \
     --plate ${well.plate} \
     --well ${well.well} \
     --max_per_field $params.rn_max_per_field \
-    """   
+    """
     if (registration != null) {
         cmd += "--ref_channel ${registration.ref_channel} --qry_channels ${registration.qry_channels.join(" ")}"
     }

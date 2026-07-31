@@ -288,7 +288,10 @@ workflow run_pipeline {
                                     scaling_file,
                                     slope_file,
                                     bias_file)
-                                    
+
+            // Combined channel of well, images, masks - used by downstream steps that need both
+            finalize_images_and_masks = finalize_out.processed_output.join(finalize_out.mask_output, by: 0)
+
             // Create the plate manfiests once finalize is done
             index_images(finalize_out.processed_output.last(),
                             "processed_images",
@@ -337,13 +340,13 @@ workflow run_pipeline {
                     .map(row -> new RegistrationRecord(row[0].getGroupTarget(), row[1][0], row[2].findAll(), row[3].findAll{ idx -> row[2][row[3].indexOf(idx)] != null})) // findall removes the null (refplates) so they are not treated as qry
 
                     // Create the cellcrop input channel with the updated registration record that has the registered channel indices to correlate
-                    cellcrop_in = finalize_out.processed_output
-                    .map(row -> tuple(row[0].plate, row[0], row[1]))
+                    cellcrop_in = finalize_images_and_masks
+                    .map(row -> tuple(row[0].plate, row[0], row[1], row[2]))
                     .combine(manifest_registration_updated.map(row -> tuple(row.ref_plate, row)), by: 0)
-                    .map(row -> tuple(row[1], row[3], row[2]))
+                    .map(row -> tuple(row[1], row[4], row[2], row[3]))
                 } else {
                     // No registration, just pass through, setting registration to null
-                    cellcrop_in = finalize_out.processed_output.map(row -> tuple(row[0], null, row[1]))
+                    cellcrop_in = finalize_images_and_masks.map(row -> tuple(row[0], null, row[1], row[2]))
                 }
                 
                 // Create cellcrops
@@ -368,7 +371,7 @@ workflow run_pipeline {
             // Run cellprofiler        
             if (params.cpr_run && params.rn_cache_images) {
                 // Run cellprofiler on cached images
-                cellprofiler_out = cellprofiler(finalize_out.processed_output, cpr_pipeline)
+                cellprofiler_out = cellprofiler(finalize_images_and_masks, cpr_pipeline)
             } else if (params.cpr_run) {
                 // This does not cache images
                 cellprofiler_out = finalize_and_cellprofiler(finalize_in,
