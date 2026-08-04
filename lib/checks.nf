@@ -86,17 +86,17 @@ def checkParamsBase(params) {
 
 
 def checkParamsScaling(params) {
-    if (!params.rn_autoscale & params.rn_control_list != null) {
-        error "Provided --rn_control_list but --rn_autoscale false. Either drop --rn_control_list or set --rn_autoscale true"
+    if (!params.sc_autoscale & params.sc_control_list != null) {
+        error "Provided --sc_control_list but --sc_autoscale false. Either drop --sc_control_list or set --sc_autoscale true"
     }
     
-    if ((params.rn_manualscale != null) & params.rn_autoscale) {
-        log.warn "Both rn_autoscale and rn_manualscale are provided, rn_manualscale will be overridden"
+    if ((params.sc_manualscale != null) & params.sc_autoscale) {
+        log.warn "Both sc_autoscale and sc_manualscale are provided, sc_manualscale will be overridden"
     }
         
     // Check control list
-    if (params.rn_control_list != null) {
-        if (!file(params.rn_control_list).exists()) {
+    if (params.sc_control_list != null) {
+        if (!file(params.sc_control_list).exists()) {
             error("Specified control list file does not exist or is not readable")
         }
     }
@@ -104,15 +104,15 @@ def checkParamsScaling(params) {
     
 
     // calculate_scaling_factors always merges against controls for both plate-offset and
-    // sigmoid fitting, so rn_autoscale now requires rn_control_list (and a channel_map)
-    if (params.rn_autoscale) {
-        if (params.rn_control_list == null) {
-            error("rn_autoscale requires rn_control_list to be set - calculate_scaling_factors needs it to derive plate offsets and sigmoid bias/slope")
+    // sigmoid fitting, so sc_autoscale now requires sc_control_list (and a channel_map)
+    if (params.sc_autoscale) {
+        if (params.sc_control_list == null) {
+            error("sc_autoscale requires sc_control_list to be set - calculate_scaling_factors needs it to derive plate offsets and sigmoid bias/slope")
         }
-        if (params.rn_channel_map == null) {
-            error("rn_autoscale requires rn_channel_map to be set - calculate_scaling_factors needs it to know which measured feature to use per channel")
+        if (params.sc_channel_map == null) {
+            error("sc_autoscale requires sc_channel_map to be set - calculate_scaling_factors needs it to know which measured feature to use per channel")
         }
-        if (!file(params.rn_channel_map).exists()) {
+        if (!file(params.sc_channel_map).exists()) {
             error("Specified channel map file does not exist or is not readable")
         }
         
@@ -123,47 +123,47 @@ def checkParamsScaling(params) {
 
 
     // Check manual scale
-    if (params.rn_manualscale != null) {
-        if (!file(params.rn_manualscale).exists()) {
+    if (params.sc_manualscale != null) {
+        if (!file(params.sc_manualscale).exists()) {
             error("Specified manual scale file does not exist or is not readable")
         }
     }
 
-    // rn_scale_slope and rn_scale_bias must be supplied together, or neither -
+    // sc_scale_slope and sc_scale_bias must be supplied together, or neither -
     // rescale_images.py errors out on this deep in the run, so catch it here instead
-    if ((params.rn_scale_slope != null) != (params.rn_scale_bias != null)) {
-        error("Must supply both --rn_scale_slope and --rn_scale_bias, or neither")
+    if ((params.sc_scale_slope != null) != (params.sc_scale_bias != null)) {
+        error("Must supply both --sc_scale_slope and --sc_scale_bias, or neither")
     }
 
     // Check scale slope/bias files
-    if (params.rn_scale_slope != null) {
-        if (!file(params.rn_scale_slope).exists()) {
-            error("Specified rn_scale_slope file does not exist or is not readable")
+    if (params.sc_scale_slope != null) {
+        if (!file(params.sc_scale_slope).exists()) {
+            error("Specified sc_scale_slope file does not exist or is not readable")
         }
     }
 
-    if (params.rn_scale_bias != null) {
-        if (!file(params.rn_scale_bias).exists()) {
-            error("Specified rn_scale_bias file does not exist or is not readable")
+    if (params.sc_scale_bias != null) {
+        if (!file(params.sc_scale_bias).exists()) {
+            error("Specified sc_scale_bias file does not exist or is not readable")
         }
     }
 
-    // rn_scale_in_finalize applies scaling directly in finalize, before any unscaled images
+    // sc_scale_in_finalize applies scaling directly in finalize, before any unscaled images
     // exist to measure/estimate factors from - so it can only work with pre-supplied manual
     // factors, never with autoscale (which needs those unscaled images first).
-    if (params.rn_scale_in_finalize) {
-        if (params.rn_manualscale == null) {
-            error("rn_scale_in_finalize requires rn_manualscale to be set - autoscale factors cannot be estimated without first producing unscaled finalized images, which rn_scale_in_finalize skips")
+    if (params.sc_scale_in_finalize) {
+        if (params.sc_manualscale == null) {
+            error("sc_scale_in_finalize requires sc_manualscale to be set - autoscale factors cannot be estimated without first producing unscaled finalized images, which sc_scale_in_finalize skips")
         }
-        if (params.rn_autoscale) {
-            error("rn_scale_in_finalize cannot be combined with rn_autoscale - autoscale factors require measuring the unscaled finalized images first, which rn_scale_in_finalize skips producing")
+        if (params.sc_autoscale) {
+            error("sc_scale_in_finalize cannot be combined with sc_autoscale - autoscale factors require measuring the unscaled finalized images first, which sc_scale_in_finalize skips producing")
         }
     }
 
     // Autoscale factors are estimated from the unscaled finalized images, which only exist
     // when images are cached
-    if (params.rn_autoscale && !params.rn_cache_images) {
-        error("rn_autoscale requires rn_cache_images to be true - autoscale factors are estimated from the cached, finalized unscaled images")
+    if (params.sc_autoscale && !params.rn_cache_images) {
+        error("sc_autoscale requires rn_cache_images to be true - autoscale factors are estimated from the cached, finalized unscaled images")
     }
 
 }

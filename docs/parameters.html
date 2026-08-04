@@ -29,7 +29,7 @@
 <td></td>
 </tr>
 <tr>
-<td><code>rn_control_list</code></td>
+<td><code>sc_control_list</code></td>
 <td>Control file to use to calculate plate offsets based on control cells for each channel <plate> <well> <channels> <name> plate1 A10 1,2,3 controlA plate1 B10 1,2,3 controlA plate1 C10 1,2,3 controlA plate1 D11 5,6,7 controlB plate1 D12 5,6,7 controlB</td>
 <td><code>string</code></td>
 <td></td>
@@ -37,8 +37,8 @@
 <td></td>
 </tr>
 <tr>
-<td><code>rn_channel_map</code></td>
-<td>Channel map TSV for calculate_scaling_factors (rn_autoscale) - extends channel_indices.tsv with rep_features_dynamic/rep_features_offset/rep_features_scale_lower/rep_features_scale_upper/control_population columns (and optional skip_scaling/skip_sigmoid/skip_plate_offsets booleans) describing which measured intensity feature to use for each channel's dynamic range / plate offset / sigmoid fit. Required (along with rn_control_list) when rn_autoscale is true.</td>
+<td><code>sc_channel_map</code></td>
+<td>Channel map TSV for calculate_scaling_factors (sc_autoscale) - extends channel_indices.tsv with rep_features_dynamic/rep_features_offset/rep_features_scale_lower/rep_features_scale_upper/control_population columns (and optional skip_scaling/skip_sigmoid/skip_plate_offsets booleans) describing which measured intensity feature to use for each channel's dynamic range / plate offset / sigmoid fit. Required (along with sc_control_list) when sc_autoscale is true.</td>
 <td><code>string</code></td>
 <td></td>
 <td></td>
@@ -631,7 +631,7 @@
 </thead>
 <tbody>
 <tr>
-<td><code>rn_manualscale</code></td>
+<td><code>sc_manualscale</code></td>
 <td>Path to scaling_factors.txt with line formatted: <plate>_ch<channel>=<scale> <plate>_ch<channel>=<scale> <plate>_ch<channel>=<scale> Space separated Channels zero indexed <plate> is the reference plate <channel> after merging cycles <scale> factor by which channel in plate is divided</td>
 <td><code>string</code></td>
 <td></td>
@@ -639,31 +639,31 @@
 <td></td>
 </tr>
 <tr>
-<td><code>rn_scale_slope</code></td>
-<td>Path to scaling_<slope/bias>.txt with one line formatted: <plate>_ch<channel>=<slope/bias> <plate>_ch<channel>=<slope/bias> <plate>_ch<channel>=<slope/bias> Sets shape of sigmoid curve used to weigh scaling factors differently in intensity ranges. Background pixels remain unscaled, smooth transition scales foreground pixels. Pipeline supports only pre-calculated slope and bias, cannot auto-estimate. Must supply both slope and bias if used. If null, scaling_factors applied uniformly. Works with --rn_manualscale and --rn_autoscale.</td>
+<td><code>sc_scale_slope</code></td>
+<td>Path to scaling_<slope/bias>.txt with one line formatted: <plate>_ch<channel>=<slope/bias> <plate>_ch<channel>=<slope/bias> <plate>_ch<channel>=<slope/bias> Sets shape of sigmoid curve used to weigh scaling factors differently in intensity ranges. Background pixels remain unscaled, smooth transition scales foreground pixels. Pipeline supports only pre-calculated slope and bias, cannot auto-estimate. Must supply both slope and bias if used. If null, scaling_factors applied uniformly. Works with --sc_manualscale and --sc_autoscale.</td>
 <td><code>string</code></td>
 <td></td>
 <td></td>
 <td></td>
 </tr>
 <tr>
-<td><code>rn_scale_bias</code></td>
-<td>See rn_scale_slope (must supply with rn_scale_slope if supplied)</td>
+<td><code>sc_scale_bias</code></td>
+<td>See sc_scale_slope (must supply with sc_scale_slope if supplied)</td>
 <td><code>string</code></td>
 <td></td>
 <td></td>
 <td></td>
 </tr>
 <tr>
-<td><code>rn_autoscale</code></td>
-<td>Automatically determine scaling factors based on all images in manifest (excluding blacklist) Overrides rn_manualscale Runs after dc_clip_max applied Waits till deconvolution queue empty No feature extraction jobs submitted until autoscale completes Interacts with rn_controllist so dynamic range is optimal after plate offset factors. If rn_controllist is provided, rn_autoscale is on by default.</td>
+<td><code>sc_autoscale</code></td>
+<td>Automatically determine scaling factors based on all images in manifest (excluding blacklist) Overrides sc_manualscale Runs after dc_clip_max applied Waits till deconvolution queue empty No feature extraction jobs submitted until autoscale completes Interacts with sc_control_list so dynamic range is optimal after plate offset factors. If sc_control_list is provided, sc_autoscale is on by default.</td>
 <td><code>boolean</code></td>
 <td></td>
 <td></td>
 <td></td>
 </tr>
 <tr>
-<td><code>rn_autoscale_q1</code></td>
+<td><code>sc_autoscale_q1</code></td>
 <td>Controls value to scale to within an image (quantiles of pixels). Valid options: 'q0', 'q0.1', 'q1', 'q5', 'q25', 'q50', 'q75', 'q90', 'q99', 'q99.9', 'q99.99', 'q99.999', 'q99.9999', 'q99.99999', 'q100', 'mean' Not all options practically sensible, recommend not below q99.</td>
 <td><code>string</code></td>
 <td>q99.9999</td>
@@ -671,7 +671,7 @@
 <td></td>
 </tr>
 <tr>
-<td><code>rn_autoscale_q2</code></td>
+<td><code>sc_autoscale_q2</code></td>
 <td>Controls which quantile is taken across all images for chosen q1 Valid options: 0 - 1</td>
 <td><code>integer</code></td>
 <td>95</td>
@@ -679,8 +679,8 @@
 <td></td>
 </tr>
 <tr>
-<td><code>rn_scale_in_finalize</code></td>
-<td>When scaling is enabled (rn_autoscale or rn_manualscale), controls whether finalize applies it directly (writing straight to processed_images/scaled) or defers to a separate rescale pass that reads processed_images/unscaled. false (default): finalize writes processed_images/unscaled and can run without waiting on scaling factors; rescale then produces processed_images/scaled from that. Keeps an unscaled artifact around and maximizes parallelism. true: finalize waits on scaling factors and writes processed_images/scaled directly, skipping the extra read/write pass; requires rn_manualscale and cannot be combined with rn_autoscale. No effect if scaling is disabled.</td>
+<td><code>sc_scale_in_finalize</code></td>
+<td>When scaling is enabled (sc_autoscale or sc_manualscale), controls whether finalize applies it directly (writing straight to processed_images/scaled) or defers to a separate rescale pass that reads processed_images/unscaled. false (default): finalize writes processed_images/unscaled and can run without waiting on scaling factors; rescale then produces processed_images/scaled from that. Keeps an unscaled artifact around and maximizes parallelism. true: finalize waits on scaling factors and writes processed_images/scaled directly, skipping the extra read/write pass; requires sc_manualscale and cannot be combined with sc_autoscale. No effect if scaling is disabled.</td>
 <td><code>boolean</code></td>
 <td>False</td>
 <td></td>

@@ -66,7 +66,7 @@ process finalize_and_cellprofiler {
             cmd += " --flatfields $basicpy_string"
         }
         
-        if ((params.rn_manualscale != null | params.rn_autoscale) & scaling_file.name != "NO_SCALE")  {
+        if ((params.sc_manualscale != null || params.sc_autoscale) && scaling_file.name != "NO_SCALE")  {
             cmd += " --scaling_factors $scaling_file"
         }
         

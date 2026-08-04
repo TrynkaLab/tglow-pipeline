@@ -4,7 +4,7 @@
 
 // Measure per-object and per-image intensity features on the unscaled finalized images.
 // Runs regardless of whether scaling is enabled - feeds calculate_scaling_factors when
-// rn_autoscale is set, and is kept around either way to support a future QC step.
+// sc_autoscale is set, and is kept around either way to support a future QC step.
 process measure_intensity {
     label 'normal'
 

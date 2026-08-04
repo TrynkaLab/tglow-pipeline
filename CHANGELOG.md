@@ -13,15 +13,17 @@
 - Added new configuration for Sanger Cub cluster
 - Updated GPU queue for Sanger farm22 cluster
 - Updated flatfield fitting to drop requerement for basicpy install. 
-
+- Updated -stub-run to fire properly after updates
+- Added script to perform stub run, usefull for testing the wiring is working properly
 
 ## Parameters:
 - Added --workflow
 - Removed subcell parameters
+- sc_ prefix now used for scaling parameters
 
 
-
-Documentation:
+## Documentation:
+- Updates to fix small issues in documentation not matching real behaviour
 
 
 

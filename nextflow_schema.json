@@ -28,15 +28,15 @@
           "format": "file-path",
           "mimetype": "text/csv"
         },
-        "rn_control_list": {
+        "sc_control_list": {
           "type": "string",
-          "description": "Controls file used by calculate_scaling_factors (rn_autoscale) to derive plate offsets and sigmoid bias/slope from control wells. <plate> <well> <control_type> plate1 A10 controlA plate1 B10 controlA plate1 D11 controlB. Required (along with rn_channel_map) when rn_autoscale is true.",
+          "description": "Controls file used by calculate_scaling_factors (sc_autoscale) to derive plate offsets and sigmoid bias/slope from control wells. <plate> <well> <control_type> plate1 A10 controlA plate1 B10 controlA plate1 D11 controlB. Required (along with sc_channel_map) when sc_autoscale is true.",
           "format": "file-path",
           "mimetype": "text/csv"
         },
-        "rn_channel_map": {
+        "sc_channel_map": {
           "type": "string",
-          "description": "Channel map TSV for calculate_scaling_factors (rn_autoscale) - extends channel_indices.tsv with rep_features_dynamic/rep_features_offset/rep_features_scale_lower/rep_features_scale_upper/control_population columns (and optional skip_scaling/skip_sigmoid/skip_plate_offsets booleans) describing which measured intensity feature to use for each channel's dynamic range / plate offset / sigmoid fit. Required (along with rn_control_list) when rn_autoscale is true.",
+          "description": "Channel map TSV for calculate_scaling_factors (sc_autoscale) - extends channel_indices.tsv with rep_features_dynamic/rep_features_offset/rep_features_scale_lower/rep_features_scale_upper/control_population columns (and optional skip_scaling/skip_sigmoid/skip_plate_offsets booleans) describing which measured intensity feature to use for each channel's dynamic range / plate offset / sigmoid fit. Required (along with sc_control_list) when sc_autoscale is true.",
           "format": "file-path",
           "mimetype": "text/tab-separated-values"
         },
@@ -378,42 +378,42 @@
       "description": "",
       "default": "",
       "properties": {
-        "rn_manualscale": {
+        "sc_manualscale": {
           "type": "string",
           "description": "Path to scaling_factors.txt with line formatted: <plate>_ch<channel>=<scale> <plate>_ch<channel>=<scale> <plate>_ch<channel>=<scale> Space separated Channels zero indexed <plate> is the reference plate <channel> after merging cycles <scale> factor by which channel in plate is divided",
           "format": "file-path",
           "mimetype": "text/plain"
         },
-        "rn_scale_slope": {
+        "sc_scale_slope": {
           "type": "string",
-          "description": "Path to scaling_<slope/bias>.txt with one line formatted: <plate>_ch<channel>=<slope/bias> <plate>_ch<channel>=<slope/bias> <plate>_ch<channel>=<slope/bias> Sets shape of sigmoid curve used to weigh scaling factors differently in intensity ranges. Background pixels remain unscaled, smooth transition scales foreground pixels. Pipeline supports only pre-calculated slope and bias, cannot auto-estimate. Must supply both slope and bias if used. If null, scaling_factors applied uniformly. Works with --rn_manualscale and --rn_autoscale.",
+          "description": "Path to scaling_<slope/bias>.txt with one line formatted: <plate>_ch<channel>=<slope/bias> <plate>_ch<channel>=<slope/bias> <plate>_ch<channel>=<slope/bias> Sets shape of sigmoid curve used to weigh scaling factors differently in intensity ranges. Background pixels remain unscaled, smooth transition scales foreground pixels. Pipeline supports only pre-calculated slope and bias, cannot auto-estimate. Must supply both slope and bias if used. If null, scaling_factors applied uniformly. Works with --sc_manualscale and --sc_autoscale.",
           "format": "file-path",
           "mimetype": "text/plain"
         },
-        "rn_scale_bias": {
+        "sc_scale_bias": {
           "type": "string",
-          "description": "See rn_scale_slope (must supply with rn_scale_slope if supplied)",
+          "description": "See sc_scale_slope (must supply with sc_scale_slope if supplied)",
           "format": "file-path",
           "mimetype": "text/plain"
         },
-        "rn_autoscale": {
+        "sc_autoscale": {
           "type": "boolean",
-          "description": "Automatically determine scaling factors based on all images in manifest (excluding blacklist) Overrides rn_manualscale Runs after dc_clip_max applied Waits till deconvolution queue empty No feature extraction jobs submitted until autoscale completes Interacts with rn_controllist so dynamic range is optimal after plate offset factors. If rn_controllist is provided, rn_autoscale is on by default."
+          "description": "Automatically determine scaling factors based on all images in manifest (excluding blacklist) Overrides sc_manualscale Runs after dc_clip_max applied Waits till deconvolution queue empty No feature extraction jobs submitted until autoscale completes Interacts with sc_control_list so dynamic range is optimal after plate offset factors. If sc_control_list is provided, sc_autoscale is on by default."
         },
-        "rn_autoscale_q1": {
+        "sc_autoscale_q1": {
           "type": "string",
           "default": "q99.9999",
           "description": "Controls value to scale to within an image (quantiles of pixels). Valid options: 'q0', 'q0.1', 'q1', 'q5', 'q25', 'q50', 'q75', 'q90', 'q99', 'q99.9', 'q99.99', 'q99.999', 'q99.9999', 'q99.99999', 'q100', 'mean' Not all options practically sensible, recommend not below q99."
         },
-        "rn_autoscale_q2": {
+        "sc_autoscale_q2": {
           "type": "integer",
           "default": 95,
           "description": "Controls which quantile is taken across all images for chosen q1 Valid options: 0 - 1"
         },
-        "rn_scale_in_finalize": {
+        "sc_scale_in_finalize": {
           "type": "boolean",
           "default": false,
-          "description": "When scaling is enabled (rn_autoscale or rn_manualscale), controls whether finalize applies it directly (writing straight to processed_images/scaled) or defers to a separate rescale pass that reads processed_images/unscaled. false (default): finalize writes processed_images/unscaled and can run without waiting on scaling factors; rescale then produces processed_images/scaled from that. Keeps an unscaled artifact around and maximizes parallelism. true: finalize waits on scaling factors and writes processed_images/scaled directly, skipping the extra read/write pass; requires rn_manualscale and cannot be combined with rn_autoscale. No effect if scaling is disabled."
+          "description": "When scaling is enabled (sc_autoscale or sc_manualscale), controls whether finalize applies it directly (writing straight to processed_images/scaled) or defers to a separate rescale pass that reads processed_images/unscaled. false (default): finalize writes processed_images/unscaled and can run without waiting on scaling factors; rescale then produces processed_images/scaled from that. Keeps an unscaled artifact around and maximizes parallelism. true: finalize waits on scaling factors and writes processed_images/scaled directly, skipping the extra read/write pass; requires sc_manualscale and cannot be combined with sc_autoscale. No effect if scaling is disabled."
         },
         "rn_dummy_mode": {
           "type": "boolean",

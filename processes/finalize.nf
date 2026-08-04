@@ -25,7 +25,7 @@ process finalize {
         // output subdir the images land in - lets callers get direct-to-scaled output
         // for IO-heavy runs (pass real scaling files) or defer to `rescale` later
         // (pass NO_SCALE/NO_SLOPE/NO_BIAS placeholders).
-        apply_scaling = (params.rn_manualscale != null || params.rn_autoscale) && scaling_file.name != "NO_SCALE"
+        apply_scaling = (params.sc_manualscale != null || params.sc_autoscale) && scaling_file.name != "NO_SCALE"
         img_subdir = apply_scaling ? "scaled" : "unscaled"
 
         // Stage the masks so cellprofiler can access them
@@ -127,7 +127,7 @@ process finalize {
         
         cmd
     stub:
-        apply_scaling = (params.rn_manualscale != null || params.rn_autoscale) && scaling_file.name != "NO_SCALE"
+        apply_scaling = (params.sc_manualscale != null || params.sc_autoscale) && scaling_file.name != "NO_SCALE"
         img_subdir = apply_scaling ? "scaled" : "unscaled"
 
         // Fabricate a plausible channel_indices.tsv (real format: see

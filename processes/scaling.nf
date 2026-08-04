@@ -27,7 +27,7 @@ process calculate_scaling_factors {
         --channel_map $channel_map \
         --controls $controls \
         --output ./ \
-        --q2 $params.rn_autoscale_q2
+        --q2 $params.sc_autoscale_q2
         """
     stub:
         """

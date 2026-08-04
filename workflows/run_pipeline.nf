@@ -205,37 +205,37 @@ workflow run_pipeline {
         if (params.rn_cache_images) {
 
             // Scaling factors are estimated from finalize's own unscaled output (or, for
-            // rn_scale_in_finalize, resolved directly from rn_manualscale) - handled
+            // sc_scale_in_finalize, resolved directly from sc_manualscale) - handled
             // internally by finalize_images, since it now depends on finalize's own output.
             finalize_images(finalize_in,
                         image_dir_file,
                         flatfield_out,
                         manifest_registration,
-                        params.rn_scale_in_finalize,
-                        params.rn_autoscale,
-                        params.rn_manualscale,
-                        params.rn_scale_slope,
-                        params.rn_scale_bias,
+                        params.sc_scale_in_finalize,
+                        params.sc_autoscale,
+                        params.sc_manualscale,
+                        params.sc_scale_slope,
+                        params.sc_scale_bias,
                         params.rn_make_cellcrops,
                         params.rn_manifest_registration,
                         params.rn_publish_dir,
-                        params.rn_control_list,
-                        params.rn_channel_map)
+                        params.sc_control_list,
+                        params.sc_channel_map)
 
             finalize_images_and_masks = finalize_images.out.finalize_images_and_masks
         } else if (params.cpr_run) {
             // finalize_and_cellprofiler never persists a reusable unscaled image, so there's
             // nothing to measure/estimate autoscale factors from here (enforced in
-            // checks.nf: rn_autoscale requires rn_cache_images) - only rn_manualscale works.
+            // checks.nf: sc_autoscale requires rn_cache_images) - only sc_manualscale works.
             estimate_scaling_factors(
-                cellpose_out.last(), // images_ready - unused, rn_autoscale is always false here
-                Channel.value([]),   // plate_dirs - unused, rn_autoscale is always false here
-                params.rn_autoscale,
-                params.rn_manualscale,
-                params.rn_scale_slope,
-                params.rn_scale_bias,
-                params.rn_control_list,
-                params.rn_channel_map
+                cellpose_out.last(), // images_ready - unused, sc_autoscale is always false here
+                Channel.value([]),   // plate_dirs - unused, sc_autoscale is always false here
+                params.sc_autoscale,
+                params.sc_manualscale,
+                params.sc_scale_slope,
+                params.sc_scale_bias,
+                params.sc_control_list,
+                params.sc_channel_map
             )
 
             scaling_file = estimate_scaling_factors.out.scaling_file

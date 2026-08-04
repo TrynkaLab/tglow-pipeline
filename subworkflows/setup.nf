@@ -74,11 +74,11 @@ workflow setup {
         
         //------------------------------------------------------------------------
         // Control list channel, if missing just an empty channel
-        if (params.rn_control_list == null) {
+        if (params.sc_control_list == null) {
             //log.info("No controlist provided")
             control_file = Channel.value(file('NO_CONTROL_LIST'))
         } else {
-            control_file = Channel.value(file(params.rn_control_list))
+            control_file = Channel.value(file(params.sc_control_list))
         }
 
         //------------------------------------------------------------

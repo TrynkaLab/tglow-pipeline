@@ -7,13 +7,13 @@ include { estimate_scaling_factors } from './scaling_factors.nf'
 
 // Finalizes and caches images for feature extraction (rn_cache_images).
 //
-// Normal flow (rn_scale_in_finalize=false): finalize writes unscaled images to
+// Normal flow (sc_scale_in_finalize=false): finalize writes unscaled images to
 // processed_images/unscaled, intensities are always measured on those (even if no scaling is
 // requested, to support a future QC step), then - if scaling is requested - factors are
 // estimated from those same unscaled images and a separate rescale pass produces
 // processed_images/scaled.
 //
-// Fast path (rn_scale_in_finalize=true, requires rn_manualscale - enforced in checks.nf):
+// Fast path (sc_scale_in_finalize=true, requires sc_manualscale - enforced in checks.nf):
 // scaling factors are already known upfront, so finalize applies them directly and writes
 // straight to processed_images/scaled, skipping the unscaled artifact, measurement, and the
 // separate rescale pass entirely.
@@ -24,31 +24,31 @@ workflow finalize_images {
         image_dir_file
         flatfield_out
         manifest_registration
-        rn_scale_in_finalize
-        rn_autoscale
-        rn_manualscale
-        rn_scale_slope
-        rn_scale_bias
+        sc_scale_in_finalize
+        sc_autoscale
+        sc_manualscale
+        sc_scale_slope
+        sc_scale_bias
         rn_make_cellcrops
         rn_manifest_registration
         rn_publish_dir
         // Ingredients for estimating autoscale factors from the measured unscaled images
-        // (only used when rn_autoscale is true)
-        rn_control_list
-        rn_channel_map
+        // (only used when sc_autoscale is true)
+        sc_control_list
+        sc_channel_map
 
     main:
 
         // Determine if scaling needs to be run at all
-        run_scaling = rn_manualscale != null || rn_autoscale
+        run_scaling = sc_manualscale != null || sc_autoscale
 
         //------------------------------------------------------------------------
         // Block 1: finalize unscaled OR direct manual scaled images wihtout caching them in between
         //------------------------------------------------------------------------
-        if (rn_scale_in_finalize && run_scaling) {
-            finalize_scaling_in = Channel.value(file(rn_manualscale))
-            finalize_slope_in   = (rn_scale_slope != null) ? Channel.value(file(rn_scale_slope)) : Channel.value(file("NO_SLOPE"))
-            finalize_bias_in    = (rn_scale_bias != null)  ? Channel.value(file(rn_scale_bias))  : Channel.value(file("NO_BIAS"))
+        if (sc_scale_in_finalize && run_scaling) {
+            finalize_scaling_in = Channel.value(file(sc_manualscale))
+            finalize_slope_in   = (sc_scale_slope != null) ? Channel.value(file(sc_scale_slope)) : Channel.value(file("NO_SLOPE"))
+            finalize_bias_in    = (sc_scale_bias != null)  ? Channel.value(file(sc_scale_bias))  : Channel.value(file("NO_BIAS"))
         } else {
             finalize_scaling_in = Channel.value(file("NO_SCALE"))
             finalize_slope_in   = Channel.value(file("NO_SLOPE"))
@@ -62,10 +62,10 @@ workflow finalize_images {
                     finalize_slope_in,
                     finalize_bias_in)
 
-        finalize_subdir = rn_scale_in_finalize ? "scaled" : "unscaled"
+        finalize_subdir = sc_scale_in_finalize ? "scaled" : "unscaled"
 
         // Index whatever finalize actually produced (index_unscaled despite the name -
-        // when rn_scale_in_finalize writes directly to `scaled`, this call indexes that
+        // when sc_scale_in_finalize writes directly to `scaled`, this call indexes that
         // instead; it's just the alias used for "whatever finalize wrote" since a process
         // can only be invoked once per workflow scope)
         index_unscaled(finalize_out.processed_output.last(),
@@ -80,8 +80,8 @@ workflow finalize_images {
         //------------------------------------------------------------------------
         // Block 2: default path, use cached images to determine scaling factors
         //------------------------------------------------------------------------
-        if (!rn_scale_in_finalize && run_scaling) {
-            if (rn_autoscale) {
+        if (!sc_scale_in_finalize && run_scaling) {
+            if (sc_autoscale) {
                 // Auto scaling: aggregate per-well parquet output into one directory per
                 // plate before handing off to calculate_scaling_factors, so Nextflow
                 // doesn't have to stage a well-level filelist that can run into the
@@ -99,21 +99,21 @@ workflow finalize_images {
                 estimate_scaling_factors(
                     finalize_out.processed_output.last(),
                     plate_measurements.map{row -> row[1]}.collect(),
-                    rn_autoscale,
-                    rn_manualscale,
-                    rn_scale_slope,
-                    rn_scale_bias,
-                    rn_control_list,
-                    rn_channel_map
+                    sc_autoscale,
+                    sc_manualscale,
+                    sc_scale_slope,
+                    sc_scale_bias,
+                    sc_control_list,
+                    sc_channel_map
                 )
                 scaling_file = estimate_scaling_factors.out.scaling_file
                 slope_file = estimate_scaling_factors.out.slope_file
                 bias_file = estimate_scaling_factors.out.bias_file
-            } else if (rn_manualscale != null){
+            } else if (sc_manualscale != null){
                 // Manual scaling
-                scaling_file = file(rn_manualscale)
-                slope_file = (rn_scale_slope != null) ? file(rn_scale_slope) : file("NO_SLOPE")
-                bias_file = (rn_scale_bias != null)  ? file(rn_scale_bias)  : file("NO_BIAS")
+                scaling_file = file(sc_manualscale)
+                slope_file = (sc_scale_slope != null) ? file(sc_scale_slope) : file("NO_SLOPE")
+                bias_file = (sc_scale_bias != null)  ? file(sc_scale_bias)  : file("NO_BIAS")
             } 
             
             // Rescale the existing cached processed images

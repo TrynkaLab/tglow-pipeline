@@ -37,7 +37,7 @@ PLATE2	dummy_index.xml	1,2	1	1	2	1	$STUB_DIR/dummy_psf.tif	none
 EOF
 touch "$STUB_DIR/dummy_index.xml"
 
-# rn_autoscale needs a channel map and a control list to derive scaling factors
+# sc_autoscale needs a channel map and a control list to derive scaling factors
 # from - contents don't matter under -stub-run (the real script never executes),
 # they just need to exist so Nextflow can stage them.
 touch "$STUB_DIR/dummy_channel_map.tsv"
@@ -100,9 +100,9 @@ nextflow run "$SCRIPT_DIR/main.nf" \
     --rn_decon_dir "$STUB_DIR/results/decon" \
     --cpr_pipeline_3d "$STUB_DIR/dummy.cppipe" \
     --dc_run true \
-    --rn_autoscale true \
-    --rn_channel_map "$STUB_DIR/dummy_channel_map.tsv" \
-    --rn_control_list "$STUB_DIR/dummy_control_list.tsv" \
+    --sc_autoscale true \
+    --sc_channel_map "$STUB_DIR/dummy_channel_map.tsv" \
+    --sc_control_list "$STUB_DIR/dummy_control_list.tsv" \
     --rn_manifest_registration "$STUB_DIR/dummy_registration_manifest.tsv" \
     -with-report "$STUB_DIR/report.html" \
     -with-trace "$STUB_DIR/trace.txt"
