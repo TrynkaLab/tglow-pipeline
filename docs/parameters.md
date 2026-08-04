@@ -15,8 +15,8 @@
 | `rn_manifest_well` | Well level manifest (whitelist) This is a file with <well> <plate> <pe xml> structure indicating which wells on which plates to run Set to null if auto generated from perkinelmer XML If not null, supply a list /path/to/plate1_manifest.csv,/path/to/plate2_manifest.csv,... | `string` |  |  |  |
 | `rn_manifest_registration` | Registration manifest This dictates which plates will be merged and registered. If left to null no merging or registration is performed | `string` |  |  |  |
 | `rn_publish_dir` | Directory to store and cache the output. Generally name results | `string` | ../results |  |  |
-| `rn_image_dir` | Permanent cache for images [optional] Defaults to: ${rn_publish_dir}/images | `string` | ../results/images |  |  |
-| `rn_decon_dir` | Permanent cache for deconvolutions [optional] Defaults to: ${rn_publish_dir}/decon | `string` | ../results/decon |  |  |
+| `rn_image_dir` | Permanent cache for images [optional] Defaults to: ../results/images (relative to launch dir, independent of rn_publish_dir) | `string` | ../results/images |  |  |
+| `rn_decon_dir` | Permanent cache for deconvolutions [optional] Defaults to: ../results/decon (relative to launch dir, independent of rn_publish_dir) | `string` | ../results/decon |  |  |
 | `rn_max_project` | Max project prior to running segmentation and cellprofiler Decon is still done in 3d, but results are saved as max projections. | `boolean` |  |  |  |
 | `rn_hybrid` | Run in hybrid 2d/3d mode. Masks and decon run and saved in 3d but only cellprofiler is run using max projections. In true ignores rn_max_project. Must be true to enable demultiplexing of nuclear and non-nuclear signals. | `boolean` |  |  |  |
 | `rn_wells` | Select only these wells, useful for testing [optional] comma separated string of well ids: A06,B19,C22 | `string` |  |  |  |

@@ -90,6 +90,10 @@ workflow finalize_images {
                     measure_intensity.out.measurements
                         .map{row -> tuple(row[0].plate, row[1])}
                         .groupTuple(by: 0)
+                        // groupTuple collects each well's [image, object] parquet pair into
+                        // its own nested list - flatten so stage_as_plate's path input sees
+                        // one flat filelist per plate, not a list-of-lists
+                        .map{row -> tuple(row[0], row[1].flatten())}
                 )
 
                 estimate_scaling_factors(

@@ -25,7 +25,7 @@ process finalize {
         // output subdir the images land in - lets callers get direct-to-scaled output
         // for IO-heavy runs (pass real scaling files) or defer to `rescale` later
         // (pass NO_SCALE/NO_SLOPE/NO_BIAS placeholders).
-        apply_scaling = (params.rn_manualscale != null | params.rn_autoscale) & scaling_file.name != "NO_SCALE"
+        apply_scaling = (params.rn_manualscale != null || params.rn_autoscale) && scaling_file.name != "NO_SCALE"
         img_subdir = apply_scaling ? "scaled" : "unscaled"
 
         // Stage the masks so cellprofiler can access them
@@ -127,15 +127,42 @@ process finalize {
         
         cmd
     stub:
-        apply_scaling = (params.rn_manualscale != null | params.rn_autoscale) & scaling_file.name != "NO_SCALE"
+        apply_scaling = (params.rn_manualscale != null || params.rn_autoscale) && scaling_file.name != "NO_SCALE"
         img_subdir = apply_scaling ? "scaled" : "unscaled"
+
+        // Fabricate a plausible channel_indices.tsv (real format: see
+        // ProcessedImageProvider.build_channel_index in tglow-core) instead of
+        // touching an empty file - when registration is enabled, finalize_images'
+        // cellcrop_in construction parses this to map original -> registered
+        // channel indices, and an empty file makes that combine() always empty,
+        // silently dropping every well from cellcrops.
+        // Assumes merge plates share the ref plate's channel count, since the
+        // real count comes from each plate's actual image dims, which the stub
+        // has no image to read.
+        ref_channels = (manifest.channels instanceof List) ? manifest.channels : []
+        channel_rows = []
+        channel_id = 0
+        ref_channels.each { ch ->
+            channel_rows << [well.plate, well.plate, 1, channel_id, "ch${ch}", ch, "ch${ch}"].join("\t")
+            channel_id = channel_id + 1
+        }
+        if (merge_plates) {
+            merge_plates.eachWithIndex { mp, cycleIdx ->
+                ref_channels.each { ch ->
+                    channel_rows << [well.plate, mp, cycleIdx + 2, channel_id, "ch${channel_id} - ch${ch}", ch, "ch${ch}"].join("\t")
+                    channel_id = channel_id + 1
+                }
+            }
+        }
+        channel_indices_tsv = (["ref_plate\tplate\tcycle\tchannel\tname\torig_channel\torig_name"] + channel_rows).join("\n")
+
         """
         mkdir -p ${img_subdir}/${well.relpath}
         touch ${img_subdir}/${well.relpath}/${well.plate}_${well.well}_ch0.tiff
         mkdir -p masks/${well.relpath}
         touch masks/${well.relpath}/${well.plate}_${well.well}_cell_mask_d00_ch0_cp_masks.tiff
         mkdir -p ${img_subdir}/${well.plate}
-        touch ${img_subdir}/${well.plate}/channel_indices.tsv
+        printf '%s\\n' "${channel_indices_tsv}" > ${img_subdir}/${well.plate}/channel_indices.tsv
         """
 }
 

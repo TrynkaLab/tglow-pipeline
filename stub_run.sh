@@ -24,13 +24,43 @@ mkdir -p "$STUB_DIR/results/images" "$STUB_DIR/workdir"
 
 # --- Fabricated inputs -----------------------------------------------------
 
+# Dummy PSF for deconvolution (dc_psfs is indexed by 0-based channel index, so a
+# single dc_channels=1 entry only ever needs psf index 0 - one file is enough).
+touch "$STUB_DIR/dummy_psf.tif"
+
 # Core manifest: one plate, two channels, nucleus=1 & cell=2 (so cellpose has
 # something to key off), everything else disabled ("none").
-cat > "$STUB_DIR/manifest.tsv" <<'EOF'
+cat > "$STUB_DIR/manifest.tsv" <<EOF
 plate	index_xml	channels	bp_channels	cp_nucl_channel	cp_cell_channel	dc_channels	dc_psfs	mask_channels
-PLATE1	dummy_index.xml	1,2	none	1	2	none	none	none
+PLATE1	dummy_index.xml	1,2	1	1	2	1	$STUB_DIR/dummy_psf.tif	none
+PLATE2	dummy_index.xml	1,2	1	1	2	1	$STUB_DIR/dummy_psf.tif	none
 EOF
 touch "$STUB_DIR/dummy_index.xml"
+
+# rn_autoscale needs a channel map and a control list to derive scaling factors
+# from - contents don't matter under -stub-run (the real script never executes),
+# they just need to exist so Nextflow can stage them.
+touch "$STUB_DIR/dummy_channel_map.tsv"
+printf 'PLATE1\tA1\t1,2\tcontrolA\n' > "$STUB_DIR/dummy_control_list.tsv"
+
+# Dummy image + per-plate well manifest, so `setup`'s well_channel is
+# actually populated (index_imagedir's stub block just touches an empty
+# manifest.tsv regardless of what's on disk — pre-existing manifest.tsv is
+# needed so its storeDir cache-hit is used instead).
+mkdir -p "$STUB_DIR/results/images/PLATE1/A/1"
+touch "$STUB_DIR/results/images/PLATE1/A/1/1.ome.tiff"
+printf 'A1\tA\t1\tPLATE1\tnone\n' > "$STUB_DIR/results/images/PLATE1/manifest.tsv"
+
+# PLATE2 gets the same well as PLATE1 - registration merges PLATE2 (query) onto
+# PLATE1 (reference) below, and with dc_run on, the ref/query grouping in
+# run_pipeline.nf waits on a decon output from both plates for the same well,
+# so PLATE2 needs a matching A1 well to avoid hanging.
+mkdir -p "$STUB_DIR/results/images/PLATE2/A/1"
+touch "$STUB_DIR/results/images/PLATE2/A/1/1.ome.tiff"
+printf 'A1\tA\t1\tPLATE2\tnone\n' > "$STUB_DIR/results/images/PLATE2/manifest.tsv"
+
+# Registration manifest: merge PLATE2 (query) onto PLATE1 (reference), both on channel 1.
+printf 'reference_plate\treference_channel\tquery_plates\tquery_channels\nPLATE1\t1\tPLATE2\t1\n' > "$STUB_DIR/dummy_registration_manifest.tsv"
 
 # CellProfiler pipeline: only needs to exist, cellprofiler runs its stub block.
 touch "$STUB_DIR/dummy.cppipe"
@@ -41,6 +71,17 @@ cat > "$STUB_DIR/stub.config" <<'EOF'
 conda.enabled = false
 docker.enabled = false
 singularity.enabled = false
+
+// conf/processes.config sizes labels (e.g. gpu_normal_plus = 24GB) for the
+// real HPC cluster. A stub run only touches placeholder files, so cap every
+// label down to something any laptop can satisfy.
+process {
+    withLabel: '.*' {
+        cpus = 1
+        memory = 1.GB
+        time = 10.m
+    }
+}
 EOF
 
 # --- Run --------------------------------------------------------------------
@@ -56,7 +97,13 @@ nextflow run "$SCRIPT_DIR/main.nf" \
     --rn_manifest "$STUB_DIR/manifest.tsv" \
     --rn_publish_dir "$STUB_DIR/results" \
     --rn_image_dir "$STUB_DIR/results/images" \
+    --rn_decon_dir "$STUB_DIR/results/decon" \
     --cpr_pipeline_3d "$STUB_DIR/dummy.cppipe" \
+    --dc_run true \
+    --rn_autoscale true \
+    --rn_channel_map "$STUB_DIR/dummy_channel_map.tsv" \
+    --rn_control_list "$STUB_DIR/dummy_control_list.tsv" \
+    --rn_manifest_registration "$STUB_DIR/dummy_registration_manifest.tsv" \
     -with-report "$STUB_DIR/report.html" \
     -with-trace "$STUB_DIR/trace.txt"
 

@@ -48,15 +48,17 @@ process stage_as_plate {
     label "tiny"
 
     input:
-        tuple val(plate), path(features, stageAs: { "$plate/*" })
+        tuple val(plate), path(features, stageAs: "measurements_in/*")
     output:
         tuple val(plate), path("${plate}/")
     script:
-        // features are already staged into ${plate}/ via the stageAs directive above
-        // (Nextflow auto-disambiguates the same-named object/image_features.parquet files
-        // coming from different wells) - this process just collapses the per-well parquet
-        // filelist into a single plate-level directory channel item.
+        // Workaround as we cannot use variables from the same tuple in stageAs -
+        // stage generically, then symlink into the plate-named dir
+        // calculate_scaling_factors expects (Nextflow auto-disambiguates the
+        // same-named object/image_features.parquet files coming from different wells).
         """
+        mkdir -p ${plate}
+        ln -s \$(pwd)/measurements_in/* ${plate}/
         echo "Staged \$(ls ${plate}/ | wc -l) files for plate ${plate}"
         """
     stub:

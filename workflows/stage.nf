@@ -6,22 +6,25 @@ include { prepare_manifest; fetch_raw } from '../processes/staging.nf'
 // Workflow to stage the data from NFS to lustre
 workflow stage {
     main:
-        // Validate parameters plugin
-        validateParameters()
-
-        //------------------------------------------------------------
-        if (params.rn_publish_dir == null) {
-            error "rn_publish_dir file parameter is required: --rn_publish_dir"
-        }
-        
-        if (params.rn_manifest == null) {
-            error "rn_manifest file parameter is required: --rn_manifest"
-        }
-
-        // Set runtime defaults, these are overidden when specified on commandline
-        params.rn_image_dir = params.rn_publish_dir + "/images"
-        params.rn_decon_dir = params.rn_publish_dir + "/decon"
     
+        // Check parameters
+        if (params.rn_skip_checks) {
+            log.warn("Skipping parameter checks")
+        } else {
+            // Validate parameters plugin
+            validateParameters()
+                                
+            //------------------------------------------------------------
+            if (params.rn_publish_dir == null) {
+                error "rn_publish_dir file parameter is required: --rn_publish_dir"
+            }
+            
+            if (params.rn_manifest == null) {
+                error "rn_manifest file parameter is required: --rn_manifest"
+            }
+        }
+
+
         // Read manifest
         manifest = Channel.fromPath(params.rn_manifest)
             .splitCsv(header:true, sep:"\t")
