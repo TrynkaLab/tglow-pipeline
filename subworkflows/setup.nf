@@ -9,8 +9,12 @@ workflow setup {
     take:
         params
     main:
-        checkParamsBase(params)
-
+        
+        if (params.rn_skip_checks) {
+            log.warn("Skipping parameter checks")
+        } else {
+            checkParamsBase(params)
+        }
         //------------------------------------------------------------
         // Read manifests & input files
         //------------------------------------------------------------

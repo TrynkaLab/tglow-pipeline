@@ -20,13 +20,19 @@ workflow run_pipeline {
 
     main:
 
-        // Validate parameters plugin
-        validateParameters()
-
         // ------------------------------------------------------------
         // Check parameters
-        checkParamsMain(params)
-    
+        if (params.rn_skip_checks) {
+            log.warn("Skipping parameter checks")
+        } else {
+            
+            // Validate parameters plugin
+            validateParameters()
+
+            // Custom parameter checks
+            checkParamsMain(params)
+        }    
+        
         //------------------------------------------------------------
         // Run setup
         //------------------------------------------------------------

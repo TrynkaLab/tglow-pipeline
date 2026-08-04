@@ -9,3 +9,8 @@ Claude.md
 scaling_workflow_plan.md
 scaling_script.md
 scaling_script.r
+.stub_run/
+**/.nextflow
+**/results
+**/workdir
+clean_nextflow.sh
