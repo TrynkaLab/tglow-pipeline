@@ -402,13 +402,23 @@
         },
         "sc_autoscale_q1": {
           "type": "string",
-          "default": "q100",
-          "description": "The measure_intensity feature stat to read per cell/image for dynamic-range scaling (e.g. 'q100' reads the ch<N>__q100 column). Only used to auto-derive a channel_map when sc_channel_map is null - ignored otherwise, since an explicit channel_map's rep_features_dynamic takes over. Valid options are whatever stat suffixes measure_intensity actually computes, e.g. 'min', 'q25', 'q50', 'mean', 'q75', 'q99', 'q99.9', 'q99.999', 'max'."
+          "default": "max",
+          "description": "The measure_intensity feature stat to read per cell/image for dynamic-range scaling (e.g. 'max' reads the ch<N>__max column). Only used to auto-derive a channel_map when sc_channel_map is null - ignored otherwise, since an explicit channel_map's rep_features_dynamic takes over. Valid options are whatever stat suffixes measure_intensity actually computes, e.g. 'min', 'q25', 'q50', 'mean', 'q75', 'q99', 'q99.9', 'q99.999', 'max'."
         },
         "sc_autoscale_q2": {
           "type": "integer",
           "default": 95,
           "description": "Controls which quantile is taken across all images for chosen q1 Valid options: 0 - 1"
+        },
+        "sc_registration_thresh": {
+          "type": "number",
+          "default": 0.6,
+          "description": "Minimum registration correlation an object's matching columns (see sc_registration_pattern) must all meet to be kept; objects below threshold on any matching column (or missing/NaN) are removed before scaling factors are computed."
+        },
+        "sc_registration_pattern": {
+          "type": "string",
+          "default": "registration_corr",
+          "description": "Substring used to find per-channel-pair registration correlation columns in object_features for sc_registration_thresh filtering."
         },
         "sc_skip_sigmoid": {
           "type": "boolean",

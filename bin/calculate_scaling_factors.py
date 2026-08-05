@@ -132,6 +132,29 @@ def get_feature_series(df, feature):
     return df[feature].to_numpy()
 
 
+def filter_registration_correlation(cell_df, pattern, threshold):
+    """Drop objects whose registration correlation falls below threshold in any matching channel column.
+
+    Columns matching `pattern` (substring match, e.g. "registration_corr") report the
+    correlation between channels used for registration. An object is kept only if every
+    matching column is >= threshold; a missing/NaN value counts as a failure.
+    """
+    corr_cols = [c for c in cell_df.columns if pattern in c]
+
+    if not corr_cols:
+        log.warning(f"No columns matching registration feature pattern '{pattern}' found - skipping registration-based filtering")
+        return cell_df
+
+    passes = cell_df[corr_cols].ge(threshold).all(axis=1)
+    n_removed = (~passes).sum()
+    log.info(
+        f"Registration filtering ({corr_cols}, threshold={threshold}): "
+        f"removing {n_removed}/{len(cell_df)} objects"
+    )
+
+    return cell_df.loc[passes].reset_index(drop=True)
+
+
 def load_measurements(input_dir, name_fragment):
     """Concatenate <input_dir>/<plate>/*<name_fragment>*.parquet across every plate.
 
@@ -425,10 +448,14 @@ def main():
     parser.add_argument("--sigmoid_tol", type=float, default=1e-3, help="Sigmoid tolerance for scale_lower/upper fit")
     parser.add_argument("--uint_max", type=int, default=65535, help="Max value of the raw intensity range")
     parser.add_argument("--plate_col", default="plate")
+    parser.add_argument("--registration_threshold", type=float, default=0.6, help="Minimum registration correlation an object's matching columns must all meet to be kept")
+    parser.add_argument("--registration_feature_pattern", default="registration_corr", help="Substring used to find per-channel-pair registration correlation columns in object_features")
     args = parser.parse_args()
 
     cell_df = load_measurements(args.input, "object_features")
     image_df = load_measurements(args.input, "image_features")
+
+    cell_df = filter_registration_correlation(cell_df, args.registration_feature_pattern, args.registration_threshold)
 
     if args.channel_map is not None:
         channel_map = load_channel_map(args.channel_map)

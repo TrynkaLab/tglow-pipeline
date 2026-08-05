@@ -28,6 +28,8 @@ process calculate_scaling_factors {
         --output ./ \
         --q1 $params.sc_autoscale_q1 \
         --q2 $params.sc_autoscale_q2 \
+        --registration_threshold $params.sc_registration_thresh \
+        --registration_feature_pattern $params.sc_registration_pattern \
         """
 
         if (channel_map.name != "NO_CHANNEL_MAP") {
