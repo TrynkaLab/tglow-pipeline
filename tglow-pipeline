@@ -71,9 +71,9 @@ PROFILE="lsf"
 
 prefix="$(timestamp_folder_name)"
 mkdir -p logs/${prefix}
-
+    
 # Source your nextflow installation here
-module load HGI/common/nextflow/25.04.6
+module load HGI/common/nextflow/26.04.6
  
 export HTTP_PROXY='http://wwwcache.sanger.ac.uk:3128'
 export HTTPS_PROXY='http://wwwcache.sanger.ac.uk:3128'
@@ -82,13 +82,13 @@ export NXF_OPTS="-Xms14G -Xmx14G -Dnxf.pool.maxThreads=2000"
 # Set this to true to enable a more fancy logging.
 # This fancy logging is a bit funky and designed for interactive sessions!
 # Alternatively: tail -f <logfile>  or watch -n 1 tail -10 <logfile> 
-# if not suing an interactive session
+# if not using an interactive session
 export NXF_ANSI_LOG=true
  
 # General Nextflow variables #
  
 # Nextflow version, change depending on installation you use
-export NXF_VER=25.04.6
+export NXF_VER=26.04.6
  
 # Singularity cache folder to use
 # Currently doesn't use signularity, but will do in the future
@@ -204,7 +204,6 @@ run ${NF_FILE} \
 -profile ${PROFILE} \
 -w ${WORKDIR} \
 -resume \
--entry ${WORKFLOW} \
 -with-report logs/${prefix}/${WORKFLOW}.nextflow.html \
 -with-trace logs/${prefix}/${WORKFLOW}.nextflow.trace"
 
@@ -214,7 +213,7 @@ if [ -e "$CONFIG_FILE" ]; then
 fi
 
 # Add the remaining arguments
-CMD="$CMD $@"
+CMD="$CMD --workflow ${WORKFLOW} $@"
 
 echo "--------------------------------------------------------------------"
 echo $CMD

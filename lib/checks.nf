@@ -100,22 +100,24 @@ def checkParamsScaling(params) {
             error("Specified control list file does not exist or is not readable")
         }
     }
-    
-    
 
-    // calculate_scaling_factors always merges against controls for both plate-offset and
-    // sigmoid fitting, so sc_autoscale now requires sc_control_list (and a channel_map)
-    if (params.sc_autoscale) {
-        if (params.sc_control_list == null) {
-            error("sc_autoscale requires sc_control_list to be set - calculate_scaling_factors needs it to derive plate offsets and sigmoid bias/slope")
-        }
-        if (params.sc_channel_map == null) {
-            error("sc_autoscale requires sc_channel_map to be set - calculate_scaling_factors needs it to know which measured feature to use per channel")
-        }
+    // Check channel map
+    if (params.sc_channel_map != null) {
         if (!file(params.sc_channel_map).exists()) {
             error("Specified channel map file does not exist or is not readable")
         }
-        
+    }
+
+    // sc_control_list and sc_channel_map are both optional: with neither set, autoscale
+    // falls back to dynamic-range-only scaling (sc_autoscale_q1/q2, no plate offsets or
+    // sigmoid fitting). But plate-offset correction needs a feature to average per channel,
+    // which only comes from sc_channel_map's rep_features_offset column, so sc_control_list
+    // requires sc_channel_map to also be set.
+    if (params.sc_autoscale) {
+        if (params.sc_control_list != null && params.sc_channel_map == null) {
+            error("sc_control_list requires sc_channel_map to be set - calculate_scaling_factors needs it to know which measured feature to average per channel for the plate offset")
+        }
+
         if (!params.rn_cache_images) {
             error("Autoscaling is set to true, but image caching is disabled. Please set params.rn_cache_images=true")
         }

@@ -21,14 +21,28 @@ process calculate_scaling_factors {
         path "sigmoid_slope.txt", emit: scaling_slope
         path "scaling_index.tsv"
     script:
+        cmd =
         """
         calculate_scaling_factors.py \
         --input measurements \
-        --channel_map $channel_map \
-        --controls $controls \
         --output ./ \
-        --q2 $params.sc_autoscale_q2
+        --q1 $params.sc_autoscale_q1 \
+        --q2 $params.sc_autoscale_q2 \
         """
+
+        if (channel_map.name != "NO_CHANNEL_MAP") {
+            cmd += " --channel_map $channel_map"
+        }
+
+        if (controls.name != "NO_CONTROLS") {
+            cmd += " --controls $controls"
+        }
+
+        if (params.sc_skip_sigmoid) {
+            cmd += " --skip_sigmoid"
+        }
+
+        cmd
     stub:
         """
         touch scaling_factors.txt

@@ -37,14 +37,15 @@ workflow estimate_scaling_factors {
             bias_channel = Channel.value(file("NO_BIAS"))
         }
 
-        // Autoscale derives factors (and sigmoid bias/slope) from the measured intensities -
-        // requires sc_control_list and sc_channel_map (enforced in checks.nf)
+        // Autoscale derives factors (and sigmoid bias/slope) from the measured intensities.
+        // sc_channel_map/sc_control_list are both optional - when absent, calculate_scaling_factors
+        // (via processes/scaling.nf) falls back to dynamic-range-only scaling from sc_autoscale_q1/q2.
         if (sc_autoscale) {
             calc_out = calculate_scaling_factors(
                 images_ready,
                 plate_dirs,
-                Channel.value(file(sc_channel_map)),
-                Channel.value(file(sc_control_list))
+                Channel.value(file(sc_channel_map ?: "NO_CHANNEL_MAP")),
+                Channel.value(file(sc_control_list ?: "NO_CONTROLS"))
             )
 
             scaling_channel = calc_out.scaling_factors.first()

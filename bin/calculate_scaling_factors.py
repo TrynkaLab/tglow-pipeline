@@ -13,6 +13,7 @@ import argparse
 import glob
 import logging
 import os
+import re
 
 import numpy as np
 import pandas as pd
@@ -79,6 +80,51 @@ def load_channel_map(path):
 
     channel_map = channel_map.drop(columns=["ref_plate", "plate"], errors="ignore")
     return channel_map
+
+
+CHANNEL_COLUMN_RE = re.compile(r"^ch(\d+)__(.+)$")
+
+
+def build_dynamic_range_channel_map(cell_df, q1):
+    """Auto-build a channel_map for dynamic-range-only scaling (no channel_map/controls given).
+
+    measure_intensity writes ch{N}__{stat} columns (N 1-indexed over the final,
+    cycle-merged channel count - see channel_indices.tsv), so channel N maps to
+    channel_indices' 0-indexed `channel` == N - 1. Only rep_features_dynamic is
+    populated; rep_features_offset/rep_features_scale_lower/rep_features_scale_upper/
+    control_population are left blank, which makes compute_plate_offsets/
+    compute_sigmoid_params fall back to plate_offset=1.0 and the "always ~1"
+    sigmoid curve without ever touching the (absent) controls data.
+    """
+    channels = sorted({
+        int(m.group(1))
+        for col in cell_df.columns
+        for m in [CHANNEL_COLUMN_RE.match(col)]
+        if m
+    })
+
+    if not channels:
+        raise RuntimeError("No ch<N>__<stat> columns found in the object features - cannot auto-build a channel_map")
+
+    rows = []
+    for n in channels:
+        feature = f"ch{n}__{q1}"
+        if feature not in cell_df.columns:
+            raise RuntimeError(
+                f"--q1 '{q1}' requested but column '{feature}' is not present for channel {n} "
+                f"(available stats: {sorted(m.group(2) for col in cell_df.columns for m in [CHANNEL_COLUMN_RE.match(col)] if m and int(m.group(1)) == n)})"
+            )
+        rows.append({
+            "channel": n - 1,
+            "name": f"ch{n}",
+            "rep_features_dynamic": feature,
+            "rep_features_offset": np.nan,
+            "rep_features_scale_lower": np.nan,
+            "rep_features_scale_upper": np.nan,
+            "control_population": np.nan,
+        })
+
+    return pd.DataFrame(rows)
 
 
 def get_feature_series(df, feature):
@@ -261,15 +307,21 @@ def apply_skip_scaling(scaling_index, channel_map):
     return scaling_index
 
 
-def compute_sigmoid_params(scaling_index, channel_map, image_df, controls_merged, plate_col, sigmoid_tol, uint_max):
-    """Per channel: fit sigmoid bias/slope from control-image lower/upper quantiles (R lines 236-292)."""
+def compute_sigmoid_params(scaling_index, channel_map, image_df, controls_merged, plate_col, sigmoid_tol, uint_max, skip_sigmoid=False):
+    """Per channel: fit sigmoid bias/slope from control-image lower/upper quantiles (R lines 236-292).
+
+    skip_sigmoid (global, from --skip_sigmoid) forces every channel onto the
+    "always ~1" fallback regardless of rep_features_scale_lower/upper - the
+    per-channel channel_map `skip_sigmoid` column still works independently
+    of this for finer-grained control.
+    """
     for _, ch_row in channel_map.iterrows():
         channel = ch_row["channel"]
         lower_feature = ch_row["rep_features_scale_lower"]
         upper_feature = ch_row["rep_features_scale_upper"]
         mask = scaling_index["channel"] == channel
 
-        if pd.isna(lower_feature) or _to_bool(ch_row.get("skip_sigmoid")):
+        if skip_sigmoid or pd.isna(lower_feature) or _to_bool(ch_row.get("skip_sigmoid")):
             # No feature set, or sigmoid explicitly disabled (e.g. brightfield):
             # fall back to a curve that always evaluates ~1
             par = sigmoid_params(-99, 1, tol=1e-16)
@@ -364,20 +416,39 @@ def main():
                     "from cell- and image-level intensity feature parquet files."
     )
     parser.add_argument("--input", required=True, help="Directory of per-plate subdirs, each holding that plate's object_features.parquet/image_features.parquet (as produced by measure_intensity + stage_as_plate)")
-    parser.add_argument("--channel_map", required=True, help="TSV describing the channel layout, extended with rep_features_*/control_population columns")
-    parser.add_argument("--controls", required=True, help="TSV with <plate> <well> <control_type> columns")
+    parser.add_argument("--channel_map", default=None, help="TSV describing the channel layout, extended with rep_features_*/control_population columns. If omitted, a dynamic-range-only channel_map is auto-built from --q1")
+    parser.add_argument("--controls", default=None, help="TSV with <plate> <well> <control_type> columns. If omitted, plate-offset correction is skipped (plate_offset=1.0 for every channel/plate)")
     parser.add_argument("--output", required=True, help="Output directory")
+    parser.add_argument("--q1", default=None, help="Per-cell/image feature stat suffix (e.g. 'q99.9999') used to auto-build a channel_map's rep_features_dynamic when --channel_map is omitted")
     parser.add_argument("--q2", type=float, default=0.99, help="Quantile (0-1) used for dynamic range")
+    parser.add_argument("--skip_sigmoid", action="store_true", help="Skip sigmoid fitting globally and apply the raw scale factor (dynamic range * plate offset) instead")
     parser.add_argument("--sigmoid_tol", type=float, default=1e-3, help="Sigmoid tolerance for scale_lower/upper fit")
     parser.add_argument("--uint_max", type=int, default=65535, help="Max value of the raw intensity range")
     parser.add_argument("--plate_col", default="plate")
     args = parser.parse_args()
 
-    channel_map = load_channel_map(args.channel_map)
-    controls = load_controls(args.controls)
-
     cell_df = load_measurements(args.input, "object_features")
     image_df = load_measurements(args.input, "image_features")
+
+    if args.channel_map is not None:
+        channel_map = load_channel_map(args.channel_map)
+    else:
+        if not args.q1:
+            raise RuntimeError("--q1 is required when --channel_map is omitted (dynamic-range-only mode)")
+        channel_map = build_dynamic_range_channel_map(cell_df, args.q1)
+
+    if args.controls is not None:
+        controls = load_controls(args.controls)
+        cell_controls = _merge_controls(cell_df, controls, args.plate_col)
+        image_controls = _merge_controls(image_df, controls, args.plate_col)
+    else:
+        # No controls: compute_plate_offsets/compute_sigmoid_params select
+        # `.loc[controls_merged.index]` - an empty index makes both fall back
+        # to plate_offset=1.0 / the sigmoid "always ~1" curve for every channel,
+        # even one with rep_features_offset/scale_lower set in an explicit
+        # channel_map passed without --controls.
+        cell_controls = pd.DataFrame(index=pd.Index([]))
+        image_controls = pd.DataFrame(index=pd.Index([]))
 
     plates = sorted(set(cell_df[args.plate_col].astype(str)) | set(image_df[args.plate_col].astype(str)))
     log.info(f"Found {len(plates)} plates: {plates}")
@@ -386,12 +457,10 @@ def main():
 
     scaling_index = compute_dynamic_range(scaling_index, channel_map, cell_df, args.plate_col, args.q2)
 
-    cell_controls = _merge_controls(cell_df, controls, args.plate_col)
     scaling_index = compute_plate_offsets(scaling_index, channel_map, cell_df, cell_controls, args.plate_col)
     scaling_index = apply_skip_scaling(scaling_index, channel_map)
 
-    image_controls = _merge_controls(image_df, controls, args.plate_col)
-    scaling_index = compute_sigmoid_params(scaling_index, channel_map, image_df, image_controls, args.plate_col, args.sigmoid_tol, args.uint_max)
+    scaling_index = compute_sigmoid_params(scaling_index, channel_map, image_df, image_controls, args.plate_col, args.sigmoid_tol, args.uint_max, args.skip_sigmoid)
     scaling_index = fill_missing_sigmoid(scaling_index)
     scaling_index = compute_channel_medians(scaling_index)
 
