@@ -1,6 +1,6 @@
 #!/usr/bin/env nextflow
 
-include { finalize; rescale; index_cellcrops; cellcrops } from '../processes/finalize.nf'
+include { finalize; rescale; index_cellcrops; index_cellcrops_csv; cellcrops } from '../processes/finalize.nf'
 include { measure_intensity; stage_as_plate } from '../processes/intensity.nf'
 include { index_images as index_unscaled; index_images as index_scaled } from '../processes/staging.nf'
 include { estimate_scaling_factors } from './scaling_factors.nf'

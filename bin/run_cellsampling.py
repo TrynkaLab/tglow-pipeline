@@ -65,10 +65,14 @@ class CellSampler:
             self.qry_nucl_channels=[]
         
 
-    def save_cell_crops(self, img, cell_mask, nuclei_mask, iq):
+    def save_cell_crops(self, img, cell_mask, nuclei_mask, iq, csv_per_field=False):
         """
         For each cell in the mask, extract the cell image, compute statistics, and save the result.
         Raw images are saved - so they will not be in the range [0, 255]; moreover, all the channels are saved.
+
+        Returns the per-field cell feature DataFrame so callers can aggregate it into a
+        single per-well parquet file. If csv_per_field is True, also writes it out as a
+        standalone <field>.csv (the old per-field behavior), kept for backwards compatibility.
         """
         
         # Create output dir
@@ -179,8 +183,9 @@ class CellSampler:
             out_df = pd.concat((out_df, pd.DataFrame(df_row, index=[count])))
             count += 1
             
-        out_df.to_csv(f'{self.output_root}/{iq.plate}/{iq.get_row_letter()}/{iq.col}/{iq.field}.csv')
-        
+        if csv_per_field:
+            out_df.to_csv(f'{self.output_root}/{iq.plate}/{iq.get_row_letter()}/{iq.col}/{iq.field}.csv')
+
         # Add channel names
         img_meta = self.image_reader.get_img(iq)
         
@@ -194,14 +199,16 @@ class CellSampler:
         
         h5f.flush()
         h5f.close()
-        
+
         # Experimented with this
         #out_df.to_hdf(h5f_path, key='/cell_index', mode='a')
-        
-    def sample_imageset(self, iq, max_cells_per_field=1000):
-        
+
+        return out_df
+
+    def sample_imageset(self, iq, max_cells_per_field=1000, csv_per_field=False):
+
         # Read image CZYX
-        img = self.image_reader.read_stack(iq) 
+        img = self.image_reader.read_stack(iq)
 
         # If the image size is not set, set it here
         if self.image_size is None:
@@ -212,9 +219,9 @@ class CellSampler:
 
         # Get cells number
         cells_number = np.max(mask)
-        
+
         log.info(f"Read cellmask. It has {cells_number} objects in it")
-        
+
         if cells_number > max_cells_per_field:
             return None
 
@@ -225,12 +232,12 @@ class CellSampler:
             nucl_mask = ((nucl_mask > 0) & (mask > 0)) * mask
         else:
             nucl_mask = None
-            
-        log.info(f"Read images of shape {img.shape}, cell_masks {mask.shape}, nucl_masks {nucl_mask.shape}")
-        
-        self.save_cell_crops(img, mask, nucl_mask, iq)
 
-    
+        log.info(f"Read images of shape {img.shape}, cell_masks {mask.shape}, nucl_masks {nucl_mask.shape}")
+
+        return self.save_cell_crops(img, mask, nucl_mask, iq, csv_per_field)
+
+
 if __name__ == "__main__":
 
     # Create the parser
@@ -248,6 +255,7 @@ if __name__ == "__main__":
     parser.add_argument('--ref_channel', help="The registration channel in reference plate", required=False, default=None)
     parser.add_argument('--qry_channels', help="The registration channel in query plates", required=False, nargs="+", default=[])
     parser.add_argument('--max_per_field', help="Max number of cells per field to consider", default=5000)
+    parser.add_argument('--csv_per_field', action='store_true', help="Write a <field>.csv of cell features per field (old behavior) instead of a single aggregated <well>.parquet file; when set, the parquet file is not written.")
 
     # Parse the arguments
     args = parser.parse_args()
@@ -257,11 +265,23 @@ if __name__ == "__main__":
 
     sampler = CellSampler(args.output,args.input, args.cell_mask_dir, args.ref_channel, args.qry_channels, args.nucl_mask_dir,  args.cell_mask_pattern, args.nucl_mask_pattern)
 
+    well_dfs = []
     for imagename in glob.glob(os.path.join(args.input, iq.plate, iq.get_row_letter(), iq.col, '*.ome.tiff')):
         # Get image id
         field = imagename.split('/')[-1].split('.ome.tiff')[0].split('/')[-1]
         iq.field = field
         log.info(f"iq: {iq.to_string()}")
-        sampler.sample_imageset(iq, int(args.max_per_field))
-        
+        field_df = sampler.sample_imageset(iq, int(args.max_per_field), args.csv_per_field)
+        if field_df is not None:
+            well_dfs.append(field_df)
+
+    if not args.csv_per_field:
+        well_dir = os.path.join(args.output, iq.plate, iq.get_row_letter(), iq.col)
+        os.makedirs(well_dir, exist_ok=True)
+        if well_dfs:
+            well_df = pd.concat(well_dfs, ignore_index=True)
+        else:
+            well_df = pd.DataFrame()
+        well_df.to_parquet(os.path.join(well_dir, f'{iq.get_well_id()}.parquet'))
+
     print('Completed without errors', flush=True)

@@ -228,7 +228,7 @@ process cellcrops {
         tuple val(well), val(registration),  path(images, stageAs: "input_images/"), path(masks, stageAs: "input_masks/")
     output:
         tuple val(well), path("${well.relpath}/*.h5"), emit: h5
-        tuple val(well), path("${well.relpath}/*.csv"), emit: index
+        tuple val(well), path("${well.relpath}/*.parquet"), emit: index
     script:
 
     cmd = """
@@ -256,18 +256,52 @@ process cellcrops {
         """
         mkdir -p ${well.relpath}
         touch ${well.relpath}/1.h5
-        touch ${well.relpath}/1.csv
+        touch ${well.relpath}/1.parquet
         """
 }
 
 process index_cellcrops {
     label params.cpr_label
-    
+
     conda params.tg_conda_env
     container params.tg_container
-    
+
     publishDir "$params.rn_publish_dir/cellcrops", mode: "copy"
-    
+
+    input:
+        val previous_completed
+        path input, stageAs: "input_cellcrops"
+    output:
+        path "cellcrop_index.parquet"
+    script:
+    """
+    python3 <<'PYEOF'
+import glob
+
+import pandas as pd
+
+paths = sorted(glob.glob("input_cellcrops/**/*.parquet", recursive=True))
+df = pd.concat((pd.read_parquet(p) for p in paths), ignore_index=True) if paths else pd.DataFrame()
+df.to_parquet("cellcrop_index.parquet")
+PYEOF
+    """
+    stub:
+        """
+        touch cellcrop_index.parquet
+        """
+}
+
+// Backstop: aggregates per-field CSVs into a single gzipped CSV, for use only when
+// cellcrops is run with --csv_per_field (not exposed as a pipeline param - see
+// run_cellsampling.py's --csv_per_field flag).
+process index_cellcrops_csv {
+    label params.cpr_label
+
+    conda params.tg_conda_env
+    container params.tg_container
+
+    publishDir "$params.rn_publish_dir/cellcrops", mode: "copy"
+
     input:
         val previous_completed
         path input, stageAs: "input_cellcrops"
@@ -277,10 +311,10 @@ process index_cellcrops {
     """
     # Get the header from the first CSV file
     find input_cellcrops/ -name "*.csv" -type f -print0 | head -z -n1 | xargs -0 head -n1 > cellcrop_index.csv
-    
+
     # Append all CSV files without their headers
     find input_cellcrops/ -name "*.csv" -type f -print0 | xargs -0 tail -q -n+2 >> cellcrop_index.csv
-    
+
     gzip -f cellcrop_index.csv
     """
     stub:
