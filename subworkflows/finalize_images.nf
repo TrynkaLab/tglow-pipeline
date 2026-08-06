@@ -149,8 +149,15 @@ workflow finalize_images {
                         .map{row -> tuple(row[0], row[1].flatten())}
                 )
 
+                // estimate_scaling_factors/calculate_scaling_factors runs once globally
+                // (it aggregates every plate via plate_measurements...collect() below),
+                // not once per plate like index_unscaled - so finalize_fp.fingerprint
+                // (one emission per plate) needs collapsing into a single deterministic
+                // value first, reusing the same per-well fingerprints computed above.
+                finalize_fp_global = finalize_fp.fingerprint.collect().map{ it.flatten().sort() }
+                    
                 estimate_scaling_factors(
-                    finalize_out.processed_output.last(),
+                    finalize_fp_global,
                     plate_measurements.map{row -> row[1]}.collect(),
                     sc_autoscale,
                     sc_manualscale,

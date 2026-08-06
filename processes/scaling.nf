@@ -8,7 +8,7 @@ process calculate_scaling_factors {
     conda params.rn_conda_env
     container params.rn_container
 
-    storeDir "$params.rn_publish_dir/scaling"
+    publishDir "$params.rn_publish_dir/scaling"
 
     input:
         val x
