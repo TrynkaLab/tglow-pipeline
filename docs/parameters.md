@@ -100,10 +100,7 @@
 | `cp_min_nucl_area` | Cellpose min nucleus area in pixels. Minimal area of ROIs. If null defaults to π (1/6th cp_nucl_size)^2 for 2d or 4/3π (1/6th cp_nucl_size)^3 for 3d. | `string` |  |  |  |
 | `cp_model` | Cellpose model. util built on cyto2 model and if possible will use nucleus channel. Other models should work in principle. | `string` | cyto2 |  |  |
 | `cp_dont_use_nucl_for_declump` | Fit nucleus mask but do not use nuclei to declump objects in mask creation. | `boolean` |  |  |  |
-| `cp_cell_power` | Raise cell images to power then scale. Deprecated/experimental. Soft thresholding if cellpose fits masks too strongly to noise. Option if tweaking cellprob threshold or post-processing insufficient. | `string` |  |  | True |
-| `cp_nucl_power` | Raise nucleus images to power then scale. Deprecated/experimental. Soft thresholding if cellpose fits masks too strongly to noise. Option if tweaking cellprob threshold or post-processing insufficient. | `string` |  |  | True |
 | `cp_downsample` | Downsample images in YX prior to running cellpose. Scales diameter, anisotropy, min cell area, min nucl area to match. Improves speed at cost of mask resolution. Masks scaled up by nearest neighbour interpolation. Recommended integer values producing whole number in YX, 2 is good. | `number` |  |  |  |
-| `cp_dont_post_process` | To not post process masks in 3d mode set true. In 3d some post-processing on nuclei applied: local otsu thresholding, hole closing, mask multiplied with cellpose masks to contain region with signal. Prevents incorrect masks due to z-bleedover from PSF residual signal. Deprecated/experimental. | `boolean` | True |  | True |
 | `cp_cell_flow_thresh` | Cellpose flow threshold for cells. See cellpose docs. | `number` | 0.4 |  |  |
 | `cp_nucl_flow_thresh` | Cellpose flow threshold for nuclei. See cellpose docs. | `number` | 0.4 |  |  |
 | `cp_cell_prob_threshold` | Cellpose cellprob threshold for cells. Between -6 and 6. Higher is tighter masks, lower looser masks. See cellpose docs for details. | `integer` | 0 |  |  |

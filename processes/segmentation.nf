@@ -73,18 +73,6 @@ process cellpose {
             cmd += " --dont_use_nucl_for_declump"
         }
         
-        if (params.cp_cell_power) {
-            cmd += " --cell_power ${params.cp_cell_power}"
-        }
-        
-        if (params.cp_nucl_power) {
-            cmd += " --nucl_power ${params.cp_nucl_power}"
-        }
-        
-        if (params.cp_dont_post_process) {
-            cmd += " --dont_post_process"
-        }
-        
         if (params.cp_downsample) {
             cmd += " --downsample ${params.cp_downsample}"
         }

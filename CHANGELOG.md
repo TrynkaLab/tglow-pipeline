@@ -23,6 +23,7 @@
 - Removed subcell parameters
 - sc_ prefix now used for scaling parameters
 - bp_ prefix (basicpy) to ff_ (flatfield)
+- removed cp_cell_power, cp_nucl_power and cp_dont_postprocess options
 
 ## Documentation:
 - Updates to fix small issues in documentation not matching real behaviour

@@ -544,36 +544,12 @@
 <td></td>
 </tr>
 <tr>
-<td><code>cp_cell_power</code></td>
-<td>Raise cell images to power then scale. Deprecated/experimental. Soft thresholding if cellpose fits masks too strongly to noise. Option if tweaking cellprob threshold or post-processing insufficient.</td>
-<td><code>string</code></td>
-<td></td>
-<td></td>
-<td>True</td>
-</tr>
-<tr>
-<td><code>cp_nucl_power</code></td>
-<td>Raise nucleus images to power then scale. Deprecated/experimental. Soft thresholding if cellpose fits masks too strongly to noise. Option if tweaking cellprob threshold or post-processing insufficient.</td>
-<td><code>string</code></td>
-<td></td>
-<td></td>
-<td>True</td>
-</tr>
-<tr>
 <td><code>cp_downsample</code></td>
 <td>Downsample images in YX prior to running cellpose. Scales diameter, anisotropy, min cell area, min nucl area to match. Improves speed at cost of mask resolution. Masks scaled up by nearest neighbour interpolation. Recommended integer values producing whole number in YX, 2 is good.</td>
 <td><code>number</code></td>
 <td></td>
 <td></td>
 <td></td>
-</tr>
-<tr>
-<td><code>cp_dont_post_process</code></td>
-<td>To not post process masks in 3d mode set true. In 3d some post-processing on nuclei applied: local otsu thresholding, hole closing, mask multiplied with cellpose masks to contain region with signal. Prevents incorrect masks due to z-bleedover from PSF residual signal. Deprecated/experimental.</td>
-<td><code>boolean</code></td>
-<td>True</td>
-<td></td>
-<td>True</td>
 </tr>
 <tr>
 <td><code>cp_cell_flow_thresh</code></td>

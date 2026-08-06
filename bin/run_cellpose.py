@@ -42,7 +42,7 @@ class CellposeRunner():
     
     def __init__(self, path, plate, output, model, model_nucl, nucl_channel, other_channel, diameter, diameter_nucl,
                 do_3d, anisotropy=None, min_cell_area=None, min_nucl_area=None, fields=None, plot=False, cell_flow_thresh=0.4,
-                cell_prob_thresh=0, use_nucl_for_declump=True, nucl_power=None, cell_power=None, post_process=True, downsample=None,
+                cell_prob_thresh=0, use_nucl_for_declump=True, nucl_power=None, cell_power=None, post_process=False, downsample=None,
                 nucl_flow_thresh=0.4, nucl_prob_thresh=0):
         
         self.path=path
@@ -343,7 +343,7 @@ if __name__ == "__main__":
     parser.add_argument('--nucl_power', help="Raises the nucleus image to this power as a form of soft thresholding. Sets cellprob threshold to -6.", default=None)
     parser.add_argument('--cell_power', help="Raises the cell image to this power as a form of soft thresholding. Sets cellprob threshold to -6.", default=None)
     parser.add_argument('--dont_use_nucl_for_declump', help="Fit nucleus masks, but do not supply as a 2nd channel to model.", action='store_true', default=False)
-    parser.add_argument('--dont_post_process', help="Output the raw celllpose masks, without constraints on nuclei and filtering [3d only]", action='store_true', default=False)
+    parser.add_argument('--post-process', help="Apply constraints on nuclei and filtering to the raw cellpose masks [3d only]", action='store_true', default=False)
     parser.add_argument('--downsample', help="Downsample the images when running cellpose by this factor, upscale the masks using NN.", default=None)
 
     args = parser.parse_args()
@@ -387,7 +387,7 @@ if __name__ == "__main__":
                             not args.dont_use_nucl_for_declump,
                             float(args.nucl_power) if args.nucl_power is not None else args.nucl_power,
                             float(args.cell_power) if args.cell_power is not None else args.cell_power,
-                            not args.dont_post_process,
+                            args.post_process,
                             int(args.downsample) if args.downsample is not None else args.downsample,
                             float(args.nucl_flow_threshold),
                             float(args.nucl_prob_threshold),
