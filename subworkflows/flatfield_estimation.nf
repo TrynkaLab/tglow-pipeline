@@ -97,10 +97,15 @@ workflow flatfield_estimation {
             }
             
             // Concat to plate string format // plate : channel = path
+            // .collect() gathers these in whatever order the parallel per-plate-channel
+            // estimate_flatfield/stage_global_flatfield tasks happen to finish - sort
+            // before joining so the resulting string (passed as a `val` input to finalize,
+            // hashed verbatim) is deterministic across runs instead of invalidating every
+            // well's finalize task whenever the completion order differs.
             flatfield_out_string = flatfield_out.map{ row -> (
                 row[2] + "_ch" + row[4] + "=" + ((row[5] instanceof List) ? row[5].findAll{!it.fileName.name.startsWith("global_refplate").fileName}[0] : row[5].fileName)
             )
-            }.collect().map{it.join(" ")}
+            }.collect().map{it.sort().join(" ")}
             
             // Combine into a single channel with files tuple, and plate=file string
             flatfield_out_final = flatfield_out
