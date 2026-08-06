@@ -89,7 +89,7 @@ def checkParamsBase(params) {
             }
         }
 
-        if (params.rn_cache_images & !(params.rn_max_project | params.rn_hybrid)) {
+        if (params.rn_cache_images && !(params.rn_max_project || params.rn_hybrid)) {
             log.warn "Caching images in 3d mode can take up a lot of space, are you sure this is what you want?"
         }
 
@@ -102,11 +102,11 @@ def checkParamsBase(params) {
 
 
 def checkParamsScaling(params) {
-    if (!params.sc_autoscale & params.sc_control_list != null) {
+    if (!params.sc_autoscale && params.sc_control_list != null) {
         error "Provided --sc_control_list but --sc_autoscale false. Either drop --sc_control_list or set --sc_autoscale true"
     }
     
-    if ((params.sc_manualscale != null) & params.sc_autoscale) {
+    if ((params.sc_manualscale != null) && params.sc_autoscale) {
         log.warn "Both sc_autoscale and sc_manualscale are provided, sc_manualscale will be overridden"
     }
         

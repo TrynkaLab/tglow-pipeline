@@ -32,7 +32,7 @@ process deconvolute {
         --niter $params.dc_niter\
         """
         
-        if (params.rn_max_project & !params.rn_hybrid) {
+        if (params.rn_max_project && !params.rn_hybrid) {
             cmd += " --max_project"
         }
         

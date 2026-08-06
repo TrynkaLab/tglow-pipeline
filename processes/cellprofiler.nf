@@ -79,11 +79,11 @@ process finalize_and_cellprofiler {
         }
         
         
-        if (params.rn_max_project | params.rn_hybrid) {
+        if (params.rn_max_project || params.rn_hybrid) {
             cmd += " --max_project --no_zstack"
         }
-        
-        if (params.rn_hybrid & manifest.mask_channels != "none") {
+
+        if (params.rn_hybrid && manifest.mask_channels != "none") {
             cmd += " --mask_dir ./masks"
             cmd += " --mask_pattern *_nucl_mask_*_cp_masks.tiff"
             cmd += " --mask_channels ${manifest.mask_channels.collect{ well.plate + "=" + it }.join(' ')}"

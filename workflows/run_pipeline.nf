@@ -248,7 +248,7 @@ workflow run_pipeline {
         //------------------------------------------------------------
         if (params.cpr_run) {
             // Construct the pipeline channel
-            if (params.rn_max_project | params.rn_hybrid) {
+            if (params.rn_max_project || params.rn_hybrid) {
                 cpr_pipeline = Channel.fromPath(params.cpr_pipeline_2d).first()
             } else {
                 cpr_pipeline = Channel.fromPath(params.cpr_pipeline_3d).first()
