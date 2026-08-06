@@ -5,8 +5,8 @@ process register {
     //label 'normal'
     label params.rg_label
     
-    conda params.tg_conda_env
-    container params.tg_container
+    conda params.rn_conda_env
+    container params.rn_container
     
     storeDir "${params.rn_publish_dir}/registration/"
     input:

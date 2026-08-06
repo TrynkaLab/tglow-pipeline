@@ -4,8 +4,8 @@
 process estimate_flatfield {
     label params.ff_label
     
-    conda params.tg_conda_env
-    container params.tg_container
+    conda params.rn_conda_env
+    container params.rn_container
 
     storeDir { "${params.rn_publish_dir}/flatfields/${plate}" } //, mode: 'copy'
 
@@ -99,8 +99,8 @@ process estimate_flatfield {
 process stage_global_flatfield {
     label "tiny"
     
-    conda params.tg_conda_env
-    container params.tg_container
+    conda params.rn_conda_env
+    container params.rn_container
     
     storeDir { "${params.rn_publish_dir}/flatfields/${plate}/" } //, mode: 'copy'
     //publishDir "${params.rn_publish_dir}/flatfields/${plate}", mode: 'copy'

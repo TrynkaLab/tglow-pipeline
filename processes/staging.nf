@@ -6,8 +6,8 @@ process fetch_raw {
     scratch params.rn_scratch
     label params.st_label
     
-    conda params.tg_conda_env
-    container params.tg_container
+    conda params.rn_conda_env
+    container params.rn_container
     
     storeDir "${params.rn_image_dir}"
 
@@ -40,7 +40,7 @@ process fetch_raw {
 // Prepare a manfiest
 process prepare_manifest {
     label 'tiny_img'
-    conda params.tg_conda_env
+    conda params.rn_conda_env
     storeDir { "${params.rn_image_dir}/${plate}" }
     
     input:
@@ -74,8 +74,8 @@ process prepare_manifest {
 process index_images {
     label "normal"
     
-    conda params.tg_conda_env
-    container params.tg_container
+    conda params.rn_conda_env
+    container params.rn_container
     
     //storeDir "${params.rn_publish_dir}/$input_dir/", saveAs: { filename -> filename.split('/')[-1] }
     //storeDir "${params.rn_publish_dir}/$input_dir"
@@ -106,8 +106,8 @@ process index_images {
 process index_imagedir {
     label "normal"
     
-    conda params.tg_conda_env
-    container params.tg_container
+    conda params.rn_conda_env
+    container params.rn_container
     
     storeDir { "${input_dir}" }
     

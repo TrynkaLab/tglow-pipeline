@@ -99,12 +99,12 @@
           "default": 1000,
           "description": "When making cellcrops, if there are more then this many cells per field, skip the field"
         },
-        "tg_conda_env": {
+        "rn_conda_env": {
           "type": "string",
           "default": "/software/teamtrynka/installs/tglow",
           "description": "Tglow conda env path"
         },
-        "tg_container": {
+        "rn_container": {
           "type": "string",
           "description": "Container for the tglow environment"
         }
@@ -413,16 +413,6 @@
           "type": "boolean",
           "default": false,
           "description": "When scaling is enabled (sc_autoscale or sc_manualscale), controls whether finalize applies it directly (writing straight to processed_images/scaled) or defers to a separate rescale pass that reads processed_images/unscaled. false (default): finalize writes processed_images/unscaled and can run without waiting on scaling factors; rescale then produces processed_images/scaled from that. Keeps an unscaled artifact around and maximizes parallelism. true: finalize waits on scaling factors and writes processed_images/scaled directly, skipping the extra read/write pass; requires sc_manualscale and cannot be combined with sc_autoscale. No effect if scaling is disabled."
-        },
-        "rn_dummy_mode": {
-          "type": "boolean",
-          "description": "Generate plate offsets in dummy mode (returns all 1\u2019s for equal scaling, just for testing)",
-          "hidden": true
-        },
-        "rn_threshold": {
-          "type": "boolean",
-          "description": "When calculating plate offsets, threshold channel images prior to calculating mean object intensities. Background regions ignored. Otsu threshold on whole image used.",
-          "hidden": true
         }
       }
     },

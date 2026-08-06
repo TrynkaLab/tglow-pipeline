@@ -8,8 +8,8 @@
 process measure_intensity {
     label 'normal'
 
-    conda params.tg_conda_env
-    container params.tg_container
+    conda params.rn_conda_env
+    container params.rn_container
 
     storeDir { "$params.rn_publish_dir/scaling/measurements/$outdir" }
     scratch params.rn_scratch

@@ -4,7 +4,7 @@ process finalize {
     label params.cpr_label
     
     conda params.cpr_conda_env
-    container params.tg_container
+    container params.rn_container
     
     storeDir "$params.rn_publish_dir/processed_images"
     scratch params.rn_scratch
@@ -171,8 +171,8 @@ process finalize {
 process rescale {
     label params.cpr_label
 
-    conda params.tg_conda_env
-    container params.tg_container
+    conda params.rn_conda_env
+    container params.rn_container
 
     storeDir "$params.rn_publish_dir/processed_images"
     scratch params.rn_scratch
@@ -218,8 +218,8 @@ process rescale {
 process cellcrops {
     label params.cpr_label
     
-    conda params.tg_conda_env
-    container params.tg_container
+    conda params.rn_conda_env
+    container params.rn_container
 
     storeDir "$params.rn_publish_dir/cellcrops"
     scratch params.rn_scratch
@@ -263,8 +263,8 @@ process cellcrops {
 process index_cellcrops {
     label params.cpr_label
 
-    conda params.tg_conda_env
-    container params.tg_container
+    conda params.rn_conda_env
+    container params.rn_container
 
     publishDir "$params.rn_publish_dir/cellcrops", mode: "copy"
 
@@ -297,8 +297,8 @@ PYEOF
 process index_cellcrops_csv {
     label params.cpr_label
 
-    conda params.tg_conda_env
-    container params.tg_container
+    conda params.rn_conda_env
+    container params.rn_container
 
     publishDir "$params.rn_publish_dir/cellcrops", mode: "copy"
 

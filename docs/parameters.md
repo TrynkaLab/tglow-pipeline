@@ -24,8 +24,8 @@
 | `rn_cache_images` | Cache the final output images (flatfield, decon, demultiplexed, registered, scaled, max_projected) They are saved as plate/row/col/field.ome.tiff in CZYX with additional cycle channels sequentially added. If storage is a concern, disable this and enable rn_scratch to not save large intermediates. NOTE: When mode is hybrid or max project, the storage this generates will not be that bad, so it’s enabled by default. NOTE: This must be true when running subcell, but as subcell only works with max projected images, the storage overhead should be ok NOTE: These are not directly compatible with cellprofiler when working in 3d as they are saved in .ome.tiff for pipeline compatibility, which CPR does not handle. Prior to running cellprofiler they are split up into <field><plate><well>_ch<channel>.tiff which is compatible with both 2d and 3d formats. Use this pattern to set up your pipeline. | `boolean` | True |  |  |
 | `rn_make_cellcrops` | Produce h5 files with cellcrops | `boolean` | True |  |  |
 | `rn_max_per_field` | When making cellcrops, if there are more then this many cells per field, skip the field | `integer` | 1000 |  |  |
-| `tg_conda_env` | Tglow conda env path | `string` | /software/teamtrynka/installs/tglow |  |  |
-| `tg_container` | Container for the tglow environment | `string` |  |  |  |
+| `rn_conda_env` | Tglow conda env path | `string` | /software/teamtrynka/installs/tglow |  |  |
+| `rn_container` | Container for the tglow environment | `string` |  |  |  |
 
 ## Staging
 
@@ -121,8 +121,6 @@
 | `sc_autoscale_q2` | Controls which quantile is taken across all images for chosen q1 Valid options: 0 - 1 | `integer` | 95 |  |  |
 | `sc_skip_sigmoid` | Skip sigmoid fitting globally and apply the raw scale factor (dynamic range * plate offset) instead - same effect as setting every row's skip_sigmoid=true in sc_channel_map, without needing to edit the file. Has no effect in dynamic-range-only mode (sigmoid fitting is already skipped there, since it needs control images to fit against). | `boolean` | False |  |  |
 | `sc_scale_in_finalize` | When scaling is enabled (sc_autoscale or sc_manualscale), controls whether finalize applies it directly (writing straight to processed_images/scaled) or defers to a separate rescale pass that reads processed_images/unscaled. false (default): finalize writes processed_images/unscaled and can run without waiting on scaling factors; rescale then produces processed_images/scaled from that. Keeps an unscaled artifact around and maximizes parallelism. true: finalize waits on scaling factors and writes processed_images/scaled directly, skipping the extra read/write pass; requires sc_manualscale and cannot be combined with sc_autoscale. No effect if scaling is disabled. | `boolean` | False |  |  |
-| `rn_dummy_mode` | Generate plate offsets in dummy mode (returns all 1’s for equal scaling, just for testing) | `boolean` |  |  | True |
-| `rn_threshold` | When calculating plate offsets, threshold channel images prior to calculating mean object intensities. Background regions ignored. Otsu threshold on whole image used. | `boolean` |  |  | True |
 
 ## Cellprofiler
 
