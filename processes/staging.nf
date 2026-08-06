@@ -79,7 +79,7 @@ process index_images {
     
     //storeDir "${params.rn_publish_dir}/$input_dir/", saveAs: { filename -> filename.split('/')[-1] }
     //storeDir "${params.rn_publish_dir}/$input_dir"
-    publishDir { "${params.rn_publish_dir}/$input_dir" }, mode: "copy"
+    publishDir { "${params.rn_publish_dir}/$input_dir" }
     input:
         val previous_completed
         val input_dir

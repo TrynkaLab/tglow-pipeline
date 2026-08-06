@@ -22,9 +22,15 @@ class ManifestRecord {
         
         this.cp_cell_channel =  (args.cp_cell_channel == null || args.cp_cell_channel == "none") ? "none" : (args.cp_cell_channel as Integer) - 1
 
-        this.dc_channels = (args.dc_channels == null || args.dc_channels == "none") ? "none" : args.dc_channels.split(',').collect { it as Integer - 1 }
+        // dc_psfs is a comma-separated list of <1-indexed channel>=<path> pairs, e.g.
+        // "1=psf1.tif,4=psf4.tif". dc_channels is derived from its keys rather than
+        // being its own column, so the two can never fall out of sync.
+        this.dc_psfs = (args.dc_psfs == null || args.dc_psfs == "none") ? "none" : args.dc_psfs.split(',').collectEntries { pair ->
+            def (channel, path) = pair.split('=', 2)
+            [(channel as Integer - 1): path]
+        }
 
-        this.dc_psfs = (args.dc_psfs == null || args.dc_psfs == "none") ? "none" : args.dc_psfs.split(',')
+        this.dc_channels = (this.dc_psfs == "none") ? "none" : this.dc_psfs.keySet().toList()
 
         this.mask_channels = (args.mask_channels == null || args.mask_channels == "none") ? "none" : args.mask_channels.split(',').collect { it as Integer - 1 }
     }

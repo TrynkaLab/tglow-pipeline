@@ -8,6 +8,8 @@
 - Updated syntax to allow use of latest nextflow 26.04 (which default forces strict syntax, lots of refactors)
 - Dropped -entry, added --workflow to control entrypoint
 - Added validation routine for input files
+- Changed handling of PSFs in manifest, now in <channel>=<path> format, dropped dc_channels
+- Moved processes downstream of finalize to publishDir instead of storeDir
 
 ## Minor changes:
 - Plates are now automatically renamed during staging to the plate name provided in the manifest instead of the name provided in the PE index file.
@@ -28,6 +30,7 @@
 - tg_ prefix (tglow) now rn_ (run). Applies to tg_conda_env and tg_container
 - removed cp_cell_power, cp_nucl_power, rn_dummy_mode, rn_threshold and cp_dont_postprocess options
 - removed 'executor.poolSize' from lsf definition
+- removed dc_channels from manifest
 
 ## Documentation:
 - Updates to fix small issues in documentation not matching real behaviour

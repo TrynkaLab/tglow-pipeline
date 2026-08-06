@@ -45,11 +45,26 @@ def checkRequired(String value, def pattern, String colName, String hint) {
     return null
 }
 
-def checkPathList(String value, String colName, String hint) {
+// value must be a comma-separated list of <positive integer>=<non-blank path> pairs,
+// with no channel number repeated - used for dc_psfs
+def checkPsfMap(String value, String colName) {
+    def hint = "comma-separated <channel>=<path> pairs (e.g. 1=psf1.tif,4=psf4.tif)"
     def tokens = value.split(',')
-    if (tokens.any { it.trim().isEmpty() }) {
+
+    def malformed = tokens.find { token ->
+        def parts = token.split('=', 2)
+        parts.size() != 2 || !(parts[0] ==~ SINGLE_INT_RE()) || parts[1].trim().isEmpty()
+    }
+    if (malformed != null) {
         return "${colName} '${value}' is invalid - use ${hint} or '${SENTINEL()}'"
     }
+
+    def channels = tokens.collect { it.split('=', 2)[0] }
+    def duplicates = channels.findAll { channels.count(it) > 1 }.unique()
+    if (duplicates) {
+        return "${colName} '${value}' has duplicate channel(s) ${duplicates} - each channel may only appear once"
+    }
+
     return null
 }
 
@@ -57,7 +72,7 @@ def checkPathList(String value, String colName, String hint) {
 // Main manifest (rn_manifest)
 def validateManifestContent(String path) {
     def MANIFEST_COLUMNS = ["plate", "index_xml", "channels", "ff_channels", "cp_nucl_channel",
-                            "cp_cell_channel", "dc_channels", "dc_psfs", "mask_channels"] as Set
+                            "cp_cell_channel", "dc_psfs", "mask_channels"] as Set
 
     def errors = []
     def lines = new File(path).readLines()
@@ -91,14 +106,13 @@ def validateManifestContent(String path) {
         rowErrors << checkOptional(fields[colIndex.ff_channels], INT_LIST_RE(), "ff_channels", "a comma-separated list of integers")
         rowErrors << checkOptional(fields[colIndex.cp_nucl_channel], SINGLE_INT_RE(), "cp_nucl_channel", "a single integer")
         rowErrors << checkOptional(fields[colIndex.cp_cell_channel], SINGLE_INT_RE(), "cp_cell_channel", "a single integer")
-        rowErrors << checkOptional(fields[colIndex.dc_channels], INT_LIST_RE(), "dc_channels", "a comma-separated list of integers")
         rowErrors << checkOptional(fields[colIndex.mask_channels], INT_LIST_RE(), "mask_channels", "a comma-separated list of integers")
 
         def dcPsfs = fields[colIndex.dc_psfs]
         if (dcPsfs != SENTINEL()) {
             def psfError = isBlankish(dcPsfs) ?
-                "dc_psfs '${dcPsfs}' is invalid - use a comma-separated list of file paths or '${SENTINEL()}'" :
-                checkPathList(dcPsfs, "dc_psfs", "a comma-separated list of file paths")
+                "dc_psfs '${dcPsfs}' is invalid - use comma-separated <channel>=<path> pairs (e.g. 1=psf1.tif,4=psf4.tif) or '${SENTINEL()}'" :
+                checkPsfMap(dcPsfs, "dc_psfs")
             rowErrors << psfError
         }
 

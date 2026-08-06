@@ -22,7 +22,7 @@
 </tr>
 <tr>
 <td><code>rn_manifest</code></td>
-<td>Core manifest set ff_channels to none to not run basicpy set cp_cell_channel to none to not run cellpose set cp_nucl_channel to none to run cellpose without a nucleus channel If a registration manifest is provided, only reference plates will be run through cellpose <plate> <index_xml> <channels> <ff_channels> <cp_nucl_channel> <cp_cell_channel> <dc_channels> <dc_psfs> <mask_channels> <scale_factors></td>
+<td>Core manifest set ff_channels to none to not run basicpy set cp_cell_channel to none to not run cellpose set cp_nucl_channel to none to run cellpose without a nucleus channel If a registration manifest is provided, only reference plates will be run through cellpose. dc_psfs is a comma-separated list of &lt;1-indexed channel&gt;=&lt;path&gt; pairs, e.g. 1=psf1.tif,4=psf4.tif <plate> <index_xml> <channels> <ff_channels> <cp_nucl_channel> <cp_cell_channel> <dc_psfs> <mask_channels></td>
 <td><code>string</code></td>
 <td></td>
 <td>True</td>
@@ -412,14 +412,6 @@
 <td><code>dc_run</code></td>
 <td>Run deconvolution or not</td>
 <td><code>boolean</code></td>
-<td></td>
-<td></td>
-<td></td>
-</tr>
-<tr>
-<td><code>dc_psfs</code></td>
-<td>Point spread functions used for deconvolution. Leave null to not run deconvolution, better specified in manifest</td>
-<td><code>string</code></td>
 <td></td>
 <td></td>
 <td></td>

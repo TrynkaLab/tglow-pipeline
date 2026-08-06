@@ -28,7 +28,6 @@ workflow setup {
                     ff_channels: (row.ff_channels == null) ? "none" : row.ff_channels,
                     cp_nucl_channel: row.cp_nucl_channel,
                     cp_cell_channel: row.cp_cell_channel,
-                    dc_channels: row.dc_channels,
                     dc_psfs: row.dc_psfs,
                     mask_channels: (row.mask_channels == null) ? "none" : row.mask_channels
             )

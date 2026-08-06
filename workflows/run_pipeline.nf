@@ -79,8 +79,8 @@ workflow run_pipeline {
             .map{ row -> tuple(
                 row[1], // Well
                 row[2], // Manifest
-                row[2].dc_channels.collect{ it -> it.toString() + "=" + new File(row[2].dc_psfs[it]).getName() }.sort().join(" "), // String for channel file pairs
-                row[2].dc_psfs.collect{ it -> file(it) }, // The psf files
+                row[2].dc_psfs.collect{ ch, path -> ch.toString() + "=" + new File(path).getName() }.sort().join(" "), // String for channel file pairs
+                row[2].dc_psfs.values().collect{ it -> file(it) }, // The psf files
                 file(params.rn_image_dir + "/" + row[1].relpath) // The image files
             )}
 
