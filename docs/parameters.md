@@ -8,7 +8,7 @@
 
 | Parameter | Description | Type | Default | Required | Hidden |
 |-----------|-----------|-----------|-----------|-----------|-----------|
-| `rn_manifest` | Core manifest set bp_channels to none to not run basicpy set cp_cell_channel to none to not run cellpose set cp_nucl_channel to none to run cellpose without a nucleus channel If a registration manifest is provided, only reference plates will be run through cellpose <plate> <index_xml> <channels> <bp_channels> <cp_nucl_channel> <cp_cell_channel> <dc_channels> <dc_psfs> <mask_channels> <scale_factors> | `string` |  | True |  |
+| `rn_manifest` | Core manifest set ff_channels to none to not run basicpy set cp_cell_channel to none to not run cellpose set cp_nucl_channel to none to run cellpose without a nucleus channel If a registration manifest is provided, only reference plates will be run through cellpose <plate> <index_xml> <channels> <ff_channels> <cp_nucl_channel> <cp_cell_channel> <dc_channels> <dc_psfs> <mask_channels> <scale_factors> | `string` |  | True |  |
 | `rn_blacklist` | Well level manifest (blacklist), supply path to file. Specifying which wells to ignore. This is useful to deal with edgecases in a plate or single stain controls etc. you don't want to analyze. Leave at null to ignore. <plate> <well> plate1 A09 plate2 A09 plate2 D12 | `string` |  |  |  |
 | `sc_control_list` | Controls file used by calculate_scaling_factors (sc_autoscale) to derive plate offsets and sigmoid bias/slope from control wells. <plate> <well> <control_type> plate1 A10 controlA plate1 B10 controlA plate1 D11 controlB. Optional - if null, plate-offset correction is skipped (dynamic-range-only scaling). Requires sc_channel_map to also be set when provided. | `string` |  |  |  |
 | `sc_channel_map` | Channel map TSV for calculate_scaling_factors (sc_autoscale) - extends channel_indices.tsv with rep_features_dynamic/rep_features_offset/rep_features_scale_lower/rep_features_scale_upper/control_population columns (and optional skip_scaling/skip_sigmoid/skip_plate_offsets booleans) describing which measured intensity feature to use for each channel's dynamic range / plate offset / sigmoid fit. Optional - if null, a dynamic-range-only channel_map is auto-built from sc_autoscale_q1. | `string` |  |  |  |
@@ -41,22 +41,22 @@
 
 | Parameter | Description | Type | Default | Required | Hidden |
 |-----------|-----------|-----------|-----------|-----------|-----------|
-| `bp_run` | Run flatfield estimation or not. Overrides the manifest | `boolean` | True |  |  |
-| `bp_global_flatfield` | Fit one flatfield per plate-channel, or one global flatfield per channel shared among the plates of a cycle | `boolean` |  |  |  |
-| `bp_label` | Resource label for flatfield estimation | `string` | himem |  |  |
-| `bp_mode` | Mode, one of BASICPY, POLY or PE | `string` | POLY |  |  |
-| `bp_threshold` | Should images be multi-otsu thresholded prior to fitting. Two top tiers treated as foreground. Helpful in sparse images but can throw off valuation if strong flatfield not handled well or outliers exist. In BASICPY mode mask is supplied as fitting_weights to fit only actual signal avoiding background fitting. In POLY the polynomial is fit on foreground pixels only. | `boolean` |  |  |  |
-| `bp_degree` | Degree for polynomial (2-4 recommended). If <=0 special polynomial model used same as PE Harmony fits, else numpy.polynomial.polynomial.polyvander2d used to generate design matrix with all combinations of x^i*y^i. Higher degrees more likely to overfit. | `integer` | 0 |  |  |
-| `bp_channels` | Channels to fit basicpy models on, leave null to run all channels specified in manifest (recommended). To not run basicpy for a plate, set channels to "none". Otherwise specify [[<plate>,<channel>,<index_xml>],...] to override manifest. | `string` |  |  |  |
-| `bp_nimg` | Number of random images to read into memory. Sampled with replacement. If no other option specified, this is number of images flatfield is trained on. | `integer` | 200 |  |  |
-| `bp_nimg_test` | Number of images for independent sampling used for testing flatfield. Set 0 to skip flatfield evaluation. | `integer` | 100 |  |  |
-| `bp_merge_n` | Number of images to max project into a compound — nimg times. If >1 basicpy run on nimg images each compound of merge_n images. Set null to run vanilla basicpy with no merging. Useful if low density images and flatfields tend to background signal rather than foreground. Recommended bp_nimg=100 and bp_merge_n=50 starting point but mileage varies. WARNING: samples same images into different compounds so some overlapping. | `integer` |  |  |  |
-| `bp_pseudoreplicates` | Pseudoreplicate in memory related to merge_n but instead of disk I/O only nimg images read then pseudoreplicate compound images of size merge_n made. Sampling with replacement and overlaps possible. Goal similar to merge_n but avoids major IO load. Recommended to set nimg high to reduce overlap. | `integer` |  |  |  |
-| `bp_pseudoreplicates_test` | Same as bp_pseudoreplicates but for flatfield evaluation | `integer` |  |  |  |
-| `bp_use_ridge` | Use ridge regression instead of OLS to fit polynomial. Uses RidgeCV and 10 fold CV to find optimal alpha | `boolean` |  |  |  |
-| `bp_all_planes` | Instead of randomly picking one plane for a stack, use all planes. Can cause issues with basicpy as it assumes random variation between images. When rn_max_project true all planes are read and max projected so not an issue. Not recommended. | `boolean` |  |  |  |
-| `bp_autosegment` | Apply basicpy autosegment option, opposite of threshold, applies mask erosion. Not recommended, basicpy only. | `boolean` |  |  |  |
-| `bp_no_tune` | Do not tune basicpy model. Not recommended, basicpy only. | `boolean` |  |  |  |
+| `ff_run` | Run flatfield estimation or not. Overrides the manifest | `boolean` | True |  |  |
+| `ff_global_flatfield` | Fit one flatfield per plate-channel, or one global flatfield per channel shared among the plates of a cycle | `boolean` |  |  |  |
+| `ff_label` | Resource label for flatfield estimation | `string` | himem |  |  |
+| `ff_mode` | Mode, one of BASICPY, POLY or PE | `string` | POLY |  |  |
+| `ff_threshold` | Should images be multi-otsu thresholded prior to fitting. Two top tiers treated as foreground. Helpful in sparse images but can throw off valuation if strong flatfield not handled well or outliers exist. In BASICPY mode mask is supplied as fitting_weights to fit only actual signal avoiding background fitting. In POLY the polynomial is fit on foreground pixels only. | `boolean` |  |  |  |
+| `ff_degree` | Degree for polynomial (2-4 recommended). If <=0 special polynomial model used same as PE Harmony fits, else numpy.polynomial.polynomial.polyvander2d used to generate design matrix with all combinations of x^i*y^i. Higher degrees more likely to overfit. | `integer` | 0 |  |  |
+| `ff_channels` | Channels to fit basicpy models on, leave null to run all channels specified in manifest (recommended). To not run basicpy for a plate, set channels to "none". Otherwise specify [[<plate>,<channel>,<index_xml>],...] to override manifest. | `string` |  |  |  |
+| `ff_nimg` | Number of random images to read into memory. Sampled with replacement. If no other option specified, this is number of images flatfield is trained on. | `integer` | 200 |  |  |
+| `ff_nimg_test` | Number of images for independent sampling used for testing flatfield. Set 0 to skip flatfield evaluation. | `integer` | 100 |  |  |
+| `ff_merge_n` | Number of images to max project into a compound — nimg times. If >1 basicpy run on nimg images each compound of merge_n images. Set null to run vanilla basicpy with no merging. Useful if low density images and flatfields tend to background signal rather than foreground. Recommended ff_nimg=100 and ff_merge_n=50 starting point but mileage varies. WARNING: samples same images into different compounds so some overlapping. | `integer` |  |  |  |
+| `ff_pseudoreplicates` | Pseudoreplicate in memory related to merge_n but instead of disk I/O only nimg images read then pseudoreplicate compound images of size merge_n made. Sampling with replacement and overlaps possible. Goal similar to merge_n but avoids major IO load. Recommended to set nimg high to reduce overlap. | `integer` |  |  |  |
+| `ff_pseudoreplicates_test` | Same as ff_pseudoreplicates but for flatfield evaluation | `integer` |  |  |  |
+| `ff_use_ridge` | Use ridge regression instead of OLS to fit polynomial. Uses RidgeCV and 10 fold CV to find optimal alpha | `boolean` |  |  |  |
+| `ff_all_planes` | Instead of randomly picking one plane for a stack, use all planes. Can cause issues with basicpy as it assumes random variation between images. When rn_max_project true all planes are read and max projected so not an issue. Not recommended. | `boolean` |  |  |  |
+| `ff_autosegment` | Apply basicpy autosegment option, opposite of threshold, applies mask erosion. Not recommended, basicpy only. | `boolean` |  |  |  |
+| `ff_no_tune` | Do not tune basicpy model. Not recommended, basicpy only. | `boolean` |  |  |  |
 
 ## Registration
 

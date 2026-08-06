@@ -2,7 +2,7 @@
 
 // Estimate_flatfield
 process estimate_flatfield {
-    label params.bp_label
+    label params.ff_label
     
     conda params.tg_conda_env
     container params.tg_container
@@ -20,17 +20,17 @@ process estimate_flatfield {
         cmd =
         """
         run_flatfield_estimation.py \
-        --mode $params.bp_mode \
+        --mode $params.ff_mode \
         --input $images \
         --output ./ \
-        --nimg $params.bp_nimg \
+        --nimg $params.ff_nimg \
         --plot \
         --pe_index '$pe_index' \
         --onemodel \
         --channel $img_channel\
         """
         
-        if (params.bp_global_flatfield) {
+        if (params.ff_global_flatfield) {
             cmd += " --output_prefix global_refplate_$plate"
             cmd += " --plate " + plates.join(' ')
         } else {
@@ -42,43 +42,43 @@ process estimate_flatfield {
             cmd += " --max_project"
         }
         
-        if (params.bp_nimg_test) {
-            cmd += " --nimg_test $params.bp_nimg_test"
+        if (params.ff_nimg_test) {
+            cmd += " --nimg_test $params.ff_nimg_test"
         }
         
-        if (params.bp_no_tune) {
+        if (params.ff_no_tune) {
             cmd += " --no_tune"
         }   
         
-        if (params.bp_merge_n) {
-            cmd += " --merge_n $params.bp_merge_n"
+        if (params.ff_merge_n) {
+            cmd += " --merge_n $params.ff_merge_n"
         }
         
-        if (params.bp_degree) {
-            cmd += " --degree $params.bp_degree"
+        if (params.ff_degree) {
+            cmd += " --degree $params.ff_degree"
         }
         
-        if (params.bp_use_ridge) {
+        if (params.ff_use_ridge) {
             cmd += " --ridge"
         }
          
-        if (params.bp_pseudoreplicates) {
-            cmd += " --pseudoreplicates $params.bp_pseudoreplicates"
+        if (params.ff_pseudoreplicates) {
+            cmd += " --pseudoreplicates $params.ff_pseudoreplicates"
         }
         
-        if (params.bp_pseudoreplicates_test) {
-            cmd += " --pseudoreplicates_test $params.bp_pseudoreplicates_test"
+        if (params.ff_pseudoreplicates_test) {
+            cmd += " --pseudoreplicates_test $params.ff_pseudoreplicates_test"
         }
         
-        if (params.bp_all_planes) {
+        if (params.ff_all_planes) {
             cmd += " --all_planes"
         }   
         
-        if (params.bp_threshold) {
+        if (params.ff_threshold) {
             cmd += " --threshold"
         }
         
-        if (params.bp_autosegment) {
+        if (params.ff_autosegment) {
             cmd += " --autosegment"
         }
         

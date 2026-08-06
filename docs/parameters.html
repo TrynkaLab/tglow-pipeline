@@ -14,7 +14,7 @@
 <tbody>
 <tr>
 <td><code>rn_manifest</code></td>
-<td>Core manifest set bp_channels to none to not run basicpy set cp_cell_channel to none to not run cellpose set cp_nucl_channel to none to run cellpose without a nucleus channel If a registration manifest is provided, only reference plates will be run through cellpose <plate> <index_xml> <channels> <bp_channels> <cp_nucl_channel> <cp_cell_channel> <dc_channels> <dc_psfs> <mask_channels> <scale_factors></td>
+<td>Core manifest set ff_channels to none to not run basicpy set cp_cell_channel to none to not run cellpose set cp_nucl_channel to none to run cellpose without a nucleus channel If a registration manifest is provided, only reference plates will be run through cellpose <plate> <index_xml> <channels> <ff_channels> <cp_nucl_channel> <cp_cell_channel> <dc_channels> <dc_psfs> <mask_channels> <scale_factors></td>
 <td><code>string</code></td>
 <td></td>
 <td>True</td>
@@ -195,7 +195,7 @@
 </thead>
 <tbody>
 <tr>
-<td><code>bp_run</code></td>
+<td><code>ff_run</code></td>
 <td>Run flatfield estimation or not. Overrides the manifest</td>
 <td><code>boolean</code></td>
 <td>True</td>
@@ -203,7 +203,7 @@
 <td></td>
 </tr>
 <tr>
-<td><code>bp_global_flatfield</code></td>
+<td><code>ff_global_flatfield</code></td>
 <td>Fit one flatfield per plate-channel, or one global flatfield per channel shared among the plates of a cycle</td>
 <td><code>boolean</code></td>
 <td></td>
@@ -211,7 +211,7 @@
 <td></td>
 </tr>
 <tr>
-<td><code>bp_label</code></td>
+<td><code>ff_label</code></td>
 <td>Resource label for flatfield estimation</td>
 <td><code>string</code></td>
 <td>himem</td>
@@ -219,7 +219,7 @@
 <td></td>
 </tr>
 <tr>
-<td><code>bp_mode</code></td>
+<td><code>ff_mode</code></td>
 <td>Mode, one of BASICPY, POLY or PE</td>
 <td><code>string</code></td>
 <td>POLY</td>
@@ -227,7 +227,7 @@
 <td></td>
 </tr>
 <tr>
-<td><code>bp_threshold</code></td>
+<td><code>ff_threshold</code></td>
 <td>Should images be multi-otsu thresholded prior to fitting. Two top tiers treated as foreground. Helpful in sparse images but can throw off valuation if strong flatfield not handled well or outliers exist. In BASICPY mode mask is supplied as fitting_weights to fit only actual signal avoiding background fitting. In POLY the polynomial is fit on foreground pixels only.</td>
 <td><code>boolean</code></td>
 <td></td>
@@ -235,7 +235,7 @@
 <td></td>
 </tr>
 <tr>
-<td><code>bp_degree</code></td>
+<td><code>ff_degree</code></td>
 <td>Degree for polynomial (2-4 recommended). If &lt;=0 special polynomial model used same as PE Harmony fits, else numpy.polynomial.polynomial.polyvander2d used to generate design matrix with all combinations of x^i*y^i. Higher degrees more likely to overfit.</td>
 <td><code>integer</code></td>
 <td>0</td>
@@ -243,7 +243,7 @@
 <td></td>
 </tr>
 <tr>
-<td><code>bp_channels</code></td>
+<td><code>ff_channels</code></td>
 <td>Channels to fit basicpy models on, leave null to run all channels specified in manifest (recommended). To not run basicpy for a plate, set channels to "none". Otherwise specify [[<plate>,<channel>,<index_xml>],...] to override manifest.</td>
 <td><code>string</code></td>
 <td></td>
@@ -251,7 +251,7 @@
 <td></td>
 </tr>
 <tr>
-<td><code>bp_nimg</code></td>
+<td><code>ff_nimg</code></td>
 <td>Number of random images to read into memory. Sampled with replacement. If no other option specified, this is number of images flatfield is trained on.</td>
 <td><code>integer</code></td>
 <td>200</td>
@@ -259,7 +259,7 @@
 <td></td>
 </tr>
 <tr>
-<td><code>bp_nimg_test</code></td>
+<td><code>ff_nimg_test</code></td>
 <td>Number of images for independent sampling used for testing flatfield. Set 0 to skip flatfield evaluation.</td>
 <td><code>integer</code></td>
 <td>100</td>
@@ -267,15 +267,15 @@
 <td></td>
 </tr>
 <tr>
-<td><code>bp_merge_n</code></td>
-<td>Number of images to max project into a compound — nimg times. If &gt;1 basicpy run on nimg images each compound of merge_n images. Set null to run vanilla basicpy with no merging. Useful if low density images and flatfields tend to background signal rather than foreground. Recommended bp_nimg=100 and bp_merge_n=50 starting point but mileage varies. WARNING: samples same images into different compounds so some overlapping.</td>
+<td><code>ff_merge_n</code></td>
+<td>Number of images to max project into a compound — nimg times. If &gt;1 basicpy run on nimg images each compound of merge_n images. Set null to run vanilla basicpy with no merging. Useful if low density images and flatfields tend to background signal rather than foreground. Recommended ff_nimg=100 and ff_merge_n=50 starting point but mileage varies. WARNING: samples same images into different compounds so some overlapping.</td>
 <td><code>integer</code></td>
 <td></td>
 <td></td>
 <td></td>
 </tr>
 <tr>
-<td><code>bp_pseudoreplicates</code></td>
+<td><code>ff_pseudoreplicates</code></td>
 <td>Pseudoreplicate in memory related to merge_n but instead of disk I/O only nimg images read then pseudoreplicate compound images of size merge_n made. Sampling with replacement and overlaps possible. Goal similar to merge_n but avoids major IO load. Recommended to set nimg high to reduce overlap.</td>
 <td><code>integer</code></td>
 <td></td>
@@ -283,15 +283,15 @@
 <td></td>
 </tr>
 <tr>
-<td><code>bp_pseudoreplicates_test</code></td>
-<td>Same as bp_pseudoreplicates but for flatfield evaluation</td>
+<td><code>ff_pseudoreplicates_test</code></td>
+<td>Same as ff_pseudoreplicates but for flatfield evaluation</td>
 <td><code>integer</code></td>
 <td></td>
 <td></td>
 <td></td>
 </tr>
 <tr>
-<td><code>bp_use_ridge</code></td>
+<td><code>ff_use_ridge</code></td>
 <td>Use ridge regression instead of OLS to fit polynomial. Uses RidgeCV and 10 fold CV to find optimal alpha</td>
 <td><code>boolean</code></td>
 <td></td>
@@ -299,7 +299,7 @@
 <td></td>
 </tr>
 <tr>
-<td><code>bp_all_planes</code></td>
+<td><code>ff_all_planes</code></td>
 <td>Instead of randomly picking one plane for a stack, use all planes. Can cause issues with basicpy as it assumes random variation between images. When rn_max_project true all planes are read and max projected so not an issue. Not recommended.</td>
 <td><code>boolean</code></td>
 <td></td>
@@ -307,7 +307,7 @@
 <td></td>
 </tr>
 <tr>
-<td><code>bp_autosegment</code></td>
+<td><code>ff_autosegment</code></td>
 <td>Apply basicpy autosegment option, opposite of threshold, applies mask erosion. Not recommended, basicpy only.</td>
 <td><code>boolean</code></td>
 <td></td>
@@ -315,7 +315,7 @@
 <td></td>
 </tr>
 <tr>
-<td><code>bp_no_tune</code></td>
+<td><code>ff_no_tune</code></td>
 <td>Do not tune basicpy model. Not recommended, basicpy only.</td>
 <td><code>boolean</code></td>
 <td></td>

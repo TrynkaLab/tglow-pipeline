@@ -2,7 +2,7 @@ class ManifestRecord {
     String plate
     String index_xml
     def channels
-    def bp_channels
+    def ff_channels
     def cp_nucl_channel
     def cp_cell_channel
     def dc_channels
@@ -16,7 +16,7 @@ class ManifestRecord {
 
         this.channels = (args.channels == null || args.channels == "none") ? "none" : args.channels.split(',').collect { it as Integer - 1 }
 
-        this.bp_channels = (args.bp_channels == null || args.bp_channels == "none") ? "none" : args.bp_channels.split(',').collect { it as Integer - 1 }
+        this.ff_channels = (args.ff_channels == null || args.ff_channels == "none") ? "none" : args.ff_channels.split(',').collect { it as Integer - 1 }
 
         this.cp_nucl_channel = (args.cp_nucl_channel == null || args.cp_nucl_channel == "none") ? "none" : (args.cp_nucl_channel as Integer) - 1
         
@@ -41,7 +41,7 @@ class ManifestRecord {
     //         plate: ${plate},
     //         index_xml: ${index_xml},
     //         channels: ${channels},
-    //         bp_channels: ${bp_channels},
+    //         ff_channels: ${ff_channels},
     //         cp_nucl_channel: ${cp_nucl_channel},
     //         cp_cell_channel: ${cp_cell_channel},
     //         dc_channels: ${dc_channels},

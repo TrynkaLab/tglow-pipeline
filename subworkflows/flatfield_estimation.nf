@@ -11,9 +11,9 @@ workflow flatfield_estimation {
         blacklist_file
         rn_manifest
         rn_manifest_registration
-        bp_run
-        bp_channels
-        bp_global_flatfield
+        ff_run
+        ff_channels
+        ff_global_flatfield
         plates
     main:
         //------------------------------------------------------------
@@ -21,7 +21,7 @@ workflow flatfield_estimation {
         //------------------------------------------------------------
         // If there is no global overide on flatfield channels, get them from manifest
         def run_flatfield = false
-        if (bp_channels == null) {
+        if (ff_channels == null) {
             // Manually parse the manifest to also grab the first record which is hard to do with channels
             flatfield_channels = parseManifestFlatfields(rn_manifest)
                         
@@ -48,7 +48,7 @@ workflow flatfield_estimation {
                 // key, cycle, plate, plate(s), channel, index xml
                 flatfield_in_global = per_cycle
                 .combine(manifest.map{row -> tuple(row.plate, row)}, by:0)
-                .flatMap{ row -> row[3].bp_channels.collect{channel -> tuple(row[1] + ":" + channel.toString(), row[1], row[2][0], row[2], channel, row[3].index_xml)} }
+                .flatMap{ row -> row[3].ff_channels.collect{channel -> tuple(row[1] + ":" + channel.toString(), row[1], row[2][0], row[2], channel, row[3].index_xml)} }
                                 
                 // These have already been converted to zero indexed
                 flatfield_in = flatfield_in
@@ -66,15 +66,15 @@ workflow flatfield_estimation {
                 .map{row -> tuple("0:" + row[1], 0, row[0], row[3].split(" "), row[1], row[2])} // key, cycle, plates, channel, index_xml
             }
         } else {
-            flatfield_in = Channel.from(bp_channels)
+            flatfield_in = Channel.from(ff_channels)
         }
         
-        if (!bp_run) {
+        if (!ff_run) {
             run_flatfield=false
         }
         
         if (run_flatfield) {
-            if (bp_global_flatfield) {
+            if (ff_global_flatfield) {
                 // Runs only one model per plate
                 global_flatfield = estimate_flatfield(flatfield_in_global, file(params.rn_image_dir), blacklist_file).flatfield_out
                 

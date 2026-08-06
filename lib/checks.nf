@@ -207,10 +207,10 @@ def checkParamsCpr(params) {
 
 
 def checkParamsFlatfield(params) {
-    if (params.bp_run) {
+    if (params.ff_run) {
         def valid_modes = ["BASICPY", "POLY", "PE"]
-        if (!(params.bp_mode in valid_modes)) {
-            error("bp_mode must be one of ${valid_modes} but got: ${params.bp_mode}")
+        if (!(params.ff_mode in valid_modes)) {
+            error("ff_mode must be one of ${valid_modes} but got: ${params.ff_mode}")
         }
     }
 }

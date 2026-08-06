@@ -59,9 +59,9 @@ workflow run_pipeline {
             blacklist_file,
             params.rn_manifest,
             params.rn_manifest_registration,
-            params.bp_run,
-            params.bp_channels,
-            params.bp_global_flatfield,
+            params.ff_run,
+            params.ff_channels,
+            params.ff_global_flatfield,
             plates
         )
         

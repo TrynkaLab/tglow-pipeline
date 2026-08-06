@@ -18,7 +18,7 @@
         },
         "rn_manifest": {
           "type": "string",
-          "description": "Core manifest set bp_channels to none to not run basicpy set cp_cell_channel to none to not run cellpose set cp_nucl_channel to none to run cellpose without a nucleus channel If a registration manifest is provided, only reference plates will be run through cellpose <plate> <index_xml> <channels> <bp_channels> <cp_nucl_channel> <cp_cell_channel> <dc_channels> <dc_psfs> <mask_channels> <scale_factors>",
+          "description": "Core manifest set ff_channels to none to not run basicpy set cp_cell_channel to none to not run cellpose set cp_nucl_channel to none to run cellpose without a nucleus channel If a registration manifest is provided, only reference plates will be run through cellpose <plate> <index_xml> <channels> <ff_channels> <cp_nucl_channel> <cp_cell_channel> <dc_channels> <dc_psfs> <mask_channels> <scale_factors>",
           "format": "file-path",
           "mimetype": "text/csv"
         },
@@ -130,73 +130,73 @@
       "description": "",
       "default": "",
       "properties": {
-        "bp_run": {
+        "ff_run": {
           "type": "boolean",
           "default": true,
           "description": "Run flatfield estimation or not. Overrides the manifest"
         },
-        "bp_global_flatfield": {
+        "ff_global_flatfield": {
           "type": "boolean",
           "description": "Fit one flatfield per plate-channel, or one global flatfield per channel shared among the plates of a cycle"
         },
-        "bp_label": {
+        "ff_label": {
           "type": "string",
           "default": "himem",
           "description": "Resource label for flatfield estimation"
         },
-        "bp_mode": {
+        "ff_mode": {
           "type": "string",
           "default": "POLY",
           "description": "Mode, one of BASICPY, POLY or PE"
         },
-        "bp_threshold": {
+        "ff_threshold": {
           "type": "boolean",
           "description": "Should images be multi-otsu thresholded prior to fitting. Two top tiers treated as foreground. Helpful in sparse images but can throw off valuation if strong flatfield not handled well or outliers exist. In BASICPY mode mask is supplied as fitting_weights to fit only actual signal avoiding background fitting. In POLY the polynomial is fit on foreground pixels only."
         },
-        "bp_degree": {
+        "ff_degree": {
           "type": "integer",
           "default": 0,
           "description": "Degree for polynomial (2-4 recommended). If <=0 special polynomial model used same as PE Harmony fits, else numpy.polynomial.polynomial.polyvander2d used to generate design matrix with all combinations of x^i*y^i. Higher degrees more likely to overfit."
         },
-        "bp_channels": {
+        "ff_channels": {
           "type": "string",
           "description": "Channels to fit basicpy models on, leave null to run all channels specified in manifest (recommended). To not run basicpy for a plate, set channels to \"none\". Otherwise specify [[<plate>,<channel>,<index_xml>],...] to override manifest."
         },
-        "bp_nimg": {
+        "ff_nimg": {
           "type": "integer",
           "default": 200,
           "description": "Number of random images to read into memory. Sampled with replacement. If no other option specified, this is number of images flatfield is trained on."
         },
-        "bp_nimg_test": {
+        "ff_nimg_test": {
           "type": "integer",
           "default": 100,
           "description": "Number of images for independent sampling used for testing flatfield. Set 0 to skip flatfield evaluation."
         },
-        "bp_merge_n": {
+        "ff_merge_n": {
           "type": "integer",
-          "description": "Number of images to max project into a compound \u2014 nimg times. If >1 basicpy run on nimg images each compound of merge_n images. Set null to run vanilla basicpy with no merging. Useful if low density images and flatfields tend to background signal rather than foreground. Recommended bp_nimg=100 and bp_merge_n=50 starting point but mileage varies. WARNING: samples same images into different compounds so some overlapping."
+          "description": "Number of images to max project into a compound \u2014 nimg times. If >1 basicpy run on nimg images each compound of merge_n images. Set null to run vanilla basicpy with no merging. Useful if low density images and flatfields tend to background signal rather than foreground. Recommended ff_nimg=100 and ff_merge_n=50 starting point but mileage varies. WARNING: samples same images into different compounds so some overlapping."
         },
-        "bp_pseudoreplicates": {
+        "ff_pseudoreplicates": {
           "type": "integer",
           "description": "Pseudoreplicate in memory related to merge_n but instead of disk I/O only nimg images read then pseudoreplicate compound images of size merge_n made. Sampling with replacement and overlaps possible. Goal similar to merge_n but avoids major IO load. Recommended to set nimg high to reduce overlap."
         },
-        "bp_pseudoreplicates_test": {
+        "ff_pseudoreplicates_test": {
           "type": "integer",
-          "description": "Same as bp_pseudoreplicates but for flatfield evaluation"
+          "description": "Same as ff_pseudoreplicates but for flatfield evaluation"
         },
-        "bp_use_ridge": {
+        "ff_use_ridge": {
           "type": "boolean",
           "description": "Use ridge regression instead of OLS to fit polynomial. Uses RidgeCV and 10 fold CV to find optimal alpha"
         },
-        "bp_all_planes": {
+        "ff_all_planes": {
           "type": "boolean",
           "description": "Instead of randomly picking one plane for a stack, use all planes. Can cause issues with basicpy as it assumes random variation between images. When rn_max_project true all planes are read and max projected so not an issue. Not recommended."
         },
-        "bp_autosegment": {
+        "ff_autosegment": {
           "type": "boolean",
           "description": "Apply basicpy autosegment option, opposite of threshold, applies mask erosion. Not recommended, basicpy only."
         },
-        "bp_no_tune": {
+        "ff_no_tune": {
           "type": "boolean",
           "description": "Do not tune basicpy model. Not recommended, basicpy only."
         }

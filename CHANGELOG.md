@@ -22,7 +22,7 @@
 - Added --workflow
 - Removed subcell parameters
 - sc_ prefix now used for scaling parameters
-
+- bp_ prefix (basicpy) to ff_ (flatfield)
 
 ## Documentation:
 - Updates to fix small issues in documentation not matching real behaviour
