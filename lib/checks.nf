@@ -1,3 +1,4 @@
+include { validateManifestContent; validateBlacklistContent; validateRegistrationManifestContent; validateControlListContent; formatValidationErrors } from './validateInputs.nf'
 
 // Sanity check the run parameters, erroring out early on invalid combinations
 def checkParamsMain(params) {
@@ -49,18 +50,33 @@ def checkParamsBase(params) {
         if (!file(params.rn_manifest).exists()) {
             error("Specified manifest file does not exist or is not readable")
         }
-        
+
+        def manifestErrors = validateManifestContent(params.rn_manifest)
+        if (manifestErrors) {
+            error(formatValidationErrors("rn_manifest", manifestErrors))
+        }
+
         // Check blacklist
         if (params.rn_blacklist != null) {
             if (!file(params.rn_blacklist).exists()) {
                 error("Specified blacklist file does not exist or is not readable")
             }
+
+            def blacklistErrors = validateBlacklistContent(params.rn_blacklist)
+            if (blacklistErrors) {
+                error(formatValidationErrors("rn_blacklist", blacklistErrors))
+            }
         }
-            
+
         // Check registration manifest
         if (params.rn_manifest_registration != null) {
             if (!file(params.rn_manifest_registration).exists()) {
                 error("Specified registration manifest file does not exist or is not readable")
+            }
+
+            def registrationErrors = validateRegistrationManifestContent(params.rn_manifest_registration)
+            if (registrationErrors) {
+                error(formatValidationErrors("rn_manifest_registration", registrationErrors))
             }
         }
 
@@ -98,6 +114,11 @@ def checkParamsScaling(params) {
     if (params.sc_control_list != null) {
         if (!file(params.sc_control_list).exists()) {
             error("Specified control list file does not exist or is not readable")
+        }
+
+        def controlListErrors = validateControlListContent(params.sc_control_list)
+        if (controlListErrors) {
+            error(formatValidationErrors("sc_control_list", controlListErrors))
         }
     }
 

@@ -24,7 +24,7 @@ class ManifestRecord {
 
         this.dc_channels = (args.dc_channels == null || args.dc_channels == "none") ? "none" : args.dc_channels.split(',').collect { it as Integer - 1 }
 
-        this.dc_psfs = (args.dc_psfs == null) ? "none" : args.dc_psfs.split(',')
+        this.dc_psfs = (args.dc_psfs == null || args.dc_psfs == "none") ? "none" : args.dc_psfs.split(',')
 
         this.mask_channels = (args.mask_channels == null || args.mask_channels == "none") ? "none" : args.mask_channels.split(',').collect { it as Integer - 1 }
     }

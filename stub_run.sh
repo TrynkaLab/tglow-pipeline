@@ -41,7 +41,7 @@ touch "$STUB_DIR/dummy_index.xml"
 # from - contents don't matter under -stub-run (the real script never executes),
 # they just need to exist so Nextflow can stage them.
 touch "$STUB_DIR/dummy_channel_map.tsv"
-printf 'PLATE1\tA1\t1,2\tcontrolA\n' > "$STUB_DIR/dummy_control_list.tsv"
+printf 'plate\twell\tcontrol_type\nPLATE1\tA01\tcontrolA\n' > "$STUB_DIR/dummy_control_list.tsv"
 
 # Dummy image + per-plate well manifest, so `setup`'s well_channel is
 # actually populated (index_imagedir's stub block just touches an empty

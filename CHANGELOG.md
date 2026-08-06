@@ -5,8 +5,9 @@
 ## Major changes:
 - Removed subcell workflow, it was out of date
 - Re-worked scaling workflow which should now be broadly automated rather then relying on two pipeline runs
-- Updated syntax to allow use of latest nextflow 26.04 which default forces strict syntax
+- Updated syntax to allow use of latest nextflow 26.04 (which default forces strict syntax, lots of refactors)
 - Dropped -entry, added --workflow to control entrypoint
+- Added validation routine for input files
 
 ## Minor changes:
 - Plates are now automatically renamed during staging to the plate name provided in the manifest instead of the name provided in the PE index file.
@@ -17,6 +18,7 @@
 - Cellcrop indexing now produces a parquet instead of csv file
 - Added new configuration for Sanger Cub cluster
 - Updated GPU queue for Sanger farm22 cluster
+- Updated parameter name in manifest from bp_channels to ff_channels
 
 ## Parameters:
 - Added --workflow
@@ -26,6 +28,7 @@
 - tg_ prefix (tglow) now rn_ (run). Applies to tg_conda_env and tg_container
 - removed cp_cell_power, cp_nucl_power, rn_dummy_mode, rn_threshold and cp_dont_postprocess options
 - removed 'executor.poolSize' from lsf definition
+
 ## Documentation:
 - Updates to fix small issues in documentation not matching real behaviour
 
