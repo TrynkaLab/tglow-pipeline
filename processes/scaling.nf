@@ -3,7 +3,7 @@
 // Determine scaling factors and sigmoid bias/slope from per-plate object/image intensity
 // parquet files (produced by measure_intensity, aggregated per-plate by stage_as_plate).
 process calculate_scaling_factors {
-    label 'normal'
+    label params.sc_label
 
     conda params.rn_conda_env
     container params.rn_container

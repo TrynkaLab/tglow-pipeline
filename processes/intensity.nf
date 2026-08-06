@@ -6,7 +6,7 @@
 // Runs regardless of whether scaling is enabled - feeds calculate_scaling_factors when
 // sc_autoscale is set, and is kept around either way to support a future QC step.
 process measure_intensity {
-    label 'normal'
+    label params.sc_label
 
     conda params.rn_conda_env
     container params.rn_container
