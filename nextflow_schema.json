@@ -362,6 +362,11 @@
       "description": "",
       "default": "",
       "properties": {
+        "sc_label": {
+          "type": "string",
+          "default": "normal",
+          "description": "Resource label for scaling"
+        },
         "sc_manualscale": {
           "type": "string",
           "description": "Path to scaling_factors.txt with line formatted: <plate>_ch<channel>=<scale> <plate>_ch<channel>=<scale> <plate>_ch<channel>=<scale> Space separated Channels zero indexed <plate> is the reference plate <channel> after merging cycles <scale> factor by which channel in plate is divided",
@@ -452,79 +457,6 @@
           "description": "Container for the cellprofiler enviroment"
         }
       }
-    },
-    "subcell": {
-      "title": "SubCell",
-      "type": "object",
-      "description": "",
-      "default": "",
-      "properties": {
-        "sc_label": {
-          "type": "string",
-          "default": "gpu_short",
-          "description": "Resource label for subcell",
-          "hidden": true
-        },
-        "sc_gpu": {
-          "type": "boolean",
-          "default": true,
-          "description": "Should GPU be used, make sure to set sc_label to gpu_<x>",
-          "hidden": true
-        },
-        "sc_dont_mask": {
-          "type": "boolean",
-          "description": "Should the cell crops not be masked by the cell object prior to embedding",
-          "hidden": true
-        },
-        "sc_conda_env": {
-          "type": "string",
-          "description": "Subcell conda env path",
-          "hidden": true
-        },
-        "sc_dl_conda_env": {
-          "type": "string",
-          "description": "Subcell model download conda env path",
-          "hidden": true
-        },
-        "sc_model_ref_channels": {
-          "type": "string",
-          "default": "rybg",
-          "description": "Subcell model reference channels string like \"rybg\"",
-          "hidden": true
-        },
-        "sc_model": {
-          "type": "string",
-          "default": "mae_contrast_supcon_model",
-          "description": "Subcell model string like \"mae_contrast_supcon_model\"",
-          "hidden": true
-        },
-        "sc_channels": {
-          "type": "string",
-          "description": "Channels to find localization for should be string '<name>=<channel> <name>=<channel>'",
-          "hidden": true
-        },
-        "sc_nucl": {
-          "type": "integer",
-          "description": "Nucleus channel",
-          "hidden": true
-        },
-        "sc_tub": {
-          "type": "integer",
-          "description": "Tubulin channel",
-          "hidden": true
-        },
-        "sc_er": {
-          "type": "integer",
-          "description": "Endoplasmic reticulum channel",
-          "hidden": true
-        },
-        "sc_scale": {
-          "type": "number",
-          "default": 1.8625,
-          "description": "Scale factor to get pixel size to 80nm. In Phenix 1px=149nm at 40x, so sc_scale=149/80. TODO set properly using physical pixel size attribute if available",
-          "hidden": true
-        }
-      }
     }
   },
   "allOf": [
@@ -551,9 +483,6 @@
     },
     {
       "$ref": "#/$defs/cellprofiler"
-    },
-    {
-      "$ref": "#/$defs/subcell"
     }
   ]
 }

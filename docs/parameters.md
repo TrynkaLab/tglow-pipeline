@@ -113,6 +113,7 @@
 
 | Parameter | Description | Type | Default | Required | Hidden |
 |-----------|-----------|-----------|-----------|-----------|-----------|
+| `sc_label` | Resource label for scaling | `string` | normal |  |  |
 | `sc_manualscale` | Path to scaling_factors.txt with line formatted: <plate>_ch<channel>=<scale> <plate>_ch<channel>=<scale> <plate>_ch<channel>=<scale> Space separated Channels zero indexed <plate> is the reference plate <channel> after merging cycles <scale> factor by which channel in plate is divided | `string` |  |  |  |
 | `sc_scale_slope` | Path to scaling_<slope/bias>.txt with one line formatted: <plate>_ch<channel>=<slope/bias> <plate>_ch<channel>=<slope/bias> <plate>_ch<channel>=<slope/bias> Sets shape of sigmoid curve used to weigh scaling factors differently in intensity ranges. Background pixels remain unscaled, smooth transition scales foreground pixels. Pipeline supports only pre-calculated slope and bias, cannot auto-estimate. Must supply both slope and bias if used. If null, scaling_factors applied uniformly. Works with --sc_manualscale and --sc_autoscale. | `string` |  |  |  |
 | `sc_scale_bias` | See sc_scale_slope (must supply with sc_scale_slope if supplied) | `string` |  |  |  |
@@ -136,22 +137,3 @@
 | `cpr_pipeline_3d` |  | `string` |  |  |  |
 | `cpr_no_zip` |  | `boolean` |  |  |  |
 | `cpr_container` | Container for the cellprofiler enviroment | `string` |  |  |  |
-
-## SubCell
-
-
-
-| Parameter | Description | Type | Default | Required | Hidden |
-|-----------|-----------|-----------|-----------|-----------|-----------|
-| `sc_label` | Resource label for subcell | `string` | gpu_short |  | True |
-| `sc_gpu` | Should GPU be used, make sure to set sc_label to gpu_<x> | `boolean` | True |  | True |
-| `sc_dont_mask` | Should the cell crops not be masked by the cell object prior to embedding | `boolean` |  |  | True |
-| `sc_conda_env` | Subcell conda env path | `string` |  |  | True |
-| `sc_dl_conda_env` | Subcell model download conda env path | `string` |  |  | True |
-| `sc_model_ref_channels` | Subcell model reference channels string like "rybg" | `string` | rybg |  | True |
-| `sc_model` | Subcell model string like "mae_contrast_supcon_model" | `string` | mae_contrast_supcon_model |  | True |
-| `sc_channels` | Channels to find localization for should be string '<name>=<channel> <name>=<channel>' | `string` |  |  | True |
-| `sc_nucl` | Nucleus channel | `integer` |  |  | True |
-| `sc_tub` | Tubulin channel | `integer` |  |  | True |
-| `sc_er` | Endoplasmic reticulum channel | `integer` |  |  | True |
-| `sc_scale` | Scale factor to get pixel size to 80nm. In Phenix 1px=149nm at 40x, so sc_scale=149/80. TODO set properly using physical pixel size attribute if available | `number` | 1.8625 |  | True |

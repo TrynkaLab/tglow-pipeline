@@ -607,6 +607,14 @@
 </thead>
 <tbody>
 <tr>
+<td><code>sc_label</code></td>
+<td>Resource label for scaling</td>
+<td><code>string</code></td>
+<td>normal</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
 <td><code>sc_manualscale</code></td>
 <td>Path to scaling_factors.txt with line formatted: <plate>_ch<channel>=<scale> <plate>_ch<channel>=<scale> <plate>_ch<channel>=<scale> Space separated Channels zero indexed <plate> is the reference plate <channel> after merging cycles <scale> factor by which channel in plate is divided</td>
 <td><code>string</code></td>
@@ -748,117 +756,6 @@
 <td></td>
 <td></td>
 <td></td>
-</tr>
-</tbody>
-</table>
-<h2>SubCell</h2>
-<table>
-<thead>
-<tr>
-<th>Parameter</th>
-<th>Description</th>
-<th>Type</th>
-<th>Default</th>
-<th>Required</th>
-<th>Hidden</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>sc_label</code></td>
-<td>Resource label for subcell</td>
-<td><code>string</code></td>
-<td>gpu_short</td>
-<td></td>
-<td>True</td>
-</tr>
-<tr>
-<td><code>sc_gpu</code></td>
-<td>Should GPU be used, make sure to set sc_label to gpu_<x></td>
-<td><code>boolean</code></td>
-<td>True</td>
-<td></td>
-<td>True</td>
-</tr>
-<tr>
-<td><code>sc_dont_mask</code></td>
-<td>Should the cell crops not be masked by the cell object prior to embedding</td>
-<td><code>boolean</code></td>
-<td></td>
-<td></td>
-<td>True</td>
-</tr>
-<tr>
-<td><code>sc_conda_env</code></td>
-<td>Subcell conda env path</td>
-<td><code>string</code></td>
-<td></td>
-<td></td>
-<td>True</td>
-</tr>
-<tr>
-<td><code>sc_dl_conda_env</code></td>
-<td>Subcell model download conda env path</td>
-<td><code>string</code></td>
-<td></td>
-<td></td>
-<td>True</td>
-</tr>
-<tr>
-<td><code>sc_model_ref_channels</code></td>
-<td>Subcell model reference channels string like "rybg"</td>
-<td><code>string</code></td>
-<td>rybg</td>
-<td></td>
-<td>True</td>
-</tr>
-<tr>
-<td><code>sc_model</code></td>
-<td>Subcell model string like "mae_contrast_supcon_model"</td>
-<td><code>string</code></td>
-<td>mae_contrast_supcon_model</td>
-<td></td>
-<td>True</td>
-</tr>
-<tr>
-<td><code>sc_channels</code></td>
-<td>Channels to find localization for should be string '<name>=<channel> <name>=<channel>'</td>
-<td><code>string</code></td>
-<td></td>
-<td></td>
-<td>True</td>
-</tr>
-<tr>
-<td><code>sc_nucl</code></td>
-<td>Nucleus channel</td>
-<td><code>integer</code></td>
-<td></td>
-<td></td>
-<td>True</td>
-</tr>
-<tr>
-<td><code>sc_tub</code></td>
-<td>Tubulin channel</td>
-<td><code>integer</code></td>
-<td></td>
-<td></td>
-<td>True</td>
-</tr>
-<tr>
-<td><code>sc_er</code></td>
-<td>Endoplasmic reticulum channel</td>
-<td><code>integer</code></td>
-<td></td>
-<td></td>
-<td>True</td>
-</tr>
-<tr>
-<td><code>sc_scale</code></td>
-<td>Scale factor to get pixel size to 80nm. In Phenix 1px=149nm at 40x, so sc_scale=149/80. TODO set properly using physical pixel size attribute if available</td>
-<td><code>number</code></td>
-<td>1.8625</td>
-<td></td>
-<td>True</td>
 </tr>
 </tbody>
 </table>
