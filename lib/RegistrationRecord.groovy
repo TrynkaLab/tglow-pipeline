@@ -17,7 +17,7 @@ class RegistrationRecord {
         
         this.ref_plate = args.ref_plate
         this.ref_channel = args.ref_channel as Integer - 1
-        this.qry_plates = args.qry_plates.split(',')
+        this.qry_plates = args.qry_plates.split(',').toList()
         this.qry_channels = args.qry_channels.split(',').collect { it as Integer - 1 }
     }  
 
