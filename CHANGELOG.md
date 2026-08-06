@@ -11,6 +11,9 @@
 - Changed handling of PSFs in manifest, now in <channel>=<path> format, dropped dc_channels
 - Moved processes downstream of finalize to publishDir instead of storeDir
 
+## Bugfixes
+- Fixed re-trigger of index_images & index_cellcrops process due to .last(), now using a fingerprint based approach that looks at mod times without having to stage every single input file
+
 ## Minor changes:
 - Plates are now automatically renamed during staging to the plate name provided in the manifest instead of the name provided in the PE index file.
 - Updated flatfield fitting to drop requerement for basicpy install. 
@@ -34,7 +37,6 @@
 
 ## Documentation:
 - Updates to fix small issues in documentation not matching real behaviour
-
 
 
 # Version  pre X

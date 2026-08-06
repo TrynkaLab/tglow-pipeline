@@ -174,7 +174,7 @@ process rescale {
     conda params.rn_conda_env
     container params.rn_container
 
-    publishdir "$params.rn_publish_dir/processed_images"
+    publishDir "$params.rn_publish_dir/processed_images"
     scratch params.rn_scratch
 
     input:
@@ -221,7 +221,7 @@ process cellcrops {
     conda params.rn_conda_env
     container params.rn_container
 
-    publishdir "$params.rn_publish_dir/cellcrops"
+    publishDir "$params.rn_publish_dir/cellcrops"
     scratch params.rn_scratch
 
     input:

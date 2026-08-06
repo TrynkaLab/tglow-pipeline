@@ -5,6 +5,51 @@ include { measure_intensity; stage_as_plate } from '../processes/intensity.nf'
 include { index_images as index_unscaled; index_images as index_scaled } from '../processes/staging.nf'
 include { estimate_scaling_factors } from './scaling_factors.nf'
 
+// A path-type process output emitted via a glob (e.g. path("*.tiff")) comes through as a
+// bare Path when exactly one file matches, and only as a List when more than one file
+// matches (same quirk already worked around elsewhere - see the instanceof List checks in
+// flatfield_estimation.nf and finalize.nf). Normalize to "the well's own output directory"
+// regardless of match count.
+def wellOutputDir(pathOrList) {
+    return (pathOrList instanceof List) ? pathOrList[0].parent : pathOrList.parent
+}
+
+// Build a deterministic (plate, fingerprint) pair from a finalize/rescale processed_output
+// channel. Nextflow's own cache hash for a directory `path` input only looks at that
+// directory's own metadata, not its contents (confirmed empirically), so relying on the
+// published directory path alone to detect real image changes silently misses changes
+// made several directories deep.
+//
+// One entry per WELL, not per file: every channel file for a well is written together,
+// atomically, into the same well.relpath leaf directory by a single finalize/rescale task,
+// so that directory's own mtime is a sufficient stand-in for "did this well's images
+// change" - confirmed empirically that Nextflow's publishDir (both explicit mode:"copy"
+// and the default symlink mode this pipeline actually uses) bumps the containing
+// directory's mtime when it replaces an existing published file, so an in-place
+// re-publish (e.g. a well re-rescaled with new scaling factors) is still detected.
+// This keeps the cost to one stat() per well regardless of channel count, instead of one
+// per file.
+def buildPlateFingerprint(processed_output) {
+    return processed_output
+        .map{ row -> tuple(row[0].plate, "${row[0].key}:${wellOutputDir(row[1]).lastModified()}") }
+        .groupTuple(by: 0)
+        .map{ row -> tuple(row[0], row[1].sort()) }
+        .multiMap{ row -> plate: row[0]; fingerprint: row[1] }
+}
+
+// Same idea as buildPlateFingerprint, but index_cellcrops aggregates every well across
+// every plate into a single output (no per-plate parameter to key off), so there's just
+// one fingerprint for the whole run instead of one per plate. .collect() plays the same
+// role groupTuple did above: it doesn't emit until the source channel fully closes (same
+// "wait for every well" barrier timing as the .last() it replaces), but the payload is a
+// deterministic, sorted list of well/mtime pairs instead of an arbitrary last-completed item.
+def buildCellcropsFingerprint(h5_out) {
+    return h5_out
+        .map{ row -> "${row[0].key}:${wellOutputDir(row[1]).lastModified()}" }
+        .collect()
+        .map{ entries -> entries.sort() }
+}
+
 // Finalizes and caches images for feature extraction (rn_cache_images).
 //
 // Normal flow (sc_scale_in_finalize=false): finalize writes unscaled images to
@@ -68,10 +113,18 @@ workflow finalize_images {
         // when sc_scale_in_finalize writes directly to `scaled`, this call indexes that
         // instead; it's just the alias used for "whatever finalize wrote" since a process
         // can only be invoked once per workflow scope)
-        index_unscaled(finalize_out.processed_output.last(),
+        //
+        // previous_completed carries a per-plate content fingerprint (see
+        // buildPlateFingerprint above) instead of a throwaway barrier value - it blocks
+        // until every well has finalized, same as before, but the actual value now
+        // reflects whether that plate's images genuinely changed, so this only reruns
+        // when it needs to instead of on nearly every run (or, worse, never noticing a
+        // real change - see buildPlateFingerprint's comment for why).
+        finalize_fp = buildPlateFingerprint(finalize_out.processed_output)
+        index_unscaled(finalize_fp.fingerprint,
                         "processed_images/${finalize_subdir}",
                         file(rn_publish_dir + "/processed_images/${finalize_subdir}"),
-                        finalize_out.processed_output.map{row -> row[0].plate}.unique())
+                        finalize_fp.plate)
 
         // Always measure these images, even when no scaling is requested, to
         // support a future QC step
@@ -120,11 +173,14 @@ workflow finalize_images {
             rescale_out = rescale(finalize_out.processed_output, scaling_file, slope_file, bias_file)
 
             // rescale always writes to processed_images/scaled - index it separately
-            // from the unscaled output indexed above
-            index_scaled(rescale_out.processed_output.last(),
+            // from the unscaled output indexed above. See buildPlateFingerprint above
+            // for why previous_completed carries a content fingerprint instead of a
+            // throwaway barrier value.
+            rescale_fp = buildPlateFingerprint(rescale_out.processed_output)
+            index_scaled(rescale_fp.fingerprint,
                             "processed_images/scaled",
                             file(rn_publish_dir + "/processed_images/scaled"),
-                            rescale_out.processed_output.map{row -> row[0].plate}.unique())
+                            rescale_fp.plate)
                             
             images_out = rescale_out.processed_output
         } else {
@@ -194,8 +250,10 @@ workflow finalize_images {
             // Create cellcrops
             cellcrop_out = cellcrops(cellcrop_in)
 
-            // Index cellcrops
-            index_cellcrops(cellcrop_out.h5.last(), file(rn_publish_dir + "/cellcrops"))
+            // Index cellcrops - see buildCellcropsFingerprint above for why this isn't
+            // cellcrop_out.h5.last() (an arbitrary last-completed well, order-unstable
+            // and blind to in-place content changes several directories deep)
+            index_cellcrops(buildCellcropsFingerprint(cellcrop_out.h5), file(rn_publish_dir + "/cellcrops"))
         }
 
     emit:
