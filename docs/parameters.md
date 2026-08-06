@@ -8,6 +8,7 @@
 
 | Parameter | Description | Type | Default | Required | Hidden |
 |-----------|-----------|-----------|-----------|-----------|-----------|
+| `rn_skip_checks` | Skip parameter checks, useful for testing | `boolean` | False |  |  |
 | `rn_manifest` | Core manifest set ff_channels to none to not run basicpy set cp_cell_channel to none to not run cellpose set cp_nucl_channel to none to run cellpose without a nucleus channel If a registration manifest is provided, only reference plates will be run through cellpose <plate> <index_xml> <channels> <ff_channels> <cp_nucl_channel> <cp_cell_channel> <dc_channels> <dc_psfs> <mask_channels> <scale_factors> | `string` |  | True |  |
 | `rn_blacklist` | Well level manifest (blacklist), supply path to file. Specifying which wells to ignore. This is useful to deal with edgecases in a plate or single stain controls etc. you don't want to analyze. Leave at null to ignore. <plate> <well> plate1 A09 plate2 A09 plate2 D12 | `string` |  |  |  |
 | `sc_control_list` | Controls file used by calculate_scaling_factors (sc_autoscale) to derive plate offsets and sigmoid bias/slope from control wells. <plate> <well> <control_type> plate1 A10 controlA plate1 B10 controlA plate1 D11 controlB. Optional - if null, plate-offset correction is skipped (dynamic-range-only scaling). Requires sc_channel_map to also be set when provided. | `string` |  |  |  |

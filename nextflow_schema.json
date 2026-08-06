@@ -16,6 +16,11 @@
           "description": "Which entry workflow to run: 'stage' (fetch raw data from NFS and recode into the OME file structure) or 'run_pipeline' (the main processing pipeline). Replaces the old `-entry` CLI flag, which is no longer supported under Nextflow's strict syntax parser.",
           "enum": ["stage", "run_pipeline"]
         },
+        "rn_skip_checks": {
+          "type": "boolean",
+          "default": false,
+          "description": "Skip parameter checks, useful for testing"
+        },
         "rn_manifest": {
           "type": "string",
           "description": "Core manifest set ff_channels to none to not run basicpy set cp_cell_channel to none to not run cellpose set cp_nucl_channel to none to run cellpose without a nucleus channel If a registration manifest is provided, only reference plates will be run through cellpose <plate> <index_xml> <channels> <ff_channels> <cp_nucl_channel> <cp_cell_channel> <dc_channels> <dc_psfs> <mask_channels> <scale_factors>",
