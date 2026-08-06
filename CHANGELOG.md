@@ -25,7 +25,7 @@
 - bp_ prefix (basicpy) to ff_ (flatfield)
 - tg_ prefix (tglow) now rn_ (run). Applies to tg_conda_env and tg_container
 - removed cp_cell_power, cp_nucl_power, rn_dummy_mode, rn_threshold and cp_dont_postprocess options
-
+- removed 'executor.poolSize' from lsf definition
 ## Documentation:
 - Updates to fix small issues in documentation not matching real behaviour
 
