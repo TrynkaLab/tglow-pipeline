@@ -21,7 +21,7 @@ workflow setup {
         manifest = Channel.fromPath(params.rn_manifest)
             .splitCsv(header:true, sep:"\t")
             .map { row -> 
-                new ManifestRecord(
+                ManifestRecord.fromRow(
                     plate: row.plate,
                     index_xml: row.index_xml,
                     channels: (row.channels == null) ? "none" : row.channels,
@@ -44,7 +44,7 @@ workflow setup {
             .fromPath(params.rn_manifest_registration)
             .splitCsv(header:true, sep:"\t")
             .map { row -> 
-                new RegistrationRecord(
+                RegistrationRecord.fromRow(
                     ref_plate: row.reference_plate,
                     ref_channel: row.reference_channel,
                     qry_plates: row.query_plates,
@@ -94,7 +94,7 @@ workflow setup {
         // Construct the channel on the well level
         // This was needed without the indexing step file(manifest_path)
         well_channel = manifests_in.flatMap{ manifest_path -> manifest_path.splitCsv(header:["well", "row", "col", "plate"], sep:"\t")}
-            .map{ row -> new Well(well: row.well, row: row.row, col: row.col, plate: row.plate) }
+            .map{ row -> Well.fromMap(well: row.well, row: row.row, col: row.col, plate: row.plate) }
 
         // Filter blacklist. Blacklist read into arrat of <plate>:<well>
         if (params.rn_blacklist != null) {

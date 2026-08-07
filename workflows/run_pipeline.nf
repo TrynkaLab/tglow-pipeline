@@ -20,6 +20,12 @@ workflow run_pipeline {
 
     main:
 
+        // Register the classes for serialization to allow them to be cached
+        KryoHelper.register(ManifestRecord)
+        KryoHelper.register(RegistrationRecord)
+        KryoHelper.register(Well)
+
+
         // ------------------------------------------------------------
         // Check parameters
         if (params.rn_skip_checks) {
@@ -159,12 +165,18 @@ workflow run_pipeline {
             // This is not really used other that for ensuring that both decons are done before
             // I tried to specify the files instead of the plates, but this is hard to stage
             // in a plate/row/col structure for finalize as the file directories have the same name
+            //
+            // decon_plates is passed straight through to finalize as a `val` (hashed verbatim)
+            // purely as a completion barrier - groupTuple collects plate names in whatever order
+            // the parallel per-plate decon tasks for this well happen to finish, so sort before
+            // handing off or finalize's cache key (and therefore -resume) changes on every run
+            // even when nothing about the actual data changed.
             image_input = decon_out
                 .map{row -> tuple(row[0].plate, row[0], row[1], row[2])}
                 .combine(qry_ref, by: 0)
                 .map{ row -> tuple(groupKey(row[4] + ":" + row[1].well, row[4].getGroupSize()), row[0], row[1], row[2], row[3]) } // ref plate, plate, well, manifest, path
                 .groupTuple(by: 0)
-                .map{ row -> tuple(row[0].getGroupTarget(), row[1]) }
+                .map{ row -> tuple(row[0].getGroupTarget(), row[1].sort()) }
         } else {
             // Generates a channel, ref_plate:well, [plates]
             image_input = cellpose_in.map{ row -> tuple(row[0].key, row[1].plate) } // key, cycle plates

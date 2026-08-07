@@ -242,7 +242,7 @@ workflow finalize_images {
                 .combine(channel_map, by: 0)
                 .map{ row -> tuple(row[1], row[2], row[3], row[5]) }
                 .groupTuple(by: 0)
-                .map{ row -> new RegistrationRecord(row[0].getGroupTarget(), row[1][0], row[2].findAll(), row[3].findAll{ idx -> row[2][row[3].indexOf(idx)] != null}) } // findall removes the null (refplates) so they are not treated as qry
+                .map{ row -> RegistrationRecord.fromVars(row[0].getGroupTarget(), row[1][0], row[2].findAll(), row[3].findAll{ idx -> row[2][row[3].indexOf(idx)] != null}) } // findall removes the null (refplates) so they are not treated as qry
 
                 // Create the cellcrop input channel with the updated registration record that has the registered channel indices to correlate
                 cellcrop_in = finalize_images_and_masks
