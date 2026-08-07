@@ -53,14 +53,14 @@ def buildCellcropsFingerprint(h5_out) {
 // Finalizes and caches images for feature extraction (rn_cache_images).
 //
 // Normal flow (sc_scale_in_finalize=false): finalize writes unscaled images to
-// processed_images/unscaled, intensities are always measured on those (even if no scaling is
+// rr__processed_images/unscaled, intensities are always measured on those (even if no scaling is
 // requested, to support a future QC step), then - if scaling is requested - factors are
 // estimated from those same unscaled images and a separate rescale pass produces
-// processed_images/scaled.
+// rr__processed_images/scaled.
 //
 // Fast path (sc_scale_in_finalize=true, requires sc_manualscale - enforced in checks.nf):
 // scaling factors are already known upfront, so finalize applies them directly and writes
-// straight to processed_images/scaled, skipping the unscaled artifact, measurement, and the
+// straight to rr__processed_images/scaled, skipping the unscaled artifact, measurement, and the
 // separate rescale pass entirely.
 workflow finalize_images {
 
@@ -122,8 +122,8 @@ workflow finalize_images {
         // real change - see buildPlateFingerprint's comment for why).
         finalize_fp = buildPlateFingerprint(finalize_out.processed_output)
         index_unscaled(finalize_fp.fingerprint,
-                        "processed_images/${finalize_subdir}",
-                        file(rn_publish_dir + "/processed_images/${finalize_subdir}"),
+                        "rr__processed_images/${finalize_subdir}",
+                        file(rn_publish_dir + "/rr__processed_images/${finalize_subdir}"),
                         finalize_fp.plate)
 
         // Always measure these images, even when no scaling is requested, to
@@ -179,14 +179,14 @@ workflow finalize_images {
             // Rescale the existing cached processed images
             rescale_out = rescale(finalize_out.processed_output, scaling_file, slope_file, bias_file)
 
-            // rescale always writes to processed_images/scaled - index it separately
+            // rescale always writes to rr__processed_images/scaled - index it separately
             // from the unscaled output indexed above. See buildPlateFingerprint above
             // for why previous_completed carries a content fingerprint instead of a
             // throwaway barrier value.
             rescale_fp = buildPlateFingerprint(rescale_out.processed_output)
             index_scaled(rescale_fp.fingerprint,
-                            "processed_images/scaled",
-                            file(rn_publish_dir + "/processed_images/scaled"),
+                            "rr__processed_images/scaled",
+                            file(rn_publish_dir + "/rr__processed_images/scaled"),
                             rescale_fp.plate)
                             
             images_out = rescale_out.processed_output
@@ -260,7 +260,7 @@ workflow finalize_images {
             // Index cellcrops - see buildCellcropsFingerprint above for why this isn't
             // cellcrop_out.h5.last() (an arbitrary last-completed well, order-unstable
             // and blind to in-place content changes several directories deep)
-            index_cellcrops(buildCellcropsFingerprint(cellcrop_out.h5), file(rn_publish_dir + "/cellcrops"))
+            index_cellcrops(buildCellcropsFingerprint(cellcrop_out.h5), file(rn_publish_dir + "/rr__cellcrops"))
         }
 
     emit:

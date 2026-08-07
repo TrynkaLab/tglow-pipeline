@@ -8,7 +8,7 @@ process finalize_and_cellprofiler {
     conda params.cpr_conda_env
     container params.cpr_container
     
-    publishDir "$params.rn_publish_dir/features/cellprofiler"
+    publishDir "$params.rn_publish_dir/rr__features/cellprofiler"
     scratch params.rn_scratch
 
     input:
@@ -160,7 +160,7 @@ process cellprofiler {
     conda params.cpr_conda_env
     container params.cpr_container
     
-    publishDir "$params.rn_publish_dir/features/cellprofiler"
+    publishDir "$params.rn_publish_dir/rr__features/cellprofiler"
     scratch params.rn_scratch
 
     input:

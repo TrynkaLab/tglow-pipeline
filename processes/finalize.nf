@@ -6,7 +6,7 @@ process finalize {
     conda params.cpr_conda_env
     container params.rn_container
     
-    publishDir "$params.rn_publish_dir/processed_images"
+    publishDir "$params.rn_publish_dir/rr__processed_images"
     scratch params.rn_scratch
 
     input:
@@ -174,7 +174,7 @@ process rescale {
     conda params.rn_conda_env
     container params.rn_container
 
-    publishDir "$params.rn_publish_dir/processed_images"
+    publishDir "$params.rn_publish_dir/rr__processed_images"
     scratch params.rn_scratch
 
     input:
@@ -221,7 +221,7 @@ process cellcrops {
     conda params.rn_conda_env
     container params.rn_container
 
-    publishDir "$params.rn_publish_dir/cellcrops"
+    publishDir "$params.rn_publish_dir/rr__cellcrops"
     scratch params.rn_scratch
 
     input:
@@ -266,7 +266,7 @@ process index_cellcrops {
     conda params.rn_conda_env
     container params.rn_container
 
-    publishDir "$params.rn_publish_dir/cellcrops"
+    publishDir "$params.rn_publish_dir/rr__cellcrops"
 
     input:
         val previous_completed
@@ -300,7 +300,7 @@ process index_cellcrops_csv {
     conda params.rn_conda_env
     container params.rn_container
 
-    publishDir "$params.rn_publish_dir/cellcrops"
+    publishDir "$params.rn_publish_dir/rr__cellcrops"
 
     input:
         val previous_completed

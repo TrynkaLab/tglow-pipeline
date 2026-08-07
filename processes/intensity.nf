@@ -11,7 +11,7 @@ process measure_intensity {
     conda params.rn_conda_env
     container params.rn_container
 
-    publishDir { "$params.rn_publish_dir/scaling/measurements/$outdir" }
+    publishDir { "$params.rn_publish_dir/rr_features/measurements/$outdir" }
     scratch params.rn_scratch
 
     input:
