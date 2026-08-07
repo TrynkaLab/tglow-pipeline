@@ -20,12 +20,6 @@ workflow run_pipeline {
 
     main:
 
-        // Register the classes for serialization to allow them to be cached
-        KryoHelper.register(ManifestRecord)
-        KryoHelper.register(RegistrationRecord)
-        KryoHelper.register(Well)
-
-
         // ------------------------------------------------------------
         // Check parameters
         if (params.rn_skip_checks) {
