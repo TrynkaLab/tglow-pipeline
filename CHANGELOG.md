@@ -3,13 +3,21 @@
 
 
 ## Major changes:
-- Removed the subcell workflow, it was out of date
+
+### General changes
 - Reworked the scaling workflow, which should now be broadly automated rather than relying on two pipeline runs
 - Updated syntax to support the latest Nextflow (26.04), which enforces strict syntax by default; required a lot of refactoring
-- Dropped `-entry`, added `--workflow` to control the entrypoint
 - Added a validation routine for input files
-- Changed how PSFs are specified in the manifest, now in `<channel>=<path>` format; dropped `dc_channels`
-- Moved processes downstream of finalize from storeDir to publishDir. Folders that are populated this way (i.e. their contents are symlinked back to the cached files in the workdir, rather than being independent copies) are prefixed with `rr__`
+- Moved processes downstream of finalize from storeDir to publishDir. Folders that are populated this way (i.e. their contents are symlinked back to the cached files in the workdir, rather than being independent copies) are prefixed with `rr__`. This means these will now be re-run if their input changes. Old caching style is maintained for cellpose, decon, images, flatfields and registration, so these will still need to manually be removed to force a rerun. 
+- Removed the subcell workflow, it was out of date
+
+
+### Input & parameter changes
+- Dropped `-entry` (no longer supported by NF > 26.04), added `--workflow` to control which workflow gets executed
+- Changed how PSFs are specified in the manifest, now in `<channel>=<path>` format; dropped `dc_channels` as it is no longer needed
+- Dropped `channels` column in manifest, it wasn't used
+- Several configurations have been renamed, please see the parameters header below.
+
 
 ## Bugfixes
 - Fixed index_images & index_cellcrops re-triggering unnecessarily due to `.last()`; now uses a fingerprint-based approach that checks modification times without needing to stage every input file
@@ -24,6 +32,7 @@
 - Added new configuration for the Sanger CUB cluster
 - Updated the GPU queue for the Sanger farm22 cluster
 - Renamed the manifest parameter `bp_channels` to `ff_channels`
+- General code cleanup, removed deperacted scripts and comments
 
 ## Parameters:
 - Added `--workflow`
