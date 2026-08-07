@@ -71,7 +71,7 @@ def checkPsfMap(String value, String colName) {
 
 // Main manifest (rn_manifest)
 def validateManifestContent(String path) {
-    def MANIFEST_COLUMNS = ["plate", "index_xml", "channels", "ff_channels", "cp_nucl_channel",
+    def MANIFEST_COLUMNS = ["plate", "index_xml", "ff_channels", "cp_nucl_channel",
                             "cp_cell_channel", "dc_psfs", "mask_channels"] as Set
 
     def errors = []
@@ -101,7 +101,6 @@ def validateManifestContent(String path) {
 
         def rowErrors = []
         rowErrors << checkRequired(plate, null, "plate", "a plate name")
-        rowErrors << checkRequired(fields[colIndex.channels], INT_LIST_RE(), "channels", "a comma-separated list of integers")
         rowErrors << checkOptional(fields[colIndex.index_xml], null, "index_xml", "a file path")
         rowErrors << checkOptional(fields[colIndex.ff_channels], INT_LIST_RE(), "ff_channels", "a comma-separated list of integers")
         rowErrors << checkOptional(fields[colIndex.cp_nucl_channel], SINGLE_INT_RE(), "cp_nucl_channel", "a single integer")

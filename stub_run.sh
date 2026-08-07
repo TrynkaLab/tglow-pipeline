@@ -28,12 +28,12 @@ mkdir -p "$STUB_DIR/results/images" "$STUB_DIR/workdir"
 # so only the channel(s) actually being deconvolved need an entry).
 touch "$STUB_DIR/dummy_psf.tif"
 
-# Core manifest: one plate, two channels, nucleus=1 & cell=2 (so cellpose has
-# something to key off), everything else disabled ("none").
+# Core manifest: one plate, nucleus=1 & cell=2 (so cellpose has something to
+# key off), everything else disabled ("none").
 cat > "$STUB_DIR/manifest.tsv" <<EOF
-plate	index_xml	channels	ff_channels	cp_nucl_channel	cp_cell_channel	dc_psfs	mask_channels
-PLATE1	dummy_index.xml	1,2	1	1	2	1=$STUB_DIR/dummy_psf.tif	none
-PLATE2	dummy_index.xml	1,2	1	1	2	1=$STUB_DIR/dummy_psf.tif	none
+plate	index_xml	ff_channels	cp_nucl_channel	cp_cell_channel	dc_psfs	mask_channels
+PLATE1	dummy_index.xml	1	1	2	1=$STUB_DIR/dummy_psf.tif	none
+PLATE2	dummy_index.xml	1	1	2	1=$STUB_DIR/dummy_psf.tif	none
 EOF
 touch "$STUB_DIR/dummy_index.xml"
 

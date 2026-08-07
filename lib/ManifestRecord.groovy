@@ -12,7 +12,6 @@ class ManifestRecord {
         [
             plate:           row.plate,
             index_xml:       row.index_xml,
-            channels:        (row.channels == null || row.channels == "none") ? "none" : row.channels.split(',').collect { it as Integer - 1 },
             ff_channels:     (row.ff_channels == null || row.ff_channels == "none") ? "none" : row.ff_channels.split(',').collect { it as Integer - 1 },
             cp_nucl_channel: (row.cp_nucl_channel == null || row.cp_nucl_channel == "none") ? "none" : (row.cp_nucl_channel as Integer) - 1,
             cp_cell_channel: (row.cp_cell_channel == null || row.cp_cell_channel == "none") ? "none" : (row.cp_cell_channel as Integer) - 1,

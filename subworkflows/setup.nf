@@ -24,7 +24,6 @@ workflow setup {
                 ManifestRecord.fromRow(
                     plate: row.plate,
                     index_xml: row.index_xml,
-                    channels: (row.channels == null) ? "none" : row.channels,
                     ff_channels: (row.ff_channels == null) ? "none" : row.ff_channels,
                     cp_nucl_channel: row.cp_nucl_channel,
                     cp_cell_channel: row.cp_cell_channel,

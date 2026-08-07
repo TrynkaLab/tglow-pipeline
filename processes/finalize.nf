@@ -138,8 +138,9 @@ process finalize {
         // silently dropping every well from cellcrops.
         // Assumes merge plates share the ref plate's channel count, since the
         // real count comes from each plate's actual image dims, which the stub
-        // has no image to read.
-        ref_channels = (manifest.channels instanceof List) ? manifest.channels : []
+        // has no image to read. Hardcoded to a plausible 5-channel plate rather
+        // than sourced from the manifest, since no real step consumes that count.
+        ref_channels = 0..4
         channel_rows = []
         channel_id = 0
         ref_channels.each { ch ->
