@@ -8,7 +8,7 @@ include { deconvolute } from '../processes/decon.nf'
 include { register } from '../processes/registration.nf'
 include { cellpose } from '../processes/segmentation.nf'
 include { cellprofiler;  finalize_and_cellprofiler } from '../processes/cellprofiler.nf'
-include { build_plate_index; concat_cellprofiler } from '../processes/concat_cellprofiler.nf'
+include { concat_cellprofiler } from '../processes/concat_cellprofiler.nf'
 
 // Subworkflows
 include { setup } from "../subworkflows/setup.nf"

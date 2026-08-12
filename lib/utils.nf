@@ -50,6 +50,31 @@ def parseManifestFlatfields(String rn_manifest) {
 }
 
 
+// Deterministic plate -> plate_id (P1, P2, ...) lookup, assigned in manifest
+// order (first plate encountered is P1, etc.) so it's stable regardless of
+// Nextflow's actual (parallel, non-deterministic) task-completion order.
+// Used to build globally unique cell/image ids in concat_cellprofiler, since
+// CellProfiler's own ImageNumber/ObjectNumber only need to be unique within
+// one well's output.
+def buildPlateIndex(String manifestPath) {
+    def header = null
+    def plates = []
+
+    new File(manifestPath).splitEachLine("\t") { fields ->
+        if (header == null) {
+            header = fields
+        } else {
+            def plate = fields[header.indexOf("plate")]
+            if (!plates.contains(plate)) {
+                plates << plate
+            }
+        }
+    }
+
+    return plates.withIndex(1).collectEntries { plate, i -> [plate, "P${i}"] }
+}
+
+
 // Read blacklist as list of plate:well
 def readBlacklist(String path){
 

@@ -1,7 +1,7 @@
 #!/usr/bin/env nextflow
 
 include { index_imagedir } from '../processes/staging.nf'
-include { readBlacklist } from '../lib/utils.nf'
+include { readBlacklist; buildPlateIndex } from '../lib/utils.nf'
 include { checkParamsBase } from '../lib/checks.nf'
 
 workflow setup {
@@ -111,13 +111,8 @@ workflow setup {
         well_channel = well_channel.map{ row -> tuple(row.plate, row) }
         
         
-        // Deterministic plate -> plate_id (P1, P2, ...) lookup, sorted by
-        // plate name so it's stable regardless of task-completion order
-        plate_index_map = build_plate_index(file(params.rn_manifest))
-            .splitCsv(header: ["plate", "plate_id"], sep: "\t", skip: 1)
-            .map { row -> tuple(row.plate, row.plate_id) }
-            .toList()
-            .map { rows -> rows.collectEntries { it } }
+        // Deterministic plate -> plate_id (P1, P2, ...) lookup
+        plate_index_map = Channel.value(buildPlateIndex(params.rn_manifest))
 
         // Wells per plate, from well_channel (settled at setup, long before any
         // plate's cellprofiler tasks finish). Setting groupTuple's size per-plate
