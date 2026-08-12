@@ -147,10 +147,10 @@ def merge_child_object(cells, cur, obj, parent_col, merge_strategy, zip_path):
     return cells.merge(agg.reset_index(), how="left", on="_merge_key")
 
 
-def process_well(zip_path, plate, well, well_idx, plate_id, parent_col, child_pattern, merge_strategy):
+def process_well(zip_path, plate, well, plate_id, parent_col, child_pattern, merge_strategy):
     """Return (cells_df, image_df) for one well, or (None, None) if it has nothing usable."""
 
-    fileset_id = f"{plate_id}W{well_idx}"
+    fileset_id = f"{plate_id}W{well}"
 
     with zipfile.ZipFile(zip_path) as zf:
         cell_member = image_member = None
@@ -193,7 +193,6 @@ def process_well(zip_path, plate, well, well_idx, plate_id, parent_col, child_pa
     for df in (cells, image):
         df["plate"] = plate
         df["well"] = well
-        df["well_idx"] = well_idx
 
     cells["global_cell_id"] = cells.get("cell_ObjectNumber_Global")
     image["global_image_id"] = image.get("ImageNumber_Global")
@@ -214,7 +213,7 @@ def main(args):
         log.info(f"Processing {args.plate} well {well} ({well_idx}/{len(zip_paths)}): {zip_path}")
 
         cells, image = process_well(
-            zip_path, args.plate, well, well_idx, args.plate_id,
+            zip_path, args.plate, well, args.plate_id,
             args.parent_col, args.child_pattern, args.merge_strategy
         )
         if cells is not None:
