@@ -150,7 +150,7 @@ def merge_child_object(cells, cur, obj, parent_col, merge_strategy, zip_path):
 def process_well(zip_path, plate, well, plate_id, parent_col, child_pattern, merge_strategy):
     """Return (cells_df, image_df) for one well, or (None, None) if it has nothing usable."""
 
-    fileset_id = f"{plate_id}W{well}"
+    fileset_id = f"{plate_id}_{well}"
 
     with zipfile.ZipFile(zip_path) as zf:
         cell_member = image_member = None
