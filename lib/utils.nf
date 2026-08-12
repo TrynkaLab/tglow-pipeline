@@ -1,4 +1,14 @@
 
+// Coerce a param to a real boolean. CLI overrides of boolean params (e.g. --foo false)
+// arrive as the String "false" rather than an actual Boolean unless nf-schema's
+// validateParameters() runs and coerces them (skipped when rn_skip_checks is set) -
+// and Groovy treats any non-empty String, including "false", as truthy. Callers that
+// need reliable boolean semantics (publishDir enabled:, workflow if-conditions) should
+// go through this instead.
+def asBoolean(value) {
+    return (value instanceof String) ? value.toBoolean() : !!value
+}
+
 // Convert a 1 indexed integer string to zero indexed integer
 def convertChannelType(String input) {
     if (input.isInteger()) {

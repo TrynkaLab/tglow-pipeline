@@ -419,6 +419,11 @@
           "type": "boolean",
           "default": false,
           "description": "When scaling is enabled (sc_autoscale or sc_manualscale), controls whether finalize applies it directly (writing straight to processed_images/scaled) or defers to a separate rescale pass that reads processed_images/unscaled. false (default): finalize writes processed_images/unscaled and can run without waiting on scaling factors; rescale then produces processed_images/scaled from that. Keeps an unscaled artifact around and maximizes parallelism. true: finalize waits on scaling factors and writes processed_images/scaled directly, skipping the extra read/write pass; requires sc_manualscale and cannot be combined with sc_autoscale. No effect if scaling is disabled."
+        },
+        "sc_publish_unscaled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Publish the unscaled processed images (rr__processed_images/unscaled) written by finalize when sc_scale_in_finalize is false. Disabling this saves storage - the unscaled images are still written to the work directory and used internally (e.g. by rescale), just not copied into rn_publish_dir. No effect when sc_scale_in_finalize is true, since finalize then writes straight to processed_images/scaled instead."
         }
       }
     },
@@ -456,6 +461,11 @@
         "cpr_container": {
           "type": "string",
           "description": "Container for the cellprofiler enviroment"
+        },
+        "cpr_publish_features_per_well": {
+          "type": "boolean",
+          "default": false,
+          "description": "Publish CellProfiler feature outputs (rr__features/cellprofiler), written by either the cellprofiler process (cached-images path, rn_cache_images=true) or finalize_and_cellprofiler (combined, non-cached path, rn_cache_images=false) - whichever one actually runs."
         }
       }
     }

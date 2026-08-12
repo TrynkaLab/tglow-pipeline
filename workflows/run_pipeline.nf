@@ -222,6 +222,7 @@ workflow run_pipeline {
                         params.sc_manualscale,
                         params.sc_scale_slope,
                         params.sc_scale_bias,
+                        params.sc_publish_unscaled,
                         params.rn_make_cellcrops,
                         params.rn_manifest_registration,
                         params.rn_publish_dir,

@@ -2,11 +2,14 @@
 
 process finalize {
     label params.cpr_label
-    
+
     conda params.cpr_conda_env
     container params.rn_container
-    
-    publishDir "$params.rn_publish_dir/rr__processed_images"
+
+    // toString().toBoolean() since a CLI override arrives as the String "false", which
+    // Groovy treats as truthy - a plain `enabled: params.x` would never disable this.
+    publishDir "$params.rn_publish_dir/rr__processed_images", pattern: "unscaled/**", enabled: params.sc_publish_unscaled.toString().toBoolean()
+    publishDir "$params.rn_publish_dir/rr__processed_images", pattern: "{scaled/**,masks/**}"
     scratch params.rn_scratch
 
     input:

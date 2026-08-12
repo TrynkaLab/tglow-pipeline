@@ -4,6 +4,7 @@ include { finalize; rescale; index_cellcrops; index_cellcrops_csv; cellcrops } f
 include { measure_intensity; stage_as_plate } from '../processes/intensity.nf'
 include { index_images as index_unscaled; index_images as index_scaled } from '../processes/staging.nf'
 include { estimate_scaling_factors } from './scaling_factors.nf'
+include { asBoolean } from '../lib/utils.nf'
 
 // A path-type process output emitted via a glob (e.g. path("*.tiff")) comes through as a
 // bare Path when exactly one file matches, and only as a List when more than one file
@@ -74,6 +75,7 @@ workflow finalize_images {
         sc_manualscale
         sc_scale_slope
         sc_scale_bias
+        sc_publish_unscaled
         rn_make_cellcrops
         rn_manifest_registration
         rn_publish_dir
@@ -121,10 +123,12 @@ workflow finalize_images {
         // when it needs to instead of on nearly every run (or, worse, never noticing a
         // real change - see buildPlateFingerprint's comment for why).
         finalize_fp = buildPlateFingerprint(finalize_out.processed_output)
-        index_unscaled(finalize_fp.fingerprint,
-                        "rr__processed_images/${finalize_subdir}",
-                        file(rn_publish_dir + "/rr__processed_images/${finalize_subdir}"),
-                        finalize_fp.plate)
+        if (finalize_subdir != "unscaled" || asBoolean(sc_publish_unscaled)) {
+            index_unscaled(finalize_fp.fingerprint,
+                            "rr__processed_images/${finalize_subdir}",
+                            file(rn_publish_dir + "/rr__processed_images/${finalize_subdir}"),
+                            finalize_fp.plate)
+        }
 
         // Always measure these images, even when no scaling is requested, to
         // support a future QC step

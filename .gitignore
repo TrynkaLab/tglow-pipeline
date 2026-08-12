@@ -14,3 +14,4 @@ scaling_script.r
 **/results
 **/workdir
 clean_nextflow.sh
+*.zip

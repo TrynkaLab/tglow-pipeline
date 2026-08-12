@@ -4,11 +4,13 @@
 // regular queue
 process finalize_and_cellprofiler {
     label params.cpr_label
-    
+
     conda params.cpr_conda_env
     container params.cpr_container
-    
-    publishDir "$params.rn_publish_dir/rr__features/cellprofiler"
+
+    // toString().toBoolean() since a CLI override arrives as the String "false", which
+    // Groovy treats as truthy - a plain `enabled: params.x` would never disable this.
+    publishDir "$params.rn_publish_dir/rr__features/cellprofiler", enabled: params.cpr_publish_features_per_well.toString().toBoolean()
     scratch params.rn_scratch
 
     input:
@@ -160,7 +162,9 @@ process cellprofiler {
     conda params.cpr_conda_env
     container params.cpr_container
     
-    publishDir "$params.rn_publish_dir/rr__features/cellprofiler"
+    // toString().toBoolean() since a CLI override arrives as the String "false", which
+    // Groovy treats as truthy - a plain `enabled: params.x` would never disable this.
+    publishDir "$params.rn_publish_dir/rr__features/cellprofiler", enabled: params.cpr_publish_features_per_well.toString().toBoolean()
     scratch params.rn_scratch
 
     input:
