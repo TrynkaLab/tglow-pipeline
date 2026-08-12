@@ -10,7 +10,8 @@
 - Added a validation routine for input files
 - Moved processes downstream of finalize from storeDir to publishDir. Folders that are populated this way (i.e. their contents are symlinked back to the cached files in the workdir, rather than being independent copies) are prefixed with `rr__`. This means these will now be re-run if their input changes. Old caching style is maintained for cellpose, decon, images, flatfields and registration, so these will still need to manually be removed to force a rerun. 
 - Removed the subcell workflow, it was out of date
-- Cellprofiler features now published as parquet files aggregated per plate
+- Cellprofiler features now published as parquet files aggregated per plate (when cpr_no_zip=false (default))
+
 
 
 ### Input & parameter changes
@@ -34,11 +35,14 @@
 - Updated the GPU queue for the Sanger farm22 cluster
 - Renamed the manifest parameter `bp_channels` to `ff_channels`
 - General code cleanup, removed deperacted scripts and comments
+- By default, per well cellprofiler is not added to publishDir
+- Unscaled images can optionally be skipped in publishDir
 
 ## Parameters:
 - Added `--workflow`
 - Added `--cpr_publish_features_per_well` (default `false`) to make staging of well level CellProfiler feature outputs (`rr__features/cellprofiler`) optional
 - Added `--sc_publish_unscaled` (default `true`) to make staging of the unscaled processed images (`rr__processed_images/unscaled`) optional
+- Added `--cpr_run_concat` (default `true`), `--cpr_merge_strategy`, `--cpr_parent_col` and `--cpr_child_pattern` to control the new per-plate CellProfiler aggregation step (`rr__features/cellprofiler_concat`)
 - Removed subcell parameters
 - `sc_` prefix now used for scaling parameters
 - `bp_` prefix (basicpy) renamed to `ff_` (flatfield)

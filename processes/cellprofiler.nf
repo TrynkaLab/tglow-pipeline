@@ -23,9 +23,9 @@ process finalize_and_cellprofiler {
         path pipeline
 
     output:
-        path "features/${well.relpath}/*"
+        tuple val(well), path("features/${well.relpath}/*"), emit: features
     script:
-    
+
         // Stage the masks
         cmd =
         """
@@ -171,7 +171,7 @@ process cellprofiler {
         tuple val(well), path(images, stageAs: "input_images/*"), path(masks, stageAs: "input_masks/*")
         path pipeline
     output:
-        path "features/${well.relpath}/*"
+        tuple val(well), path("features/${well.relpath}/*"), emit: features
     script:
 
         // Outputs the cp files into ./images

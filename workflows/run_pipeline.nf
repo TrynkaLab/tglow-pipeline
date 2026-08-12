@@ -2,12 +2,13 @@
 include { validateParameters } from 'plugin/nf-schema'
 
 // Processes
-include { convertChannelType } from '../lib/utils.nf'
+include { convertChannelType; asBoolean } from '../lib/utils.nf'
 include  { checkParamsMain } from '../lib/checks.nf'
 include { deconvolute } from '../processes/decon.nf'
 include { register } from '../processes/registration.nf'
 include { cellpose } from '../processes/segmentation.nf'
 include { cellprofiler;  finalize_and_cellprofiler } from '../processes/cellprofiler.nf'
+include { build_plate_index; concat_cellprofiler } from '../processes/concat_cellprofiler.nf'
 
 // Subworkflows
 include { setup } from "../subworkflows/setup.nf"
@@ -271,10 +272,33 @@ workflow run_pipeline {
                                                             image_dir_file,
                                                             flatfield_out,
                                                             scaling_file,
-                                                            slope_file, 
+                                                            slope_file,
                                                             bias_file,
                                                             cpr_pipeline)
-            } 
+            }
+
+            //------------------------------------------------------------
+            // Aggregate each plate's per-well CellProfiler zips into one cell-level
+            // and one image-level parquet file (requires cpr_no_zip=false, enforced
+            // in checks.nf - see processes/concat_cellprofiler.nf)
+            //------------------------------------------------------------
+            if (asBoolean(params.cpr_run_concat)) {
+                // Deterministic plate -> plate_id (P1, P2, ...) lookup, sorted by
+                // plate name so it's stable regardless of task-completion order
+                plate_index_map = build_plate_index(file(params.rn_manifest))
+                    .splitCsv(header: ["plate", "plate_id"], sep: "\t", skip: 1)
+                    .map { row -> tuple(row.plate, row.plate_id) }
+                    .toList()
+                    .map { rows -> rows.collectEntries { it } }
+
+                cellprofiler_by_plate = cellprofiler_out.features
+                    .map { well, zip -> tuple(well.plate, zip) }
+                    .groupTuple(by: 0)
+                    .combine(plate_index_map)
+                    .map { plate, zips, idx -> tuple(plate, idx[plate], zips) }
+
+                concat_cellprofiler(cellprofiler_by_plate)
+            }
         }
-         
+
 }

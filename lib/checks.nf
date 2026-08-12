@@ -1,4 +1,5 @@
 include { validateManifestContent; validateBlacklistContent; validateRegistrationManifestContent; validateControlListContent; formatValidationErrors } from './validateInputs.nf'
+include { asBoolean } from './utils.nf'
 
 // Sanity check the run parameters, erroring out early on invalid combinations
 def checkParamsMain(params) {
@@ -221,6 +222,14 @@ def checkParamsCpr(params) {
         // (no plugins installed), which is a valid "no plugins" state, not a misconfiguration.
         if (params.cpr_plugins != null && !file(params.cpr_plugins).exists()) {
             log.warn "cpr_plugins directory does not exist, plugins will not be loaded: ${params.cpr_plugins}"
+        }
+
+        if (asBoolean(params.cpr_run_concat) && asBoolean(params.cpr_no_zip)) {
+            error("cpr_run_concat requires cpr_no_zip to be false - plate-level concatenation needs each well's CellProfiler output as a self-contained zip")
+        }
+
+        if (asBoolean(params.cpr_run_concat) && !(params.cpr_merge_strategy in ["mean", "median", "sum"])) {
+            error("cpr_merge_strategy must be one of ['mean', 'median', 'sum'] but got: ${params.cpr_merge_strategy}")
         }
     }
 

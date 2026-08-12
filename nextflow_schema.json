@@ -466,6 +466,26 @@
           "type": "boolean",
           "default": false,
           "description": "Publish CellProfiler feature outputs (rr__features/cellprofiler), written by either the cellprofiler process (cached-images path, rn_cache_images=true) or finalize_and_cellprofiler (combined, non-cached path, rn_cache_images=false) - whichever one actually runs."
+        },
+        "cpr_run_concat": {
+          "type": "boolean",
+          "default": true,
+          "description": "Aggregate each plate's per-well CellProfiler zips into one cell-level and one image-level parquet file (rr__features/cellprofiler_concat). Requires cpr_no_zip=false - each well's zip is self-contained, which loose per-well .txt files are not once staged together for a whole plate."
+        },
+        "cpr_merge_strategy": {
+          "type": "string",
+          "default": "mean",
+          "description": "How to aggregate a child object's numeric columns onto its parent cell when it has a 1:many relationship (e.g. several nucleoli per cell). One of 'mean', 'median', 'sum'. Categorical (non-numeric) columns instead keep the shared value if every child row agrees, or NA if they disagree."
+        },
+        "cpr_parent_col": {
+          "type": "string",
+          "default": "Parent_cell",
+          "description": "Column used to match a child object row to its parent cell (e.g. CellProfiler's RelateObjects module writes this as Parent_<parent object name>)."
+        },
+        "cpr_child_pattern": {
+          "type": "string",
+          "default": "^.*_([a-zA-Z]+\\d*)\\.txt$",
+          "description": "Regex identifying a CellProfiler output file as a child object to merge onto the parent cell - the first capture group is used as the object's name. Matches everything except _cell.txt, _Image.txt, _Experiment.txt and _Object relationships.txt, which are handled separately."
         }
       }
     }
