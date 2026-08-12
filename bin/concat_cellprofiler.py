@@ -227,8 +227,8 @@ def main(args):
     all_cells = pd.concat(cells_parts, ignore_index=True) if cells_parts else pd.DataFrame()
     all_image = pd.concat(image_parts, ignore_index=True) if image_parts else pd.DataFrame()
 
-    all_cells.to_parquet(args.output_cells, index=False)
-    all_image.to_parquet(args.output_image, index=False)
+    all_cells.to_parquet(args.output_cells, index=False, compression='zstd')
+    all_image.to_parquet(args.output_image, index=False, compression='zstd')
 
     log.info(f"Wrote {args.output_cells} ({len(all_cells)} rows, {len(all_cells.columns)} cols)")
     log.info(f"Wrote {args.output_image} ({len(all_image)} rows, {len(all_image.columns)} cols)")
