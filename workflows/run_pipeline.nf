@@ -45,6 +45,8 @@ workflow run_pipeline {
         plates = setup.out.plates
         manifest_registration = setup.out.manifest_registration
         well_channel = setup.out.well_channel
+        plate_index_map = setup.out.plate_index_map
+        plate_well_counts = setup.out.plate_well_counts
 
         // Channels with file objects
         manifest_registration_file = setup.out.manifest_registration_file
@@ -283,17 +285,12 @@ workflow run_pipeline {
             // in checks.nf - see processes/concat_cellprofiler.nf)
             //------------------------------------------------------------
             if (asBoolean(params.cpr_run_concat)) {
-                // Deterministic plate -> plate_id (P1, P2, ...) lookup, sorted by
-                // plate name so it's stable regardless of task-completion order
-                plate_index_map = build_plate_index(file(params.rn_manifest))
-                    .splitCsv(header: ["plate", "plate_id"], sep: "\t", skip: 1)
-                    .map { row -> tuple(row.plate, row.plate_id) }
-                    .toList()
-                    .map { rows -> rows.collectEntries { it } }
-
                 cellprofiler_by_plate = cellprofiler_out.features
                     .map { well, zip -> tuple(well.plate, zip) }
+                    .combine(plate_well_counts, by: 0)
+                    .map { plate, zip, count -> tuple(groupKey(plate, count), zip) }
                     .groupTuple(by: 0)
+                    .map { key, zips -> tuple(key.getGroupTarget(), zips) }
                     .combine(plate_index_map)
                     .map { plate, zips, idx -> tuple(plate, idx[plate], zips) }
 

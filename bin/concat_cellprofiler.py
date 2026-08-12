@@ -77,14 +77,14 @@ def add_global_ids(df, fileset_id):
 
     image_cols = [c for c in df.columns if "ImageNumber" in c]
     for col in image_cols:
-        df[f"{col}_Global"] = df[col].map(lambda v: f"FS{fileset_id}_I{v}" if pd.notna(v) else pd.NA)
+        df[f"{col}_Global"] = df[col].map(lambda v: f"{fileset_id}_I{v}" if pd.notna(v) else pd.NA)
 
     if image_cols:
         img_values = df[image_cols[0]]
         object_cols = [c for c in df.columns if ("ObjectNumber" in c) or ("Object_Number" in c) or ("Parent" in c)]
         for col in object_cols:
             df[f"{col}_Global"] = [
-                f"FS{fileset_id}_I{img}_O{obj}" if pd.notna(img) and pd.notna(obj) else pd.NA
+                f"{fileset_id}_I{img}_O{obj}" if pd.notna(img) and pd.notna(obj) else pd.NA
                 for img, obj in zip(img_values, df[col])
             ]
 

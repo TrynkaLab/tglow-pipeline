@@ -109,12 +109,32 @@ workflow setup {
 
         // Add the plate for easier combining later
         well_channel = well_channel.map{ row -> tuple(row.plate, row) }
+        
+        
+        // Deterministic plate -> plate_id (P1, P2, ...) lookup, sorted by
+        // plate name so it's stable regardless of task-completion order
+        plate_index_map = build_plate_index(file(params.rn_manifest))
+            .splitCsv(header: ["plate", "plate_id"], sep: "\t", skip: 1)
+            .map { row -> tuple(row.plate, row.plate_id) }
+            .toList()
+            .map { rows -> rows.collectEntries { it } }
+
+        // Wells per plate, from well_channel (settled at setup, long before any
+        // plate's cellprofiler tasks finish). Setting groupTuple's size per-plate
+        // via groupKey lets a plate's group emit as soon as its own wells are done,
+        // instead of groupTuple waiting for cellprofiler_out to close entirely.
+        plate_well_counts = well_channel
+            .map { plate, well -> tuple(plate, 1) }
+            .groupTuple(by: 0)
+            .map { plate, ones -> tuple(plate, ones.size()) }
 
     emit:
         manifest=manifest
         plates=plates
         manifest_registration=manifest_registration
         well_channel=well_channel
+        plate_index_map=plate_index_map
+        plate_well_counts=plate_well_counts
 
         // File channels
         manifest_registration_file=manifest_registration_file
