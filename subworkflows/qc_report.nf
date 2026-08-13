@@ -90,6 +90,7 @@ workflow qc_report {
         // across all plates.
         //------------------------------------------------------------------------
         show_decon = params.dc_run
+        show_decon = false
         if (show_decon) {
             if (has_registration) {
                 reg_first = manifest_registration.first()

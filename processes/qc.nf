@@ -33,6 +33,7 @@ process qc_decon_samples {
         --output_format OME_TIFF \
         --well ${well_id} \
         --plate ${ref_plate} \
+        --fields 1 \
         ${merge_flag} \
         ${registration_flag}
 
@@ -42,6 +43,7 @@ process qc_decon_samples {
         --output_format OME_TIFF \
         --well ${well_id} \
         --plate ${ref_plate} \
+        --fields 1 \
         ${merge_flag} \
         ${registration_flag}
 
