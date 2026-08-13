@@ -19,9 +19,16 @@ log.setLevel(logging.DEBUG)
 DUMMY_VALUE = 1.0
 
 # DUMMY IMPLEMENTATION: per-cell registration correlation isn't computed yet either -
-# fabricate one ch1_ch<N>__registration_corr column per non-reference channel (2..N),
-# with a spread of values either side of the QC report's default qc_regcor=0.6, so the
-# registration QC tab has something meaningful to filter/plot pending the real thing.
+# fabricate a single fixed registration_corr column, unconditionally on every row
+# regardless of that well's own channel count. Wells/plates can have different raw
+# channel counts (e.g. different antibody panels per registration cycle) - a column
+# set that depended on n_channels would concat into NaN for whichever plate/well
+# has fewer channels, and filter_registration_correlation treats a missing/NaN
+# value as an automatic fail, silently wiping that plate's cells out of every
+# downstream qc'ed-cell computation. Emitting the same column unconditionally
+# avoids that failure mode entirely. Values are spread either side of the QC
+# report's default qc_regcor=0.6, so the registration QC tab has something
+# meaningful to filter/plot pending the real thing.
 DUMMY_REGISTRATION_CORR_RANGE = (0.3, 1.0)
 
 # DUMMY IMPLEMENTATION: no masks are read yet, so this many placeholder objects are
@@ -41,12 +48,10 @@ def channel_columns(n_channels, stats):
     return columns
 
 
-def registration_corr_columns(n_channels):
-    """DUMMY: one ch1_ch<N>__registration_corr value per non-reference channel."""
-    return {
-        f"ch1_ch{channel}__registration_corr": random.uniform(*DUMMY_REGISTRATION_CORR_RANGE)
-        for channel in range(2, n_channels + 1)
-    }
+def registration_corr_columns():
+    """DUMMY: a single fixed registration_corr column, unconditional (see the
+    module-level comment above for why the column set must not vary between wells)."""
+    return {"ch1_ch2__registration_corr": random.uniform(*DUMMY_REGISTRATION_CORR_RANGE)}
 
 
 def get_n_channels(reader, plate, row, col, fields):
@@ -98,7 +103,7 @@ def main(args):
                 "field": field,
                 "well": well_id,
                 **channel_columns(n_channels, OBJECT_STATS),
-                **registration_corr_columns(n_channels)
+                **registration_corr_columns()
             })
 
     object_df = pd.DataFrame(object_rows)
