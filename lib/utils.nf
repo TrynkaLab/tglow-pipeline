@@ -34,8 +34,8 @@ def parseManifestFlatfields(String rn_manifest) {
     csvData.drop(1).eachWithIndex{ line, i ->
         def curLine = line.split('\t')
 
-        if (curLine[3] != "none") {
-            def curChannels = curLine[3].split(',')
+        if (curLine[2] != "none") {
+            def curChannels = curLine[2].split(',')
             curChannels.each{ channel ->
                 plate_channel << tuple(curLine[0], channel.toInteger()-1, curLine[1])
 
