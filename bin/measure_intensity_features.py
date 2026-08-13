@@ -2,6 +2,7 @@
 
 import os
 import argparse
+import random
 import pandas as pd
 
 import logging
@@ -16,6 +17,12 @@ log.setLevel(logging.DEBUG)
 # DUMMY IMPLEMENTATION: real object detection / intensity computation is not implemented yet.
 # All feature values are populated with this placeholder instead.
 DUMMY_VALUE = 1.0
+
+# DUMMY IMPLEMENTATION: per-cell registration correlation isn't computed yet either -
+# fabricate one ch1_ch<N>__registration_corr column per non-reference channel (2..N),
+# with a spread of values either side of the QC report's default qc_regcor=0.6, so the
+# registration QC tab has something meaningful to filter/plot pending the real thing.
+DUMMY_REGISTRATION_CORR_RANGE = (0.3, 1.0)
 
 # DUMMY IMPLEMENTATION: no masks are read yet, so this many placeholder objects are
 # fabricated per field instead of being counted from a real cell mask.
@@ -32,6 +39,14 @@ def channel_columns(n_channels, stats):
         for stat in stats:
             columns[f"ch{channel}__{stat}"] = DUMMY_VALUE
     return columns
+
+
+def registration_corr_columns(n_channels):
+    """DUMMY: one ch1_ch<N>__registration_corr value per non-reference channel."""
+    return {
+        f"ch1_ch{channel}__registration_corr": random.uniform(*DUMMY_REGISTRATION_CORR_RANGE)
+        for channel in range(2, n_channels + 1)
+    }
 
 
 def get_n_channels(reader, plate, row, col, fields):
@@ -82,7 +97,8 @@ def main(args):
                 "col": col,
                 "field": field,
                 "well": well_id,
-                **channel_columns(n_channels, OBJECT_STATS)
+                **channel_columns(n_channels, OBJECT_STATS),
+                **registration_corr_columns(n_channels)
             })
 
     object_df = pd.DataFrame(object_rows)
