@@ -37,6 +37,11 @@ workflow estimate_scaling_factors {
             bias_channel = Channel.value(file("NO_BIAS"))
         }
 
+        // scaling_index.tsv (the full per-plate/channel table behind scaling_factors.txt -
+        // used by the QC report's Tab 6) only exists on the autoscale path; manual scaling
+        // never produces it.
+        scaling_index_channel = Channel.value(file("NO_SCALING_INDEX"))
+
         // Autoscale derives factors (and sigmoid bias/slope) from the measured intensities.
         // sc_channel_map/sc_control_list are both optional - when absent, calculate_scaling_factors
         // (via processes/scaling.nf) falls back to dynamic-range-only scaling from sc_autoscale_q1/q2.
@@ -49,6 +54,7 @@ workflow estimate_scaling_factors {
             )
 
             scaling_channel = calc_out.scaling_factors.first()
+            scaling_index_channel = calc_out.scaling_index.first()
 
             // Autoscale fits its own sigmoid bias/slope from the control images - use those
             // unless the user explicitly supplied manual overrides
@@ -61,4 +67,5 @@ workflow estimate_scaling_factors {
         scaling_file=scaling_channel
         slope_file=slope_channel
         bias_file=bias_channel
+        scaling_index_file=scaling_index_channel
 }

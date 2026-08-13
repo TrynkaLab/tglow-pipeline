@@ -15,6 +15,7 @@ include { setup } from "../subworkflows/setup.nf"
 include { flatfield_estimation } from "../subworkflows/flatfield_estimation.nf"
 include { estimate_scaling_factors } from "../subworkflows/scaling_factors.nf"
 include { finalize_images } from "../subworkflows/finalize_images.nf"
+include { qc_report } from "../subworkflows/qc_report.nf"
 
 // Main workflow
 workflow run_pipeline {
@@ -99,7 +100,10 @@ workflow run_pipeline {
             cellpose_in = well_channel
             .combine(manifest.map{row -> tuple(row.plate, row)}, by: 0)
             .filter{ row -> row[2].cp_cell_channel != "none" }
-            .map{row -> tuple(row[1], row[2], file(params.rn_image_dir + "/" + row[1].relpath))} 
+            .map{row -> tuple(row[1], row[2], file(params.rn_image_dir + "/" + row[1].relpath))}
+
+            // Kept defined (empty) so qc_report can always reference it regardless of dc_run
+            decon_out = Channel.empty()
         }
         
         //------------------------------------------------------------
@@ -296,6 +300,27 @@ workflow run_pipeline {
 
                 concat_cellprofiler(cellprofiler_by_plate)
             }
+        }
+
+        //------------------------------------------------------------
+        //                       QC report
+        //------------------------------------------------------------
+        // Requires rn_cache_images (enforced in checks.nf), so finalize_images.out is
+        // always available by this point whenever qc_run is true.
+        if (params.qc_run) {
+            qc_report(
+                finalize_images.out.measurements,
+                file(params.rn_manifest),
+                manifest_registration,
+                manifest_registration_file,
+                params.rn_manifest_registration != null,
+                blacklist_file,
+                well_channel,
+                flatfield_out,
+                decon_out,
+                registration_out,
+                finalize_images.out.scaling_index_file,
+            )
         }
 
 }

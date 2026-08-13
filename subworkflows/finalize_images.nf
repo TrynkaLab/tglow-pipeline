@@ -137,6 +137,10 @@ workflow finalize_images {
         //------------------------------------------------------------------------
         // Block 2: default path, use cached images to determine scaling factors
         //------------------------------------------------------------------------
+        // scaling_index.tsv (used by the QC report's Tab 6) only exists on the
+        // sc_autoscale path - default to a placeholder, overridden below if it runs.
+        scaling_index_file = Channel.value(file("NO_SCALING_INDEX"))
+
         if (!sc_scale_in_finalize && run_scaling) {
             if (sc_autoscale) {
                 // Auto scaling: aggregate per-well parquet output into one directory per
@@ -173,6 +177,7 @@ workflow finalize_images {
                 scaling_file = estimate_scaling_factors.out.scaling_file
                 slope_file = estimate_scaling_factors.out.slope_file
                 bias_file = estimate_scaling_factors.out.bias_file
+                scaling_index_file = estimate_scaling_factors.out.scaling_index_file
             } else if (sc_manualscale != null){
                 // Manual scaling
                 scaling_file = file(sc_manualscale)
@@ -269,4 +274,6 @@ workflow finalize_images {
 
     emit:
         finalize_images_and_masks = finalize_images_and_masks
+        measurements = measure_intensity.out.measurements
+        scaling_index_file = scaling_index_file
 }

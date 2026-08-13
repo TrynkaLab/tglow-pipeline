@@ -10,15 +10,15 @@ input files instead of being baked into the tglow object).
 """
 
 import argparse
-import glob
 import logging
-import os
 import re
 
 import numpy as np
 import pandas as pd
 
 from tglow.utils.tglow_utils import sigmoid_params
+from tglow.qc.registration import filter_registration_correlation
+from tglow.qc.io import load_measurements
 
 logging.basicConfig(format='%(asctime)s %(message)s')
 log = logging.getLogger(__name__)
@@ -130,45 +130,6 @@ def build_dynamic_range_channel_map(cell_df, q1):
 def get_feature_series(df, feature):
     """Extract a single feature column as a dense 1D array."""
     return df[feature].to_numpy()
-
-
-def filter_registration_correlation(cell_df, pattern, threshold):
-    """Drop objects whose registration correlation falls below threshold in any matching channel column.
-
-    Columns matching `pattern` (substring match, e.g. "registration_corr") report the
-    correlation between channels used for registration. An object is kept only if every
-    matching column is >= threshold; a missing/NaN value counts as a failure.
-    """
-    corr_cols = [c for c in cell_df.columns if pattern in c]
-
-    if not corr_cols:
-        log.warning(f"No columns matching registration feature pattern '{pattern}' found - skipping registration-based filtering")
-        return cell_df
-
-    passes = cell_df[corr_cols].ge(threshold).all(axis=1)
-    n_removed = (~passes).sum()
-    log.info(
-        f"Registration filtering ({corr_cols}, threshold={threshold}): "
-        f"removing {n_removed}/{len(cell_df)} objects"
-    )
-
-    return cell_df.loc[passes].reset_index(drop=True)
-
-
-def load_measurements(input_dir, name_fragment):
-    """Concatenate <input_dir>/<plate>/*<name_fragment>*.parquet across every plate.
-
-    input_dir is the directory of per-plate subdirectories produced by stage_as_plate,
-    each containing that plate's wells' object_features.parquet/image_features.parquet
-    (auto-disambiguated by Nextflow's staging, but that doesn't matter here - every
-    parquet file already carries its own plate/row/col/field/well columns).
-    """
-    paths = sorted(glob.glob(os.path.join(input_dir, "*", f"*{name_fragment}*.parquet")))
-
-    if not paths:
-        raise RuntimeError(f"No {name_fragment} parquet files found under {input_dir}")
-
-    return pd.concat([pd.read_parquet(p) for p in paths], ignore_index=True)
 
 
 def build_scaling_index(channel_map, plates):

@@ -23,6 +23,9 @@ def checkParamsMain(params) {
     // Check registration parameters
     checkParamsRegistration(params)
 
+    // Check QC report parameters
+    checkParamsQc(params)
+
     // Check cellcrops
     if (params.rn_make_cellcrops && !params.rn_cache_images) {
         error("rn_cache_images must be true when rn_make_cellcrops is true")
@@ -268,5 +271,12 @@ def checkParamsRegistration(params) {
         if (params.rg_mode != "CROSS") {
             error("rg_mode '${params.rg_mode}' is not supported - only 'CROSS' is currently enabled (STACKREG is disabled due to dependency issues)")
         }
+    }
+}
+
+
+def checkParamsQc(params) {
+    if (params.qc_run && !params.rn_cache_images) {
+        error("qc_run requires rn_cache_images to be true - the QC report reads the measure_intensity parquet output produced inside finalize_images")
     }
 }

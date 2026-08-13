@@ -488,6 +488,45 @@
           "description": "Regex identifying a CellProfiler output file as a child object to merge onto the parent cell - the first capture group is used as the object's name. Matches everything except _cell.txt, _Image.txt, _Experiment.txt and _Object relationships.txt, which are handled separately."
         }
       }
+    },
+    "qc": {
+      "title": "QC report",
+      "type": "object",
+      "description": "",
+      "default": "",
+      "properties": {
+        "qc_run": {
+          "type": "boolean",
+          "default": false,
+          "description": "Run the QC report subworkflow. Requires rn_cache_images=true, since it reads the measure_intensity parquet output produced inside finalize_images. Tab 1 (general QC) is always shown; tabs 2-6 (registration, flatfield, decon, intensities, scaling) only appear if the corresponding pipeline stage actually ran."
+        },
+        "qc_regcor": {
+          "type": "number",
+          "default": 0.6,
+          "description": "Minimum per-cell registration correlation for a cell to count as 'qc'ed' in the report (Tab 2 qc'ed cell count/density plot, Tab 5 intensity stats). Same semantics as sc_registration_thresh, but kept independent since the QC report and scaling-factor estimation are conceptually separate consumers of the same column."
+        },
+        "qc_registration_pattern": {
+          "type": "string",
+          "default": "registration_corr",
+          "description": "Substring used to find per-channel-pair registration correlation columns in object_features for qc_regcor filtering. Same convention as sc_registration_pattern."
+        },
+        "qc_n_sample_registration": {
+          "type": "integer",
+          "default": 10,
+          "description": "Number of randomly sampled registration images shown (click-through) in Tab 2"
+        },
+        "qc_n_sample_decon": {
+          "type": "integer",
+          "default": 10,
+          "description": "Number of randomly sampled wells used to build the before/after decon comparison images in Tab 4"
+        },
+        "qc_plate_format": {
+          "type": "string",
+          "default": "auto",
+          "enum": ["auto", "24", "96", "384", "1536"],
+          "description": "Plate format used to lay out the Tab 1/5 per-plate heatmaps. 'auto' infers the format from the max row/col seen in the data; set explicitly to override."
+        }
+      }
     }
   },
   "allOf": [
@@ -514,6 +553,9 @@
     },
     {
       "$ref": "#/$defs/cellprofiler"
+    },
+    {
+      "$ref": "#/$defs/qc"
     }
   ]
 }

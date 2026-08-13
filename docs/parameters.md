@@ -137,3 +137,16 @@
 | `cpr_pipeline_3d` |  | `string` |  |  |  |
 | `cpr_no_zip` |  | `boolean` |  |  |  |
 | `cpr_container` | Container for the cellprofiler enviroment | `string` |  |  |  |
+
+## QC report
+
+
+
+| Parameter | Description | Type | Default | Required | Hidden |
+|-----------|-----------|-----------|-----------|-----------|-----------|
+| `qc_run` | Run the QC report subworkflow. Requires rn_cache_images=true, since it reads the measure_intensity parquet output produced inside finalize_images. Tab 1 (general QC) is always shown; tabs 2-6 (registration, flatfield, decon, intensities, scaling) only appear if the corresponding pipeline stage actually ran. | `boolean` | False |  |  |
+| `qc_regcor` | Minimum per-cell registration correlation for a cell to count as 'qc'ed' in the report (Tab 2 qc'ed cell count/density plot, Tab 5 intensity stats). Same semantics as sc_registration_thresh, but kept independent since the QC report and scaling-factor estimation are conceptually separate consumers of the same column. | `number` | 0.6 |  |  |
+| `qc_registration_pattern` | Substring used to find per-channel-pair registration correlation columns in object_features for qc_regcor filtering. Same convention as sc_registration_pattern. | `string` | registration_corr |  |  |
+| `qc_n_sample_registration` | Number of randomly sampled registration images shown (click-through) in Tab 2 | `integer` | 10 |  |  |
+| `qc_n_sample_decon` | Number of randomly sampled wells used to build the before/after decon comparison images in Tab 4 | `integer` | 10 |  |  |
+| `qc_plate_format` | Plate format used to lay out the Tab 1/5 per-plate heatmaps. 'auto' infers the format from the max row/col seen in the data; set explicitly to override. | `string` | auto |  |  |

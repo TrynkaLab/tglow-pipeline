@@ -48,23 +48,28 @@ process stage_as_plate {
     label "tiny"
 
     input:
-        tuple val(plate), path(features, stageAs: "measurements_in/*")
+        // Every well contributes an identically-named object_features.parquet/
+        // image_features.parquet - measure_intensity's own well.relpath nesting
+        // doesn't survive re-staging here (only the basename does), so a flat
+        // "measurements_in/*" pattern collides the moment a plate has >1 well.
+        // "input*/*" gives each well's pair its own numbered subdirectory instead.
+        tuple val(plate), path(features, stageAs: "measurements_in/input*/*")
     output:
         tuple val(plate), path("${plate}/")
     script:
         // Workaround as we cannot use variables from the same tuple in stageAs -
-        // stage generically, then symlink into the plate-named dir
-        // calculate_scaling_factors expects (Nextflow auto-disambiguates the
-        // same-named object/image_features.parquet files coming from different wells).
+        // stage generically (see input: above), then move the whole thing into the
+        // plate-named dir. calculate_scaling_factors/tglow.qc.io's load_measurements
+        // glob one level deeper (<plate>/*/*.parquet) to match this nesting.
         """
         mkdir -p ${plate}
-        ln -s \$(pwd)/measurements_in/* ${plate}/
-        echo "Staged \$(ls ${plate}/ | wc -l) files for plate ${plate}"
+        mv measurements_in/* ${plate}/
+        echo "Staged \$(find ${plate} -type f | wc -l) files for plate ${plate}"
         """
     stub:
         """
-        mkdir -p ${plate}
-        touch ${plate}/stub_object_features.parquet
-        touch ${plate}/stub_image_features.parquet
+        mkdir -p ${plate}/input1
+        touch ${plate}/input1/stub_object_features.parquet
+        touch ${plate}/input1/stub_image_features.parquet
         """
 }

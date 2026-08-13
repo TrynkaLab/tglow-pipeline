@@ -19,7 +19,7 @@ process calculate_scaling_factors {
         path "scaling_factors.txt", emit: scaling_factors
         path "sigmoid_bias.txt", emit: scaling_bias
         path "sigmoid_slope.txt", emit: scaling_slope
-        path "scaling_index.tsv"
+        path "scaling_index.tsv", emit: scaling_index
     script:
         cmd =
         """
