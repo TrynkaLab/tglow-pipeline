@@ -5,7 +5,7 @@ import logging
 from tglow.io.image_query import ImageQuery
 import tglow.io.tglow_io as tglow_io
 import argparse
-from aicsimageio.types import PhysicalPixelSizes    
+from bioio_base.types import PhysicalPixelSizes
 
 
 # Setup logging

@@ -8,7 +8,7 @@ import logging
 from tglow.io.image_query import ImageQuery
 from tglow.io.tglow_io import AICSImageReader
 from tglow.utils.tglow_utils import float_to_16bit_unint, float_to_32bit_unint, rescale_stack
-from aicsimageio.writers import OmeTiffWriter
+from bioio_ome_tiff.writers import OmeTiffWriter
 
 # Logging
 logging.basicConfig(format='%(asctime)s %(message)s')

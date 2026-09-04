@@ -6,7 +6,7 @@ import tifffile
 import argparse
 import numpy as np
 
-from aicsimageio.types import PhysicalPixelSizes
+from bioio_base.types import PhysicalPixelSizes
 from skimage.transform import downscale_local_mean, resize
 from tglow.io.tglow_io import AICSImageReader, AICSImageWriter
 from tglow.io.image_query import ImageQuery

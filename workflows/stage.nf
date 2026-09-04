@@ -1,7 +1,6 @@
 #!/usr/bin/env nextflow
 include { validateParameters } from 'plugin/nf-schema'
-include { prepare_manifest; fetch_raw } from '../processes/staging.nf'
-
+include { prepare_manifest; parse_fieldmatrix; fetch_raw } from '../processes/staging.nf'
 
 // Workflow to stage the data from NFS to lustre
 workflow stage {
@@ -32,7 +31,15 @@ workflow stage {
                 
         // Read in the manifest
         if (params.rn_manifest_well == null) {
-            manifests_in = prepare_manifest(manifest).manifest
+            
+            // Prepare the PE manifest based on the index xml
+            prepped_manifest = prepare_manifest(manifest)
+            
+            // Extract the field matrix from the index json
+            parse_fieldmatrix(prepped_manifest.out.metadata)
+            
+            manifests_in = prepped_manifest.out.manifest
+            
         } else {
             manifests_in = Channel.from(params.rn_manifest_well)
         }

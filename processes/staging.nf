@@ -47,7 +47,7 @@ process prepare_manifest {
         tuple val(plate), val(index_xml)
     output:
         path "manifest.tsv", emit: manifest
-        tuple path("Index.*xml"), path("Index.json"), path("acquisition_info.txt"), emit: metadata
+        tuple val(plate), path("Index.*xml"), path("Index.json"), path("acquisition_info.txt"), emit: metadata
     script:
         cmd =
         """
@@ -68,6 +68,33 @@ process prepare_manifest {
         touch Index.xml
         touch acquisition_info.txt
         """    
+}
+
+
+process parse_fieldmatrix {
+    
+    label 'normal'
+    conda params.rn_conda_env
+    storeDir { "${params.rn_image_dir}/${plate}" }
+    
+    input:
+        tuple val(plate), path("Index.*xml"), path("Index.json"), path("acquisition_info.txt")
+    output:
+        path "field_matrices/*"
+    script:
+        cmd =
+        """
+        parse_fieldmatrix.py \
+        --input_file Index.json \
+        --output_path ./field_matrices
+        """
+        cmd    
+    stub:
+        """
+        mkdir -p field_matrices
+        touch field_matrices/field_matrix.tsv
+        """    
+    
 }
 
 // Create a manifest for a dir of images if it does not exist yet

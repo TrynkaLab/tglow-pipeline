@@ -37,6 +37,7 @@
 - General code cleanup, removed deperacted scripts and comments
 - By default, per well cellprofiler is not added to publishDir
 - Unscaled images can optionally be skipped in publishDir
+- Added creation of field matrix to stage workflow detailling how fields are organized spatially
 
 ## Parameters:
 - Added `--workflow`
